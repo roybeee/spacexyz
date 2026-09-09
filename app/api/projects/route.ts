@@ -30,17 +30,13 @@ export async function POST(req: Request) {
         const id = typeof b.id === 'string' && /^[a-zA-Z0-9-]{1,80}$/.test(b.id) ? b.id : crypto.randomUUID();
         const revision = b.revision;
         const now = new Date().toISOString();
-        if (scene.photoId) {
-            const photo = await db().prepare('SELECT id FROM photos WHERE id=? AND owner=?').bind(scene.photoId, u).first();
-            if (!photo)
-                throw new HttpError(400, '이 프로젝트의 사진을 사용할 수 없습니다.');
-        }
-        const references = [...scene.nodes.filter(n => n.kind === 'model').map(n => [n.assetId!, 'model'] as const), ...(scene.renders ?? []).map(r => [r.id, 'render'] as const)];
-        if (references.length) {
-            const rows = await db().prepare(`SELECT id,kind FROM assets WHERE owner=? AND id IN (${references.map(() => '?').join(',')})`).bind(u, ...references.map(r => r[0])).all();
-            if (references.some(([id, kind]) => !rows.results.some(r => r.id === id && r.kind === kind)))
-                throw new HttpError(400, '프로젝트의 모델 또는 시안에 접근할 수 없습니다. 같은 계정에서 불러오거나 해당 항목을 제거하세요.');
-        }
+        const designs=[scene,...(scene.variants??[]).map(v=>v.design)];
+        const photoIds=[...new Set(designs.flatMap(s=>s.photoId?[s.photoId]:[]))];
+        for(const photoId of photoIds){const photo=await db().prepare('SELECT id FROM photos WHERE id=? AND owner=?').bind(photoId,u).first();if(!photo)throw new HttpError(400,'현재 장면 또는 디자인 안의 사진을 사용할 수 없습니다.');}
+        const references=[...designs.flatMap(s=>s.nodes.filter(n=>n.kind==='model').map(n=>[n.assetId!,'model'] as const)),...(scene.renders??[]).map(r=>[r.id,'render'] as const)];
+        const assetIds=[...new Set(references.map(r=>r[0]))],owned=new Map<string,string>();
+        for(let i=0;i<assetIds.length;i+=80){const group=assetIds.slice(i,i+80);const rows=await db().prepare(`SELECT id,kind FROM assets WHERE owner=? AND id IN (${group.map(()=>'?').join(',')})`).bind(u,...group).all();for(const row of rows.results)owned.set(row.id as string,row.kind as string)}
+        if(references.some(([id,kind])=>owned.get(id)!==kind))throw new HttpError(400,'현재 장면 또는 디자인 안의 모델·시안에 접근할 수 없습니다. 같은 계정에서 불러오거나 해당 항목을 제거하세요.');
         if (revision === 0) {
             try {
                 await db().prepare('INSERT INTO projects(id,owner,name,scene,revision,updated_at) VALUES(?,?,?,?,1,?)').bind(id, u, scene.name, JSON.stringify(scene), now).run();

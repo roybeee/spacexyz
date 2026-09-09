@@ -31,7 +31,11 @@ export type MaterialFinish = z.infer<typeof finishSchema>;
 export const nodeSchema = z.object({ id: z.string().min(1).max(80), kind: z.enum([...kinds, 'model']), assetId: z.string().uuid().optional(), name: z.string().max(80), x: z.number().finite().min(-30000).max(30000), y: z.number().finite().min(0).max(12000), z: z.number().finite().min(-30000).max(30000), width: z.number().finite().min(20).max(20000), height: z.number().finite().min(20).max(12000), depth: z.number().finite().min(20).max(20000), rotation: z.number().finite().min(-3600).max(3600), material: z.enum(materialIds), faces: z.record(z.enum(materialIds)).default({}), color: hex.optional(), finish: finishSchema.optional(), faceFinishes: z.record(z.string().max(60), finishSchema).optional(), uniformMaterial: z.boolean().optional(), estimated: z.boolean().optional(), locked: z.boolean().default(false), hidden: z.boolean().default(false), host: z.enum(['back', 'left', 'right', 'front']).optional() });
 export type SceneNode = z.infer<typeof nodeSchema>;
 const surface = z.object({ material: z.enum(materialIds), color: hex.optional(), finish: finishSchema.optional() });
-export const sceneSchema = z.object({ version: z.literal(1), name: z.string().min(1).max(100), room: z.object({ width: z.number().min(2400).max(20000), depth: z.number().min(2400).max(20000), height: z.number().min(2200).max(6000), source: z.enum(['example', 'entered', 'measured']), surfaces: z.object({ floor: surface, back: surface, left: surface, right: surface, front: surface }) }), nodes: z.array(nodeSchema).max(300), lighting: z.object({ intensity: z.number().min(.2).max(2), warmth: z.number().min(2700).max(6500) }), photoId: z.string().max(80).optional(), renders: z.array(z.object({ id: z.string().uuid(), name: z.string().max(100), createdAt: z.string().datetime(), prompt: z.string().max(2000) })).max(20).optional(), palette: z.array(hex).max(8).optional(), draft: z.object({ method: z.enum(['photo-ai', 'template']), summary: z.string().max(1000), notes: z.array(z.string().max(500)).max(30) }).optional(), cameras: z.array(z.object({ id: z.string().max(80), name: z.string().max(80), view: z.enum(['perspective', 'top', 'front', 'interior']).optional(), zoom: z.number().min(.01).max(100).optional(), position: z.tuple([z.number().finite().min(-100).max(100), z.number().finite().min(-100).max(100), z.number().finite().min(-100).max(100)]), target: z.tuple([z.number().finite().min(-100).max(100), z.number().finite().min(-100).max(100), z.number().finite().min(-100).max(100)]) })).max(10).default([]) });
+export const coreSceneSchema = z.object({ version: z.literal(1), name: z.string().min(1).max(100), room: z.object({ width: z.number().min(2400).max(20000), depth: z.number().min(2400).max(20000), height: z.number().min(2200).max(6000), source: z.enum(['example', 'entered', 'measured']), surfaces: z.object({ floor: surface, back: surface, left: surface, right: surface, front: surface }) }), nodes: z.array(nodeSchema).max(300), lighting: z.object({ intensity: z.number().min(.2).max(2), warmth: z.number().min(2700).max(6500) }), photoId: z.string().max(80).optional(), renders: z.array(z.object({ id: z.string().uuid(), name: z.string().max(100), createdAt: z.string().datetime(), prompt: z.string().max(2000) })).max(20).optional(), palette: z.array(hex).max(8).optional(), draft: z.object({ method: z.enum(['photo-ai', 'template']), summary: z.string().max(1000), notes: z.array(z.string().max(500)).max(30) }).optional(), cameras: z.array(z.object({ id: z.string().max(80), name: z.string().max(80), view: z.enum(['perspective', 'top', 'front', 'interior']).optional(), zoom: z.number().min(.01).max(100).optional(), position: z.tuple([z.number().finite().min(-100).max(100), z.number().finite().min(-100).max(100), z.number().finite().min(-100).max(100)]), target: z.tuple([z.number().finite().min(-100).max(100), z.number().finite().min(-100).max(100), z.number().finite().min(-100).max(100)]) })).max(10).default([]) });
+export const designSchema=coreSceneSchema.pick({room:true,nodes:true,lighting:true,photoId:true,palette:true,draft:true});
+export const variantSchema=z.object({id:z.string().uuid(),name:z.string().min(1).max(60),note:z.string().max(400),createdAt:z.string().datetime(),design:designSchema});
+export const sceneSchema=coreSceneSchema.extend({variants:z.array(variantSchema).max(6).optional()});
+export type DesignVariant=z.infer<typeof variantSchema>;
 export type RenderResult = {
     id: string;
     name: string;
@@ -42,6 +46,7 @@ export type SceneData = z.infer<typeof sceneSchema>;
 export type Selection = {
     id: string;
     face?: string;
+    ids?: string[];
 } | null;
 export const surfaceNames: Record<string, string> = { floor: '바닥', back: '안쪽 벽', left: '왼쪽 벽', right: '오른쪽 벽', front: '입구 벽' };
 export const kindNames: Record<SceneNode['kind'], string> = { table: '카페 테이블', 'round-table': '원형 테이블', chair: '다이닝 체어', bench: '붙박이 벤치', counter: '카운터', shelf: '오픈 선반', plant: '실내 식물', pendant: '펜던트 조명', box: '직육면체', cylinder: '원기둥', partition: '파티션', door: '출입문', window: '창문', model: '가져온 3D 모델' };
@@ -55,6 +60,14 @@ export function createNode(kind: Kind, id: string, x = 0, z = 0): SceneNode { co
 export function initialScene(): SceneData { const a: SceneNode[] = []; const add = (k: Kind, id: string, x: number, z: number, extra: Partial<SceneNode> = {}) => a.push({ ...createNode(k, id, x, z), ...extra }); add('counter', 'counter', -1500, -2100); add('shelf', 'shelf', -1900, -2920, { width: 1800, height: 2000, depth: 300 }); add('bench', 'bench', 2960, 100, { width: 3800, rotation: 90 }); [-1300, 0, 1300].forEach((z, i) => { add('table', `table-${i}`, 2040, z); add('chair', `chair-${i}`, 1200, z, { rotation: -90 }); }); add('plant', 'plant', -2900, -2650); add('plant', 'plant2', 2900, -2650, { height: 1200, width: 380, depth: 380 }); add('round-table', 'round', -1700, 1250, { width: 900, depth: 900 }); add('chair', 'round-chair1', -2600, 1250, { rotation: -90 }); add('chair', 'round-chair2', -800, 1250, { rotation: 90 }); add('pendant', 'lamp', -1500, -1700, { y: 2350 }); add('pendant', 'lamp2', 2100, 0, { y: 2350 }); add('window', 'window-left', 0, 600, { host: 'left', width: 2200, y: 850, height: 1450 }); add('door', 'door-front', -1600, 0, { host: 'front' }); return { version: 1, name: 'OFD · 스토어 컨셉', room: { width: 7200, depth: 6400, height: 2900, source: 'example', surfaces: { floor: { material: 'terrazzo' }, back: { material: 'plaster' }, left: { material: 'plaster' }, right: { material: 'plaster' }, front: { material: 'plaster' } } }, nodes: a, lighting: { intensity: 1, warmth: 4200 }, cameras: [] }; }
 export function validateScene(input: unknown): SceneData {
     const s = sceneSchema.parse(input);
+    validateLayout(s);
+    const variantIds=new Set<string>();
+    for(const v of s.variants??[]){if(variantIds.has(v.id))throw new Error('디자인 안 ID가 중복되었습니다.');variantIds.add(v.id);validateLayout(v.design)}
+    if(new TextEncoder().encode(JSON.stringify(s)).length>1400000)throw new Error('프로젝트 크기가 너무 큽니다. 사용하지 않는 디자인 안을 제거하세요.');
+
+    return s;
+}
+function validateLayout(s:Pick<SceneData,'room'|'nodes'>){
     if (s.nodes.filter(n => n.kind === 'model').length > 20)
         throw new Error('외부 모델은 장면당 20개까지 배치할 수 있습니다.');
     const ids = new Set<string>();
@@ -106,7 +119,6 @@ export function validateScene(input: unknown): SceneData {
                     throw new Error('문과 창문이 겹칩니다. 위치를 조정하세요.');
             }
     }
-    return s;
 }
 export const commandSchema = z.discriminatedUnion('type', [
     z.object({ type: z.literal('material'), target: z.string(), material: z.enum(materialIds), color: hex.optional() }),
@@ -170,14 +182,13 @@ export function quickCommands(text: string, selection: Selection): SceneCommand[
     const mat = materials.find(m => t.includes(m.name)) ?? (t.includes('우드') || t.includes('오크') ? materials[1] : t.includes('화이트') ? materials[0] : t.includes('스틸') ? materials[5] : t.includes('월넛') ? materials[2] : null);
     if (mat) {
         const target = t.includes('벽') ? 'walls' : t.includes('바닥') ? 'floor' : t.includes('테이블') ? 'tables' : selection?.id;
-        if (target)
-            return [{ type: 'material', target, material: mat.id }];
+        if (target){const targets=selection?.ids?.length&&target===selection.id?selection.ids:[target];return targets.map(target=>({type:'material' as const,target,material:mat.id}));}
     }
     const add = t.match(/(테이블|의자|벤치|파티션)\s*(\d+)\s*개/);
     if (add)
         return [{ type: 'add', kind: ({ '테이블': 'table', '의자': 'chair', '벤치': 'bench', '파티션': 'partition' } as Record<string, Kind>)[add[1]], count: Number(add[2]) }];
     const size = t.match(/(높이|가로|폭|깊이)\D*(\d+(?:\.\d+)?)\s*(mm|cm|m|밀리|센티)?/i);
-    if (size && selection && !surfaceNames[selection.id])
+    if (size && selection && !selection.ids?.length && !surfaceNames[selection.id])
         return [{ type: 'resize', target: selection.id, axis: size[1] === '높이' ? 'height' : size[1] === '깊이' ? 'depth' : 'width', value: Number(size[2]) * (size[3] === 'cm' || size[3] === '센티' ? 10 : size[3] === 'm' ? 1000 : 1) }];
     if (t.includes('따뜻') && t.includes('조명'))
         return [{ type: 'light', value: 3000 }];

@@ -4,6 +4,7 @@ import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 import { parseModel, cloneModel, disposeModel } from './model-loader';
+import {selectionIds,groupBounds,groupPoses,type GroupDelta} from './selection';
 import { materials, nodeAppearance, type MaterialFinish, type MaterialId, type SceneData, type SceneNode, type Selection } from './scene-model';
 export type ToolMode = 'select' | 'translate' | 'rotate' | 'draw';
 export type ViewMode = 'perspective' | 'top' | 'front' | 'interior';
@@ -32,6 +33,13 @@ export class SceneEngine {
     frame = 0;
     data?: SceneData;
     selection: Selection = null;
+    multiSelect=false;
+    private pivot=new T.Group();
+    private multiOutlines:T.BoxHelper[]=[];
+    private groupDrag?:{key:string;nodes:SceneNode[];pivot:{x:number;y:number;z:number}};
+    onTransformGroup?:(ids:string[],delta:GroupDelta,pivot:{x:number;y:number;z:number})=>void;
+    private pointerCancel=()=>{this.cancelTransform();this.setSelection(this.selection)};
+    private lostCapture=()=>queueMicrotask(()=>{if(!this.disposed&&this.dragActive)this.pointerCancel()});
     outline?: T.BoxHelper;
     mode: ToolMode = 'select';
     view: ViewMode = 'perspective';
@@ -49,7 +57,7 @@ export class SceneEngine {
         width: number;
         depth: number;
     }) => void;
-    onSelect: (s: Selection) => void;
+    onSelect: (s: Selection,additive?:boolean) => void;
     onTransform: (id: string, p: Partial<SceneNode>) => void;
     private down = [0, 0];
     private dragActive = false;
@@ -65,7 +73,7 @@ export class SceneEngine {
             width: number;
             depth: number;
         }) => void;
-        onSelect: (s: Selection) => void;
+        onSelect: (s: Selection,additive?:boolean) => void;
         onTransform: (id: string, p: Partial<SceneNode>) => void;
     }) {
         this.onDraw = callbacks.onDraw;
@@ -92,7 +100,7 @@ export class SceneEngine {
         this.orbit.maxPolarAngle = Math.PI * .49;
         this.orbit.minDistance = 1;
         this.orbit.maxDistance = 70;
-        this.scene.add(this.root, this.helpers);
+        this.scene.add(this.root, this.helpers,this.pivot);this.pivot.name='SELECTION_PIVOT';
         this.root.name = 'SPATIAL_PROJECT';
         const pmrem = new T.PMREMGenerator(this.renderer);
         const room = new RoomEnvironment();
@@ -125,15 +133,18 @@ export class SceneEngine {
             if (e.value)
                 this.suppress = true;
         });
+        this.transform.addEventListener('mouseDown',()=>{if(this.transform.object===this.pivot&&this.data){const ids=selectionIds(this.selection);this.groupDrag={key:this.geometryKey,nodes:structuredClone(this.data.nodes.filter(n=>ids.includes(n.id))),pivot:{x:this.pivot.position.x*1000,y:this.pivot.position.y*1000,z:this.pivot.position.z*1000}}}});
+        this.transform.addEventListener('objectChange',()=>{if(!this.groupDrag||this.transform.object!==this.pivot)return;const poses=groupPoses(this.groupDrag.nodes,this.pivotDelta(),this.groupDrag.pivot);for(const p of poses){const obj=this.root.children.find(o=>o.userData.nodeId===p.id);if(obj){obj.position.set(p.x/1000,p.y/1000,p.z/1000);obj.rotation.set(0,p.rotation*Math.PI/180,0)}}});
         this.transform.addEventListener('mouseUp', () => {
             const o = this.transform.object;
             if (!o)
                 return;
+            if(o===this.pivot){this.finishGroupTransform();return;}
             const id = o.userData.nodeId as string;
             const n = this.data?.nodes.find(n => n.id === id);
             if (!n)
                 return;
-            const patch: Partial<SceneNode> = { x: Math.round(o.position.x * 1000), y: Math.max(0, Math.round(o.position.y * 1000)), z: Math.round(o.position.z * 1000), rotation: Math.round(Math.atan2(2 * (o.quaternion.w * o.quaternion.y + o.quaternion.x * o.quaternion.z), 1 - 2 * (o.quaternion.y * o.quaternion.y + o.quaternion.z * o.quaternion.z)) * 180 / Math.PI) };
+            const patch: Partial<SceneNode> = { x: Math.round(o.position.x * 1000), y: Math.round(o.position.y * 1000), z: Math.round(o.position.z * 1000), rotation: Math.round(Math.atan2(2 * (o.quaternion.w * o.quaternion.y + o.quaternion.x * o.quaternion.z), 1 - 2 * (o.quaternion.y * o.quaternion.y + o.quaternion.z * o.quaternion.z)) * 180 / Math.PI) };
             if (patch.x !== n.x || patch.y !== n.y || patch.z !== n.z || patch.rotation !== n.rotation)
                 this.onTransform(id, patch);
         });
@@ -173,15 +184,17 @@ export class SceneEngine {
             });
             const hit = hits[0];
             if (!hit) {
-                this.onSelect(null);
+                this.onSelect(null,e.shiftKey||this.multiSelect);
                 return;
             }
             const id = hit.object.userData.nodeId;
             const part = hit.object.userData.part as string;
-            this.onSelect({ id, face: this.selectionMode === 'face' && part ? `${part}:${hit.face?.materialIndex ?? 0}` : undefined });
+            this.onSelect({ id, face: !e.shiftKey&&!this.multiSelect&&this.selectionMode === 'face' && part ? `${part}:${hit.face?.materialIndex ?? 0}` : undefined },e.shiftKey||this.multiSelect);
         };
         this.renderer.domElement.addEventListener('pointerdown', this.pointerDown);
         this.renderer.domElement.addEventListener('pointerup', this.pointerUp);
+        this.renderer.domElement.addEventListener('pointercancel',this.pointerCancel);
+        this.renderer.domElement.addEventListener('lostpointercapture',this.lostCapture);
         this.observer = new ResizeObserver(() => this.resize());
         this.observer.observe(host);
         this.resize();
@@ -198,7 +211,7 @@ export class SceneEngine {
             this.fitPlan(w / h);
         this.camera.updateProjectionMatrix();
     }
-    private loop = () => { this.frame = requestAnimationFrame(this.loop); this.orbit.update(); this.updateCutaway(); this.outline?.update(); this.renderer.render(this.scene, this.camera); };
+    private loop = () => { this.frame = requestAnimationFrame(this.loop); this.orbit.update(); this.updateCutaway(); this.outline?.update();this.multiOutlines.forEach(o=>o.update()); this.renderer.render(this.scene, this.camera); };
     texture(id: MaterialId, color?: string) {
         const existing = this.textures.get(`${id}:${color ?? "default"}`);
         if (existing)
@@ -336,6 +349,7 @@ export class SceneEngine {
     }
     private cylinder(parent: T.Object3D, r: number, h: number, x: number, y: number, z: number, id: string, part: string, mat: MaterialId, node?: SceneNode, rTop?: number) { const mats = [0, 1, 2].map(i => node ? this.nodeMaterial(node, `${part}:${i}`, i === 0 ? [Math.PI * r * 2, h] : [r * 2, r * 2]) : this.material(mat)); const mesh = new T.Mesh(new T.CylinderGeometry(rTop ?? r, r, h, 32), mats); mesh.position.set(x, y, z); mesh.castShadow = true; mesh.receiveShadow = true; mesh.userData = { nodeId: id, part }; parent.add(mesh); return mesh; }
     setScene(data: SceneData) {
+        this.cancelTransform();
         const roomResized = this.data?.room.width !== data.room.width || this.data?.room.depth !== data.room.depth;
         const key = JSON.stringify({ room: data.room, nodes: data.nodes });
         this.data = data;
@@ -356,7 +370,7 @@ export class SceneEngine {
                 }
             }
             this.setLighting(data.lighting);
-            return;
+            this.setSelection(this.selection);return;
         }
         this.geometryKey = key;
         this.transform.detach();
@@ -580,6 +594,8 @@ export class SceneEngine {
         }
     }
     setSelection(selection: Selection) {
+        if(this.dragActive){if(JSON.stringify(selection)===JSON.stringify(this.selection))return;this.cancelTransform();}
+        for(const o of this.multiOutlines){this.helpers.remove(o);o.geometry.dispose();(o.material as T.Material).dispose()}this.multiOutlines=[];
         this.selection = selection;
         this.transform.detach();
         if (this.outline) {
@@ -590,6 +606,9 @@ export class SceneEngine {
         }
         if (!selection)
             return;
+        const ids=selectionIds(selection);
+        if(ids.length>1&&this.data){const nodes=this.data.nodes.filter(n=>ids.includes(n.id));for(const n of nodes){const obj=this.root.children.find(o=>o.userData.nodeId===n.id);if(!obj)continue;const outline=new T.BoxHelper(obj,0x7861f0);(outline.material as T.Material).depthTest=false;outline.renderOrder=10;this.helpers.add(outline);this.multiOutlines.push(outline)}
+        if(nodes.length&&nodes.every(n=>!n.locked&&!n.hidden&&!n.host)&&(this.mode==='translate'||this.mode==='rotate')){const center=groupBounds(nodes).center;this.pivot.position.set(center.x/1000,center.y/1000,center.z/1000);this.pivot.rotation.set(0,0,0);this.pivot.updateMatrixWorld(true);this.transform.setMode(this.mode);this.transform.showX=this.mode==='translate';this.transform.showY=true;this.transform.showZ=this.mode==='translate';this.transform.attach(this.pivot)}return;}
         const n = this.data?.nodes.find(n => n.id === selection.id);
         const obj = this.root.children.find(o => o.userData.nodeId === selection.id);
         if (!obj)
@@ -617,12 +636,30 @@ export class SceneEngine {
             this.transform.attach(obj);
         }
     }
-    setMode(mode: ToolMode) { this.mode = mode; this.drawStart = null; this.orbit.enabled = mode !== 'draw'; this.host.style.cursor = mode === 'draw' ? 'crosshair' : 'default'; this.setSelection(this.selection); }
+    private pivotDelta():GroupDelta{const pivot=this.groupDrag!.pivot;return{x:this.pivot.position.x*1000-pivot.x,y:this.pivot.position.y*1000-pivot.y,z:this.pivot.position.z*1000-pivot.z,rotation:Math.atan2(2*(this.pivot.quaternion.w*this.pivot.quaternion.y+this.pivot.quaternion.x*this.pivot.quaternion.z),1-2*(this.pivot.quaternion.y**2+this.pivot.quaternion.z**2))*180/Math.PI}}
+    private finishGroupTransform(){
+        const drag=this.groupDrag,delta=drag?this.pivotDelta():null;
+        this.groupDrag=undefined;this.dragActive=false;this.transform.dragging=false;this.transform.axis=null;this.orbit.enabled=this.mode!=='draw';this.suppress=true;
+        const restore=()=>{for(const n of this.data?.nodes??[]){if(n.host)continue;const obj=this.root.children.find(o=>o.userData.nodeId===n.id);if(obj){obj.position.set(n.x/1000,n.y/1000,n.z/1000);obj.rotation.set(0,n.rotation*Math.PI/180,0)}}};
+        try{
+            if(!drag||!delta||drag.key!==this.geometryKey||!this.onTransformGroup){restore();return;}
+            const poses=groupPoses(drag.nodes,delta,drag.pivot),changed=poses.some((p,i)=>{const n=drag.nodes[i];return p.x!==n.x||p.y!==n.y||p.z!==n.z||p.rotation!==n.rotation});
+            if(changed)this.onTransformGroup(drag.nodes.map(n=>n.id),delta,drag.pivot);else restore();
+        }catch(error){restore();throw error;}
+        finally{
+            // React may not have supplied the committed scene yet. Reset from live members,
+            // which also covers a synchronous rejection or a rounded no-op gesture.
+            const ids=selectionIds(this.selection),nodes=(this.data?.nodes??[]).filter(n=>ids.includes(n.id)).map(n=>{const obj=this.root.children.find(o=>o.userData.nodeId===n.id);return obj?{...n,x:obj.position.x*1000,y:obj.position.y*1000,z:obj.position.z*1000,rotation:obj.rotation.y*180/Math.PI}:n});
+            if(nodes.length){const c=groupBounds(nodes).center;this.pivot.position.set(c.x/1000,c.y/1000,c.z/1000)}this.pivot.rotation.set(0,0,0);this.pivot.updateMatrixWorld(true);
+        }
+    }
+    cancelTransform(){if(!this.dragActive&&!this.groupDrag)return;this.groupDrag=undefined;this.dragActive=false;this.transform.dragging=false;this.transform.axis=null;this.orbit.enabled=this.mode!=='draw';for(const n of this.data?.nodes??[]){if(n.host)continue;const obj=this.root.children.find(o=>o.userData.nodeId===n.id);if(obj){obj.position.set(n.x/1000,n.y/1000,n.z/1000);obj.rotation.set(0,n.rotation*Math.PI/180,0)}}const ids=selectionIds(this.selection),nodes=this.data?.nodes.filter(n=>ids.includes(n.id))??[];if(nodes.length){const c=groupBounds(nodes).center;this.pivot.position.set(c.x/1000,c.y/1000,c.z/1000);this.pivot.rotation.set(0,0,0)}this.suppress=true;}
+    setMode(mode: ToolMode) { this.cancelTransform();this.mode = mode; this.drawStart = null; this.orbit.enabled = mode !== 'draw'; this.host.style.cursor = mode === 'draw' ? 'crosshair' : 'default'; this.setSelection(this.selection); }
     setSelectionMode(mode: 'face' | 'object') { this.selectionMode = mode; }
     setSnap(value: boolean) { this.transform.setTranslationSnap(value ? .05 : null); this.transform.setRotationSnap(value ? Math.PI / 12 : null); }
     private fitPlan(aspect: number) { const w = (this.data?.room.width ?? 7200) / 1000, d = (this.data?.room.depth ?? 6400) / 1000; const half = Math.max(d * 1.25 / 2, w * 1.25 / (2 * aspect)); this.planCamera.left = -half * aspect; this.planCamera.right = half * aspect; this.planCamera.top = half; this.planCamera.bottom = -half; this.planCamera.updateProjectionMatrix(); }
     setView(view: ViewMode) {
-        this.view = view;
+        this.cancelTransform();this.view = view;
         this.planCamera.up.set(0, 0, -1);
         const nextCamera = view === 'top' ? this.planCamera : this.perspective;
         if (nextCamera !== this.camera) {
@@ -762,6 +799,8 @@ export class SceneEngine {
         this.observer.disconnect();
         this.renderer.domElement.removeEventListener('pointerdown', this.pointerDown);
         this.renderer.domElement.removeEventListener('pointerup', this.pointerUp);
+        this.renderer.domElement.removeEventListener('pointercancel',this.pointerCancel);this.renderer.domElement.removeEventListener('lostpointercapture',this.lostCapture);
+        for(const o of this.multiOutlines){o.geometry.dispose();(o.material as T.Material).dispose()}
         this.orbit.dispose();
         this.transform.dispose();
         this.clearGroup(this.root);

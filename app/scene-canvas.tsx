@@ -2,8 +2,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { LoaderCircle, MonitorX } from 'lucide-react';
 import type { SceneData, SceneNode, Selection } from '@/lib/scene-model';
+import type {GroupDelta} from '@/lib/selection';
 import type { SceneEngine, ToolMode, ViewMode } from '@/lib/scene-engine';
-export default function SceneCanvas({ scene, selection, tool, view, faceMode, snap, cutaway, onSelect, onTransform, onDraw, onReady, restoreCamera }: {
+export default function SceneCanvas({ scene, selection, tool, view, faceMode, snap, cutaway, onSelect, onTransform, onDraw, onReady, restoreCamera, multiSelect, onTransformGroup }: {
+    multiSelect?:boolean;
+    onTransformGroup?:(ids:string[],delta:GroupDelta,pivot:{x:number;y:number;z:number})=>void;
     restoreCamera?: SceneData['cameras'][number] | null;
     scene: SceneData;
     selection: Selection;
@@ -12,7 +15,7 @@ export default function SceneCanvas({ scene, selection, tool, view, faceMode, sn
     faceMode: 'face' | 'object';
     snap: boolean;
     cutaway: boolean;
-    onSelect: (s: Selection) => void;
+    onSelect: (s: Selection,additive?:boolean) => void;
     onDraw: (p: {
         x: number;
         z: number;
@@ -23,10 +26,10 @@ export default function SceneCanvas({ scene, selection, tool, view, faceMode, sn
     onReady: (e: SceneEngine | null) => void;
 }) {
     const host = useRef<HTMLDivElement>(null), engine = useRef<SceneEngine | null>(null);
-    const callbacks = useRef({ onSelect, onTransform, onDraw, onReady });
-    callbacks.current = { onSelect, onTransform, onDraw, onReady };
-    const current = useRef({ scene, selection, tool, view, faceMode, snap, cutaway });
-    current.current = { scene, selection, tool, view, faceMode, snap, cutaway };
+    const callbacks = useRef({ onSelect, onTransform, onDraw, onReady, onTransformGroup });
+    callbacks.current = { onSelect, onTransform, onDraw, onReady, onTransformGroup };
+    const current = useRef({ scene, selection, tool, view, faceMode, snap, cutaway,multiSelect });
+    current.current = { scene, selection, tool, view, faceMode, snap, cutaway,multiSelect };
     const [modelStatus, setModelStatus] = useState<{
         loading: number;
         errors: string[];
@@ -38,8 +41,9 @@ export default function SceneCanvas({ scene, selection, tool, view, faceMode, sn
             if (cancelled || !host.current)
                 return;
             try {
-                const e = new SceneEngine(host.current, { onDraw: p => callbacks.current.onDraw(p), onSelect: s => callbacks.current.onSelect(s), onTransform: (id, p) => callbacks.current.onTransform(id, p) });
+                const e = new SceneEngine(host.current, { onDraw: p => callbacks.current.onDraw(p), onSelect: (s,additive) => callbacks.current.onSelect(s,additive), onTransform: (id, p) => callbacks.current.onTransform(id, p) });
                 engine.current = e;
+                e.onTransformGroup=(ids,delta,pivot)=>callbacks.current.onTransformGroup?.(ids,delta,pivot);e.multiSelect=!!current.current.multiSelect;
                 e.onModelStatus = status => { if (!cancelled)
                     setModelStatus(status); };
                 e.setScene(current.current.scene);
@@ -64,6 +68,7 @@ export default function SceneCanvas({ scene, selection, tool, view, faceMode, sn
     useEffect(() => { engine.current?.setView(view); }, [view]);
     useEffect(() => { engine.current?.setSelectionMode(faceMode); }, [faceMode]);
     useEffect(() => { engine.current?.setSnap(snap); }, [snap]);
+    useEffect(()=>{if(engine.current)engine.current.multiSelect=!!multiSelect},[multiSelect]);
     useEffect(() => {
         if (engine.current)
             engine.current.cutaway = cutaway;

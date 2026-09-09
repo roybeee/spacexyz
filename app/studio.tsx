@@ -17,6 +17,12 @@ import PhotoDraftDialog from './photo-draft-dialog';
 import PlacementDialog from './placement-dialog';
 import ModelImportDialog from './model-import-dialog';
 import RenderDialog from './render-dialog';
+import BatchInspector from './batch-inspector';
+import DesignVariantsDialog from './design-variants-dialog';
+import FloorPlanDialog from './floor-plan-dialog';
+import {Checkbox} from '@/components/ui/checkbox';
+import {selectionIds,chooseSelection,normalizeSelection,batchAction,transformGroup,type GroupDelta} from '@/lib/selection';
+import {restoreVariant} from '@/lib/design-variants';
 import { selectionAppearance, editAppearance, collisions } from '@/lib/scene-model';
 import { initialScene, validateScene, createNode, materials, kindNames, kinds, surfaceNames, applyCommands, quickCommands, type MaterialId, type Kind, type SceneData, type SceneNode, type Selection, type SceneCommand } from '@/lib/scene-model';
 import type { SceneEngine, ToolMode, ViewMode } from '@/lib/scene-engine';
@@ -31,7 +37,7 @@ type Proposal = {
     scene: SceneData;
     title: string;
     details: string;
-    source: 'AI' | '빠른 명령' | '스타일' | '사진 팔레트' | '3D 초안';
+    source: 'AI' | '빠른 명령' | '스타일' | '사진 팔레트' | '3D 초안' | '디자인 안';
     newProject?: boolean;
 };
 const icons: Record<SceneNode['kind'], typeof Box> = { table: Table2, 'round-table': Circle, chair: Armchair, bench: Sofa, counter: RectangleHorizontal, shelf: Layers, plant: Leaf, pendant: Lightbulb, box: Box, cylinder: Circle, partition: PanelTop, door: DoorOpen, window: Square, model: Box };
@@ -89,6 +95,7 @@ export default function InteriorStudio() {
     const [scene, setScene] = useState<SceneData>(initialScene), [selection, setSelection] = useState<Selection>({ id: 'floor' }), [tab, setTab] = useState('materials'), [filter, setFilter] = useState('전체'), [query, setQuery] = useState(''), [mode, setMode] = useState('easy'), [tool, setTool] = useState<ToolMode>('select'), [view, setView] = useState<ViewMode>('perspective'), [faceMode, setFaceMode] = useState<'face' | 'object'>('face'), [snap, setSnap] = useState(true), [cutaway, setCutaway] = useState(true), [undo, setUndo] = useState<SceneData[]>([]), [redo, setRedo] = useState<SceneData[]>([]), [modal, setModal] = useState<string | null>(null), [mobileLibrary, setMobileLibrary] = useState(false), [mobileInspector, setMobileInspector] = useState(false), [projects, setProjects] = useState<Project[]>([]), [projectId, setProjectId] = useState<string | null>(null), [revision, setRevision] = useState(0), [savedScene, setSavedScene] = useState(() => JSON.stringify(initialScene())), [saveState, setSaveState] = useState('새 프로젝트'), [busy, setBusy] = useState(false), [uploading, setUploading] = useState(false), [proposal, setProposal] = useState<Proposal | null>(null), [preview, setPreview] = useState(true), [prompt, setPrompt] = useState(''), [aiReady, setAiReady] = useState(false), [apiKey, setApiKey] = useState(''), [keyDraft, setKeyDraft] = useState(''), [aiBusy, setAiBusy] = useState(false), [photoUrl, setPhotoUrl] = useState('/cafe-reference.jpg'), [palette, setPalette] = useState<string[]>([]), [photoImage, setPhotoImage] = useState(''), [projectLoading, setProjectLoading] = useState(false), [pendingOpen, setPendingOpen] = useState<string | null>(null), [help, setHelp] = useState(false);
     const lightingStart = useRef<SceneData | null>(null);
     const projectSession = useRef(0), saveInFlight = useRef(false), loadInFlight = useRef(false);
+    const [multiSelect,setMultiSelect]=useState(false);
     const [modelFile, setModelFile] = useState<File | null>(null);
     const assetSession = useRef(0), renderSnapshot = useRef({ session: 0, scene: '' });
     const [nameDraft, setNameDraft] = useState(scene.name), [restoreCamera, setRestoreCamera] = useState<SceneData['cameras'][number] | null>(null), [nextModal, setNextModal] = useState<string | null>(null);
@@ -99,12 +106,13 @@ export default function InteriorStudio() {
     const dirty = JSON.stringify(scene) !== savedScene;
     const node = scene.nodes.find(n => n.id === selection?.id);
     const surface = selection && Object.hasOwn(scene.room.surfaces, selection.id) ? scene.room.surfaces[selection.id as keyof SceneData['room']['surfaces']] : undefined;
-    const appearance = selectionAppearance(scene, faceMode === 'object' && selection ? { id: selection.id } : selection);
-    const originalMaterial = appearance && 'original' in appearance && appearance.original;
+    const selectedIds=selectionIds(selection),multiple=selectedIds.length>1;
+    const appearance = multiple?null:selectionAppearance(scene, faceMode === 'object' && selection ? { id: selection.id } : selection);
+    const originalMaterial = !!(appearance && 'original' in appearance && appearance.original);
     const selectedMaterial = originalMaterial ? undefined : appearance?.material;
     const conflicts = collisions(scene);
     const material = materials.find(m => m.id === selectedMaterial);
-    const currentName = node?.name ?? surfaceNames[selection?.id ?? ''] ?? '공간 설정';
+    const currentName = multiple?`${selectedIds.length}개 가구`:node?.name ?? surfaceNames[selection?.id ?? ''] ?? '공간 설정';
     const commit = useCallback((next: SceneData, label?: string) => {
         try {
             const valid = validateScene(next);
@@ -159,7 +167,7 @@ export default function InteriorStudio() {
         if (!undo.length)
             return;
         setRedo([...redo, sceneRef.current]);
-        setScene(undo[undo.length - 1]);
+        engine.current?.cancelTransform();sceneRef.current=undo[undo.length-1];setScene(undo[undo.length - 1]);
         setUndo(undo.slice(0, -1));
         setProposal(null);
         setSaveState('저장하지 않은 변경');
@@ -168,22 +176,16 @@ export default function InteriorStudio() {
         if (!redo.length)
             return;
         setUndo([...undo, sceneRef.current]);
-        setScene(redo[redo.length - 1]);
+        engine.current?.cancelTransform();sceneRef.current=redo[redo.length-1];setScene(redo[redo.length - 1]);
         setRedo(redo.slice(0, -1));
         setProposal(null);
         setSaveState('저장하지 않은 변경');
     }, [undo, redo]);
     const removeSelected = useCallback(() => {
-        const id = selectionRef.current?.id, n = sceneRef.current.nodes.find(n => n.id === id);
-        if (!n)
-            return;
-        if (n.locked) {
-            toast.error('잠긴 요소는 삭제할 수 없습니다.');
-            return;
-        }
-        commit({ ...sceneRef.current, nodes: sceneRef.current.nodes.filter(n => n.id !== id) }, '요소를 삭제했습니다. 실행 취소로 복원할 수 있습니다.');
-        setSelection(null);
+        const ids=selectionIds(selectionRef.current).filter(id=>sceneRef.current.nodes.some(n=>n.id===id));if(!ids.length)return;
+        try{if(commit(batchAction(sceneRef.current,ids,{type:'delete'}),'선택한 요소를 삭제했습니다. 실행 취소로 복원할 수 있습니다.'))setSelection(null)}catch(e){toast.error((e as Error).message)}
     }, [commit]);
+    useEffect(()=>{setSelection(previous=>{const next=normalizeSelection(scene,previous);return JSON.stringify(previous)===JSON.stringify(next)?previous:next})},[scene.nodes]);
     useEffect(() => {
         request('/api/config').then(d => setAiReady(d.ai)).catch(() => { });
         request('/api/projects').then(d => setProjects(d.projects)).catch(() => { });
@@ -297,10 +299,12 @@ export default function InteriorStudio() {
             }
             else if (e.key.toLowerCase() === 'v')
                 setTool('select');
-            else if (e.key.toLowerCase() === 'm')
-                setTool('translate');
-            else if (e.key.toLowerCase() === 'r')
-                setTool('rotate');
+            else if (e.key.toLowerCase() === 'm') {
+                setFaceMode('object');setTool('translate');
+            }
+            else if (e.key.toLowerCase() === 'r') {
+                setFaceMode('object');setTool('rotate');
+            }
         };
         window.addEventListener('keydown', keys);
         return () => window.removeEventListener('keydown', keys);
@@ -317,6 +321,7 @@ export default function InteriorStudio() {
     }
     function paint(id: MaterialId) {
         try {
+            if(multiple){commit(batchAction(sceneRef.current,selectedIds,{type:'material',material:id}));return;}
             commit(editAppearance(sceneRef.current, selection, { material: id }, faceMode));
         }
         catch (e) {
@@ -324,6 +329,7 @@ export default function InteriorStudio() {
         }
     }
     function duplicate() {
+        if(multiple){try{const next=batchAction(sceneRef.current,selectedIds,{type:'duplicate',x:500,z:0});const added=next.nodes.filter(n=>!sceneRef.current.nodes.some(o=>o.id===n.id));if(commit(next))setSelection({id:added[0].id,ids:added.map(n=>n.id)})}catch(e){toast.error((e as Error).message)}return;}
         if (!node)
             return;
         const copy = { ...structuredClone(node), id: crypto.randomUUID(), name: `${node.name} 사본`, x: node.x + 600, locked: false };
@@ -473,7 +479,7 @@ export default function InteriorStudio() {
                 setPhotoImage(image);
                 setPalette(p.palette);
             }
-            const d = await request('/api/ai', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: text, scene, selection, apiKey: apiKey || undefined, ...(withPhoto ? { image } : {}) }) });
+            const d = await request('/api/ai', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: text, scene:{...scene,variants:undefined}, selection, apiKey: apiKey || undefined, ...(withPhoto ? { image } : {}) }) });
             if (session !== projectSession.current || sceneAtRequest !== JSON.stringify(sceneRef.current)) {
                 toast('분석 중 장면이 변경되었습니다. 현재 장면에서 다시 요청하세요.');
                 return;
@@ -526,7 +532,7 @@ export default function InteriorStudio() {
             if (file.size > 1500000)
                 throw new Error('프로젝트 파일은 1.5MB 이하만 지원합니다.');
             const data = validateScene(JSON.parse(await file.text()));
-            delete data.photoId;
+            delete data.photoId;for(const variant of data.variants??[])delete variant.design.photoId;
             projectSession.current++;
             commit(data, '프로젝트 파일을 불러왔습니다. 포함된 외부 모델과 시안은 같은 계정에서 열 수 있습니다.');
             setProjectId(null);
@@ -559,11 +565,15 @@ export default function InteriorStudio() {
     } if (image.length > 2700000)
         throw new Error('장면 이미지가 너무 큽니다. 모델 디테일을 줄여 주세요.'); if (snapshot.session !== projectSession.current || snapshot.scene !== JSON.stringify(sceneRef.current))
         throw new Error('장면이 변경되었습니다. 다시 캡처하세요.'); renderSnapshot.current = snapshot; return image; }
+    function selectItem(next:Selection,additive=false){if(proposal)return;setSelection(previous=>chooseSelection(sceneRef.current,previous,next,additive||multiSelect));if(additive||multiSelect)setFaceMode('object');}
+    function moveGroup(ids:string[],delta:GroupDelta,pivot:{x:number;y:number;z:number}){try{commit(transformGroup(sceneRef.current,ids,delta,pivot))}catch(e){toast.error((e as Error).message);engine.current?.setScene(sceneRef.current)}}
+    function showMaterials(){setTab('materials');if(window.innerWidth<=1050)setMobileLibrary(true)}
+    function openReview(which:'variants'|'plan'){if(proposal){toast('현재 제안을 적용하거나 닫은 뒤 열어 주세요.');return}setMobileInspector(false);setModal(which)}
     function applyRoom(axis: 'width' | 'depth' | 'height', value: number) { return commit({ ...scene, room: { ...scene.room, [axis]: value, source: 'entered' } }); }
     const materialGrid = <><div className="search-field"><Search size={16}/><input aria-label="소재 검색" placeholder="소재 검색" value={query} onChange={e => setQuery(e.target.value)}/>{query && <button aria-label="검색 지우기" onClick={() => setQuery('')}><X size={14}/></button>}</div><div className="filter-row">{['전체', '우드', '스톤', '메탈', '페인트', '타일', '패브릭'].map(x => <button key={x} onClick={() => setFilter(x)} className={filter === x ? 'selected' : ''}>{x}</button>)}</div><div className="small-heading"><span>{filter === '전체' ? '모든 소재' : filter}</span><span>{materials.filter(m => (filter === '전체' || m.group === filter) && m.name.includes(query)).length}</span></div><div className="material-grid">{materials.filter(m => (filter === '전체' || m.group === filter) && (m.name.includes(query) || m.group.includes(query))).map(m => <button className={`material-card ${selectedMaterial === m.id ? 'selected' : ''}`} key={m.id} onClick={() => paint(m.id)} aria-label={`${m.name} 소재 적용`}><span className={`swatch pattern-${m.pattern}`} style={{ backgroundColor: m.color }}>{selectedMaterial === m.id && <span className="swatch-check"><Check size={13}/></span>}</span><b>{m.name}</b><small>{m.group}</small></button>)}</div>{!materials.some(m => (filter === '전체' || m.group === filter) && (m.name.includes(query) || m.group.includes(query))) && <p className="empty-copy">검색한 소재가 없습니다.</p>}<p className="fineprint">시각화용 소재입니다. 실제 제품의 색상·규격은 제조사 샘플로 확인하세요.</p></>;
     const photoPanel = <div className="photo-panel"><button className="photo-cover" onClick={() => setModal('photo')}><img src={photoUrl} alt={scene.photoId ? '업로드한 매장 사진' : '카페 인테리어 참고 사진'}/><span><Expand size={14}/>크게 보기</span></button><p className="image-credit">{scene.photoId ? '내 매장 참고 사진' : <>예시 카페 · <a href="https://unsplash.com/license" target="_blank" rel="noreferrer">Unsplash</a></>}</p><button className="outline-button full" onClick={() => uploadRef.current?.click()} disabled={uploading}>{uploading ? <LoaderCircle className="spin" size={16}/> : <Upload size={16}/>}내 매장 사진 올리기</button><button className="primary-button full start-draft-button" onClick={() => setModal('draft')}><Box size={16}/>사진으로 새 3D 초안</button><div className="section-copy"><b>이 사진의 분위기로</b><p>색감과 소재를 가져와 지금의 3D 공간에 적용하세요.</p></div>{palette.length > 0 && <div className="palette-row">{palette.map((color, i) => <span key={i} style={{ background: color }} title={color}/>)}</div>}<button className="primary-button full" onClick={() => askAI(true)} disabled={aiBusy}><Sparkles size={16}/>{aiBusy ? '사진 분석 중…' : 'AI 컨셉 적용'}</button><button className="text-button full" onClick={analyzePalette}>사진 색감만 추출하기</button><button className="outline-button full render-open-button" onClick={openRender}><Camera size={16}/>이 분위기로 AI 시안 만들기</button><p className="fineprint">AI 분석은 연결 후 사용합니다. 사진의 실제 치수와 숨겨진 구조는 직접 보정해 주세요.</p></div>;
     const libraryContent = <><div className="library-heading"><div><span className="eyebrow">YOUR DESIGN TOOLKIT</span><h2>공간 라이브러리</h2></div></div><Tabs value={tab} onValueChange={setTab} className="library-tabs"><TabsList className="library-tab-list"><TabsTrigger value="materials"><Palette size={16}/>소재</TabsTrigger><TabsTrigger value="furniture"><Sofa size={16}/>가구</TabsTrigger><TabsTrigger value="photo"><ImagePlus size={16}/>사진</TabsTrigger></TabsList><TabsContent value="materials" className="library-tab-body">{materialGrid}</TabsContent><TabsContent value="furniture" className="library-tab-body"><div className="section-copy"><b>클릭 한 번으로 배치</b><p>추가한 가구는 화면에서 이동하세요.</p></div><button className="outline-button full model-import-button" onClick={() => openModel()}><Upload size={16}/>내 3D 모델 가져오기 · GLB</button><div className="furniture-grid">{kinds.map(kind => { const Icon = icons[kind]; return <button key={kind} onClick={() => add(kind)}><span><Icon size={29} strokeWidth={1.4}/><Plus size={13}/></span><b>{kindNames[kind]}</b></button>; })}</div><p className="fineprint">문·창문은 기본적으로 안쪽 벽에 추가됩니다. 속성에서 연결할 벽을 바꿀 수 있습니다.</p></TabsContent><TabsContent value="photo" className="library-tab-body">{photoPanel}</TabsContent></Tabs><div className="library-bottom"><div className="small-heading"><span><Sparkles size={14}/>빠른 스타일</span><span>3</span></div>{[['내추럴 우드', '#c7a477', '#e9e5dc', '#d0c8b9'], ['모던 인더스트리얼', '#bfc5ca', '#b4b5b0', '#353a3d'], ['딥 월넛', '#77513d', '#777e61', '#d0c8b9']].map(([name, ...colors]) => <button className="style-row" key={name} onClick={() => preset(name)}><span className="style-dots">{colors.map(c => <i key={c} style={{ background: c }}/>)}</span><span>{name}</span><ChevronRight size={14}/></button>)}</div></>;
-    const inspectorContent = <><div className="inspector-title"><span className="eyebrow">PROPERTIES</span><h2>{currentName}</h2><span className="selection-label">{node ? kindNames[node.kind] : surface ? '공간 표면' : '선택한 요소 없음'}{selection?.face && faceMode === 'face' ? ' · 선택한 면' : ''}</span>{node?.estimated && <span className="estimate-label">초안 치수 · 현장 확인 필요</span>}</div>{selection && <><div className="property-section"><div className="small-heading"><span>선택 범위</span></div><Tabs value={faceMode} onValueChange={v => {
+    const inspectorContent = <>{multiple?<BatchInspector scene={scene} selection={selection} onCommit={commit} onSelection={setSelection} onMaterials={showMaterials}/>:<><div className="inspector-title"><span className="eyebrow">PROPERTIES</span><h2>{currentName}</h2><span className="selection-label">{node ? kindNames[node.kind] : surface ? '공간 표면' : '선택한 요소 없음'}{selection?.face && faceMode === 'face' ? ' · 선택한 면' : ''}</span>{node?.estimated && <span className="estimate-label">초안 치수 · 현장 확인 필요</span>}</div>{selection && <><div className="property-section"><div className="small-heading"><span>선택 범위</span></div><Tabs value={faceMode} onValueChange={v => {
                 setFaceMode(v as 'face' | 'object');
                 if (v === 'object' && selection)
                     setSelection({ id: selection.id });
@@ -580,8 +590,8 @@ export default function InteriorStudio() {
                         toast.error((e as Error).message);
                     }
                 }}/>}</div>{node && <><div className="property-section"><div className="small-heading"><span>크기</span><span>mm</span></div><div className="dimensions-grid">{(['width', 'height', 'depth'] as const).map((axis, i) => <NumberField key={axis} label={['가로', node.kind === 'box' || node.kind === 'cylinder' ? '돌출 높이' : '높이', '깊이'][i]} min={20} value={node[axis]} onCommit={v => updateNode(node.id, { [axis]: v })}/>)}</div>{mode === 'precise' && <><div className="small-heading spaced"><span>위치 & 회전</span></div><div className="dimensions-grid">{(['x', 'y', 'z'] as const).filter(axis => !node.host || axis === 'y' || (['back', 'front'].includes(node.host) ? axis === 'x' : axis === 'z')).map(axis => <NumberField key={axis} label={axis.toUpperCase()} value={node[axis]} min={axis === 'y' ? 0 : -20000} onCommit={v => updateNode(node.id, { [axis]: v })}/>)}</div>{!node.host && <NumberField label="회전" value={node.rotation} unit="°" min={-360} max={360} onCommit={v => updateNode(node.id, { rotation: v })}/>}</>}{node.host && <div className="spaced"><label className="field-label">연결된 벽</label><Select value={node.host} onValueChange={v => { const along = ['back', 'front'].includes(node.host!) ? node.x : node.z; updateNode(node.id, { host: v as SceneNode['host'], x: ['back', 'front'].includes(v) ? along : 0, z: ['left', 'right'].includes(v) ? along : 0, rotation: 0 }); }}><SelectTrigger className="full"><SelectValue /></SelectTrigger><SelectContent>{['back', 'left', 'right', 'front'].map(x => <SelectItem key={x} value={x}>{surfaceNames[x]}</SelectItem>)}</SelectContent></Select></div>}<button className="outline-button full arrange-button" onClick={() => setModal('placement')}><Grid2X2 size={15}/>배열·정렬·겹침 확인</button><div className="object-actions"><button onClick={duplicate}><Copy size={15}/>복제</button><button onClick={() => updateNode(node.id, { locked: !node.locked })}>{node.locked ? <Unlock size={15}/> : <Lock size={15}/>} {node.locked ? '해제' : '잠금'}</button><button onClick={removeSelected}><Trash2 size={15}/>삭제</button></div></div></>}</>}
- <div className="property-section"><div className="small-heading"><span><Sun size={15}/>조명</span><span>{scene.lighting.warmth.toLocaleString()} K</span></div><Slider aria-label="조명 색온도" value={[scene.lighting.warmth]} min={2700} max={6500} step={100} onValueChange={v => previewLighting('warmth', v[0])} onValueCommit={commitLighting}/><div className="range-labels"><span>따뜻하게</span><span>시원하게</span></div><div className="small-heading spaced"><span>밝기</span><span>{Math.round(scene.lighting.intensity * 100)}%</span></div><Slider aria-label="조명 밝기" value={[scene.lighting.intensity]} min={.2} max={2} step={.1} onValueChange={v => previewLighting('intensity', v[0])} onValueCommit={commitLighting}/></div>
- <div className="property-section"><div className="small-heading"><span>장면 요소</span><span>{scene.nodes.length + 5}</span></div><div className="scene-tree">{Object.entries(surfaceNames).map(([id, name]) => <button className={selection?.id === id ? 'selected' : ''} key={id} onClick={() => setSelection({ id })}><Square size={14}/><span>{name}</span></button>)}{scene.nodes.map(n => { const Icon = icons[n.kind]; return <div className={`tree-object ${selection?.id === n.id ? 'selected' : ''}`} key={n.id}><button onClick={() => setSelection({ id: n.id })}><Icon size={14}/><span>{n.name}</span>{n.locked && <Lock size={12}/>}</button><button aria-label={`${n.name} ${n.hidden ? '표시' : '숨기기'}`} onClick={() => updateNode(n.id, { hidden: !n.hidden })}>{n.hidden ? <EyeOff size={13}/> : <Eye size={13}/>}</button></div>; })}</div></div><button className="text-button full" onClick={() => setModal('placement')}>가구 겹침 확인{conflicts.length ? ` · ${conflicts.length}곳` : ``}</button><button className="outline-button full room-settings" onClick={() => setModal('room')}><Ruler size={15}/>공간 치수 설정</button></>;
+ </>}<div className="property-section"><div className="small-heading"><span><Sun size={15}/>조명</span><span>{scene.lighting.warmth.toLocaleString()} K</span></div><Slider aria-label="조명 색온도" value={[scene.lighting.warmth]} min={2700} max={6500} step={100} onValueChange={v => previewLighting('warmth', v[0])} onValueCommit={commitLighting}/><div className="range-labels"><span>따뜻하게</span><span>시원하게</span></div><div className="small-heading spaced"><span>밝기</span><span>{Math.round(scene.lighting.intensity * 100)}%</span></div><Slider aria-label="조명 밝기" value={[scene.lighting.intensity]} min={.2} max={2} step={.1} onValueChange={v => previewLighting('intensity', v[0])} onValueCommit={commitLighting}/></div>
+ <div className="property-section"><div className="small-heading"><span>장면 요소</span><span>{scene.nodes.length + 5}</span></div><div className="scene-tree">{Object.entries(surfaceNames).map(([id, name]) => <button className={selection?.id === id ? 'selected' : ''} key={id} onClick={() => setSelection({ id })}><Square size={14}/><span>{name}</span></button>)}{scene.nodes.map(n => { const Icon = icons[n.kind]; return <div className={`tree-object ${selectedIds.includes(n.id) ? 'selected' : ''}`} key={n.id}><>{multiSelect&&<Checkbox className="tree-checkbox" checked={selectedIds.includes(n.id)} aria-label={`${n.name} 선택`} onCheckedChange={()=>selectItem({id:n.id},true)}/>}<button className="tree-label" onClick={e => selectItem({ id: n.id },e.shiftKey)}><Icon size={14}/><span>{n.name}</span>{n.locked && <Lock size={12}/>}</button><button aria-label={`${n.name} ${n.hidden ? '표시' : '숨기기'}`} onClick={() => updateNode(n.id, { hidden: !n.hidden })}>{n.hidden ? <EyeOff size={13}/> : <Eye size={13}/>}</button></></div>; })}</div></div><button className="text-button full" onClick={() => setModal('placement')}>가구 겹침 확인{conflicts.length ? ` · ${conflicts.length}곳` : ``}</button><button className="outline-button full room-settings" onClick={() => setModal('room')}><Ruler size={15}/>공간 치수 설정</button></>;
     return <TooltipProvider delayDuration={350}><Toaster position="bottom-right" richColors closeButton/><main className="studio" onDragOver={e => {
             if (e.dataTransfer.types.includes('Files'))
                 e.preventDefault();
@@ -591,11 +601,8 @@ export default function InteriorStudio() {
             e.preventDefault();
             if (!modal && !loadInFlight.current)
                 (e.dataTransfer.files[0].name.toLowerCase().endsWith('.glb') ? openModel(e.dataTransfer.files[0]) : upload(e.dataTransfer.files[0]));
-        }}><header className="topbar"><a className="brand" href="#" onClick={e => e.preventDefault()} aria-label="SPATIAL 스튜디오"><span className="brand-mark"><Box size={23} strokeWidth={1.5}/></span><span>SPATIAL<small>INTERIOR STUDIO</small></span></a><div className="project-title"><span className="project-divider"/><button onClick={() => setModal('projects')}>{scene.name}<ChevronDown size={15}/></button><span className="project-tag">3D 프로젝트</span></div><div className="header-actions"><span className="save-status"><Cloud size={14}/>{dirty && savedScene ? '저장하지 않은 변경' : saveState}</span><IconButton label="프로젝트 열기" onClick={() => setModal('projects')}><FolderOpen size={18}/></IconButton><IconButton label="AI 연결 설정" onClick={() => setModal('settings')}><Settings2 size={18}/></IconButton><button className="outline-button save-button" onClick={() => save()} disabled={busy}>{busy ? <LoaderCircle className="spin" size={15}/> : <Save size={15}/>}저장</button><DropdownMenu><DropdownMenuTrigger asChild><button className="primary-button export-button"><Download size={16}/><span>내보내기</span><ChevronDown size={13}/></button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem onClick={openRender}><Sparkles size={16}/>AI 컨셉 이미지 만들기</DropdownMenuItem><DropdownMenuItem onClick={() => exportFile('png')}><Camera size={16}/>현재 시점 이미지 · 2K PNG</DropdownMenuItem><DropdownMenuItem onClick={() => exportFile('glb')}><Box size={16}/>3D 모델 · GLB</DropdownMenuItem><DropdownMenuItem onClick={() => exportFile('json')}><FileJson size={16}/>편집용 프로젝트 · JSON</DropdownMenuItem><DropdownMenuSeparator /><DropdownMenuItem onClick={() => openModel()}><Box size={16}/>GLB 모델 가져오기</DropdownMenuItem><DropdownMenuItem onClick={() => importRef.current?.click()}><Upload size={16}/>프로젝트 파일 불러오기</DropdownMenuItem><DropdownMenuItem onClick={() => save(true)}><Copy size={16}/>새 사본으로 저장</DropdownMenuItem></DropdownMenuContent></DropdownMenu></div></header>
- <div className="workspace"><SidebarProvider className="studio-sidebar-provider"><Sidebar collapsible="none" className="library"><SidebarContent>{libraryContent}</SidebarContent></Sidebar></SidebarProvider><section className="editor-surface"><div className="editor-bar"><div className="mode-controls"><Tabs value={mode} onValueChange={setMode}><TabsList><TabsTrigger value="easy">간편 편집</TabsTrigger><TabsTrigger value="precise"><Ruler size={14}/>정밀 편집</TabsTrigger></TabsList></Tabs></div><span className="editor-bar-spacer"/><button className="outline-button render-toolbar-button" onClick={openRender}><Sparkles size={15}/>AI 시안</button><IconButton label="실행 취소 · Ctrl Z" onClick={doUndo} disabled={!undo.length}><Undo2 size={17}/></IconButton><IconButton label="다시 실행 · Ctrl Shift Z" onClick={doRedo} disabled={!redo.length}><Redo2 size={17}/></IconButton><span className="toolbar-divider"/><IconButton label="사용 방법" onClick={() => setHelp(true)}><Info size={17}/></IconButton></div><div className="viewport"><SceneCanvas scene={proposal && preview ? proposal.scene : scene} selection={proposal ? null : selection} tool={proposal ? 'select' : tool} view={view} faceMode={faceMode} snap={snap} cutaway={cutaway} onSelect={s => {
-            if (!proposal)
-                setSelection(s);
-        }} onTransform={updateNode} onDraw={p => {
+        }}><header className="topbar"><a className="brand" href="#" onClick={e => e.preventDefault()} aria-label="SPATIAL 스튜디오"><span className="brand-mark"><Box size={23} strokeWidth={1.5}/></span><span>SPATIAL<small>INTERIOR STUDIO</small></span></a><div className="project-title"><span className="project-divider"/><button onClick={() => setModal('projects')}>{scene.name}<ChevronDown size={15}/></button><span className="project-tag">3D 프로젝트</span></div><div className="header-actions"><span className="save-status"><Cloud size={14}/>{dirty && savedScene ? '저장하지 않은 변경' : saveState}</span><IconButton label="프로젝트 열기" onClick={() => setModal('projects')}><FolderOpen size={18}/></IconButton><IconButton label="AI 연결 설정" onClick={() => setModal('settings')}><Settings2 size={18}/></IconButton><button className="outline-button save-button" onClick={() => save()} disabled={busy}>{busy ? <LoaderCircle className="spin" size={15}/> : <Save size={15}/>}저장</button><DropdownMenu><DropdownMenuTrigger asChild><button className="primary-button export-button"><Download size={16}/><span>내보내기</span><ChevronDown size={13}/></button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem onClick={()=>openReview('plan')}><Grid2X2 size={16}/>치수 평면도 · PDF / SVG</DropdownMenuItem><DropdownMenuItem onClick={()=>openReview('variants')}><Copy size={16}/>디자인 안 저장·비교</DropdownMenuItem><DropdownMenuSeparator/><DropdownMenuItem onClick={openRender}><Sparkles size={16}/>AI 컨셉 이미지 만들기</DropdownMenuItem><DropdownMenuItem onClick={() => exportFile('png')}><Camera size={16}/>현재 시점 이미지 · 2K PNG</DropdownMenuItem><DropdownMenuItem onClick={() => exportFile('glb')}><Box size={16}/>3D 모델 · GLB</DropdownMenuItem><DropdownMenuItem onClick={() => exportFile('json')}><FileJson size={16}/>편집용 프로젝트 · JSON</DropdownMenuItem><DropdownMenuSeparator /><DropdownMenuItem onClick={() => openModel()}><Box size={16}/>GLB 모델 가져오기</DropdownMenuItem><DropdownMenuItem onClick={() => importRef.current?.click()}><Upload size={16}/>프로젝트 파일 불러오기</DropdownMenuItem><DropdownMenuItem onClick={() => save(true)}><Copy size={16}/>새 사본으로 저장</DropdownMenuItem></DropdownMenuContent></DropdownMenu></div></header>
+ <div className="workspace"><SidebarProvider className="studio-sidebar-provider"><Sidebar collapsible="none" className="library"><SidebarContent>{libraryContent}</SidebarContent></Sidebar></SidebarProvider><section className="editor-surface"><div className="editor-bar"><div className="mode-controls"><Tabs value={mode} onValueChange={setMode}><TabsList><TabsTrigger value="easy">간편 편집</TabsTrigger><TabsTrigger value="precise"><Ruler size={14}/>정밀 편집</TabsTrigger></TabsList></Tabs></div><span className="editor-bar-spacer"/><IconButton label="여러 가구 선택 · Shift 클릭" active={multiSelect} onClick={()=>{setMultiSelect(!multiSelect);setFaceMode('object')}}><Layers size={17}/></IconButton><IconButton label="디자인 안 저장·비교" onClick={()=>openReview('variants')}><Copy size={17}/></IconButton><button className="outline-button render-toolbar-button" onClick={openRender}><Sparkles size={15}/>AI 시안</button><IconButton label="실행 취소 · Ctrl Z" onClick={doUndo} disabled={!undo.length}><Undo2 size={17}/></IconButton><IconButton label="다시 실행 · Ctrl Shift Z" onClick={doRedo} disabled={!redo.length}><Redo2 size={17}/></IconButton><span className="toolbar-divider"/><IconButton label="사용 방법" onClick={() => setHelp(true)}><Info size={17}/></IconButton></div><div className="viewport"><SceneCanvas scene={proposal && preview ? proposal.scene : scene} selection={proposal ? null : selection} tool={proposal ? 'select' : tool} view={view} faceMode={faceMode} snap={snap} cutaway={cutaway} onSelect={selectItem} multiSelect={multiSelect} onTransformGroup={moveGroup} onTransform={updateNode} onDraw={p => {
             const id = crypto.randomUUID();
             if (commit({ ...sceneRef.current, nodes: [...sceneRef.current.nodes, { ...createNode('box', id), ...p, height: 100 }] })) {
                 setSelection({ id });
@@ -606,7 +613,7 @@ export default function InteriorStudio() {
             setTab('furniture');
             if (window.innerWidth <= 1050)
                 setMobileLibrary(true);
-        }}><Plus size={19}/></IconButton>{mode === 'precise' && <><IconButton label="사각형 그리기 · 두 모서리 클릭" active={tool === 'draw'} onClick={() => { setTool('draw'); setView('top'); toast('바닥 위에 사각형의 대각선 두 모서리를 차례로 클릭하세요.'); }}><Square size={18}/></IconButton><IconButton label="파티션 만들기" onClick={() => add('partition')}><PanelTop size={18}/></IconButton></>}</div><div className="view-controls"><Tabs value={view} onValueChange={v => setView(v as ViewMode)}><TabsList><TabsTrigger value="perspective"><Box size={14}/>3D</TabsTrigger><TabsTrigger value="top"><Grid2X2 size={14}/>평면</TabsTrigger><TabsTrigger value="interior"><Eye size={14}/>실내</TabsTrigger></TabsList></Tabs></div><div className="zoom-controls"><IconButton label="확대" onClick={() => engine.current?.zoom(.85)}><Plus size={17}/></IconButton><IconButton label="축소" onClick={() => engine.current?.zoom(1.18)}><Minus size={17}/></IconButton><IconButton label="전체 공간 보기" onClick={() => { setView('perspective'); engine.current?.setView('perspective'); }}><Maximize size={17}/></IconButton></div><div className="viewport-bottom"><span><MousePointer2 size={13}/>드래그로 회전<span className="dot-separator">·</span>스크롤로 확대</span><button onClick={() => setModal('cameras')}><Camera size={14}/>시점 저장</button></div>{proposal && <div className="proposal-card"><div className="proposal-head"><span><Sparkles size={16}/>{proposal.source} 미리보기</span><button aria-label="제안 닫기" onClick={() => setProposal(null)}><X size={16}/></button></div><b>{proposal.title}</b><p>{proposal.details}</p><div className="proposal-actions"><button className="outline-button" onClick={() => setPreview(!preview)}>{preview ? '변경 전 보기' : '제안 보기'}</button><button className="primary-button" onClick={() => {
+        }}><Plus size={19}/></IconButton>{mode === 'precise' && <><IconButton label="사각형 그리기 · 두 모서리 클릭" active={tool === 'draw'} onClick={() => { setTool('draw'); setView('top'); toast('바닥 위에 사각형의 대각선 두 모서리를 차례로 클릭하세요.'); }}><Square size={18}/></IconButton><IconButton label="파티션 만들기" onClick={() => add('partition')}><PanelTop size={18}/></IconButton></>}</div><>{(multiple||multiSelect)&&<div className="multi-selection-pill"><Layers size={15}/><span>{selectedIds.length}개 선택</span><button onClick={()=>{setSelection(null);setMultiSelect(false)}}>선택 해제</button></div>}</><div className="view-controls"><Tabs value={view} onValueChange={v => setView(v as ViewMode)}><TabsList><TabsTrigger value="perspective"><Box size={14}/>3D</TabsTrigger><TabsTrigger value="top"><Grid2X2 size={14}/>평면</TabsTrigger><TabsTrigger value="interior"><Eye size={14}/>실내</TabsTrigger></TabsList></Tabs></div><div className="zoom-controls"><IconButton label="확대" onClick={() => engine.current?.zoom(.85)}><Plus size={17}/></IconButton><IconButton label="축소" onClick={() => engine.current?.zoom(1.18)}><Minus size={17}/></IconButton><IconButton label="전체 공간 보기" onClick={() => { setView('perspective'); engine.current?.setView('perspective'); }}><Maximize size={17}/></IconButton></div><div className="viewport-bottom"><span><MousePointer2 size={13}/>드래그로 회전<span className="dot-separator">·</span>스크롤로 확대</span><button onClick={() => setModal('cameras')}><Camera size={14}/>시점 저장</button></div>{proposal && <div className="proposal-card"><div className="proposal-head"><span><Sparkles size={16}/>{proposal.source} 미리보기</span><button aria-label="제안 닫기" onClick={() => setProposal(null)}><X size={16}/></button></div><b>{proposal.title}</b><p>{proposal.details}</p><div className="proposal-actions"><button className="outline-button" onClick={() => setPreview(!preview)}>{preview ? '변경 전 보기' : '제안 보기'}</button><button className="primary-button" onClick={() => {
                 if (commit(proposal.scene, '변경을 적용했습니다. 실행 취소로 되돌릴 수 있습니다.') && proposal.newProject) {
                     projectSession.current++;
                     setProjectId(null);
@@ -620,6 +627,8 @@ export default function InteriorStudio() {
  <input ref={uploadRef} type="file" className="hidden" accept="image/jpeg,image/png,image/webp" onChange={e => upload(e.target.files?.[0])}/><input ref={importRef} type="file" className="hidden" accept=".json" onChange={e => importProject(e.target.files?.[0])}/>
  <Sheet open={mobileLibrary} onOpenChange={setMobileLibrary}><SheetContent side="left" className="mobile-sheet"><SheetHeader><SheetTitle>공간 라이브러리</SheetTitle><SheetDescription>소재와 가구를 선택하세요.</SheetDescription></SheetHeader>{libraryContent}</SheetContent></Sheet><Sheet open={mobileInspector} onOpenChange={setMobileInspector}><SheetContent className="mobile-sheet"><SheetHeader><SheetTitle>선택한 요소 편집</SheetTitle><SheetDescription>크기와 소재를 조정하세요.</SheetDescription></SheetHeader>{inspectorContent}</SheetContent></Sheet>
  <PhotoDraftDialog key={`${projectId ?? 'new'}:${scene.photoId ?? 'example'}`} open={modal === 'draft'} onClose={() => setModal(null)} scene={scene} photoUrl={photoUrl} apiKey={apiKey} aiReady={aiReady} onConnect={() => { setNextModal('draft'); setModal('settings'); }} onReady={draft => { setProposal({ scene: draft, title: draft.draft?.summary ?? '새 3D 초안', details: draft.draft?.notes.slice(0, 3).join(' ') ?? '', source: '3D 초안', newProject: true }); setPreview(true); setMobileLibrary(false); }}/>
+ <DesignVariantsDialog open={modal==='variants'} onClose={()=>setModal(null)} scene={scene} onCommit={commit} onPreview={id=>{const v=scene.variants?.find(v=>v.id===id);if(!v)return;setProposal({scene:restoreVariant(scene,id),title:v.name,details:v.note||'저장한 배치·소재·조명을 현재 공간과 비교하세요.',source:'디자인 안'});setPreview(true)}}/>
+ <FloorPlanDialog open={modal==='plan'} onClose={()=>setModal(null)} scene={scene}/>
  <ModelImportDialog open={modal === 'model'} onClose={() => setModal(null)} initialFile={modelFile} scene={scene} onAdd={n => { if (assetSession.current !== projectSession.current) {
         toast('프로젝트가 바뀌었습니다. 현재 공간에서 모델을 다시 추가하세요.');
         return false;
@@ -663,6 +672,6 @@ export default function InteriorStudio() {
                 commit({ ...scene, cameras: [...scene.cameras, { id: crypto.randomUUID(), name: `시점 ${scene.cameras.length + 1}`, ...c }] }, '현재 시점을 저장했습니다.');
         }}><Plus size={16}/>현재 시점 저장</button></DialogContent></Dialog>
  <Dialog open={modal === 'draft-notes'} onOpenChange={o => !o && setModal(null)}><DialogContent><DialogHeader><DialogTitle>이 공간을 만든 기준</DialogTitle><DialogDescription>{scene.draft?.summary}</DialogDescription></DialogHeader><ul className="draft-notes">{scene.draft?.notes.map((note, i) => <li key={i}>{note}</li>)}</ul><p className="fineprint">기본 배치와 사진 분석은 설계 초안입니다. 가구의 추정 치수는 속성에서 보정할 수 있습니다.</p></DialogContent></Dialog>
- <Dialog open={help} onOpenChange={setHelp}><DialogContent><DialogHeader><DialogTitle>공간을 편집하는 방법</DialogTitle><DialogDescription>클릭으로 시작하고, 치수로 완성하세요.</DialogDescription></DialogHeader><div className="help-steps"><p><b>01 · 선택 & 소재</b>3D 공간의 벽·바닥·가구를 클릭한 뒤 왼쪽에서 소재를 고르세요.</p><p><b>02 · 이동 & 크기</b>이동 도구의 축을 드래그하거나 정밀 편집에서 mm 치수를 입력하세요.</p><p><b>03 · 사진 & AI</b>사진을 올려 색감을 가져오세요. AI 연결 후 소재 컨셉도 제안받을 수 있습니다.</p><p><b>04 · 저장 & 내보내기</b>저장 버튼으로 작업을 보관하고, PNG·GLB·프로젝트 파일로 내보내세요. AI 시안은 원본 장면과 비교한 뒤 JPG로 내려받을 수 있습니다.</p></div><div className="shortcut-grid"><span>선택 <kbd>V</kbd></span><span>이동 <kbd>M</kbd></span><span>회전 <kbd>R</kbd></span><span>실행 취소 <kbd>Ctrl Z</kbd></span></div><p className="fineprint">현재 버전은 사각형 스케치·돌출 높이·원기둥·파티션과 치수 편집을 지원합니다. 외부 정적 GLB 모델의 배치·치수·소재를 편집할 수 있습니다. SKP·MAX 직접 편집과 범용 메시 모델링은 지원하지 않습니다. 평면 보기는 정사영으로 표시합니다. 초안은 시공 도면이 아니며 현장 확인이 필요합니다.</p></DialogContent></Dialog>
+ <Dialog open={help} onOpenChange={setHelp}><DialogContent><DialogHeader><DialogTitle>공간을 편집하는 방법</DialogTitle><DialogDescription>클릭으로 시작하고, 치수로 완성하세요.</DialogDescription></DialogHeader><div className="help-steps"><p><b>01 · 선택 & 소재</b>3D 공간의 벽·바닥·가구를 클릭한 뒤 소재를 고르세요. Shift 클릭 또는 여러 가구 선택 버튼으로 함께 편집할 수 있습니다.</p><p><b>02 · 이동 & 크기</b>이동 도구의 축을 드래그하거나 정밀 편집에서 mm 치수를 입력하세요.</p><p><b>03 · 사진 & AI</b>사진을 올려 색감을 가져오세요. AI 연결 후 소재 컨셉도 제안받을 수 있습니다.</p><p><b>04 · 저장 & 내보내기</b>디자인 안으로 배치를 비교하고, 치수 평면도와 가구 목록을 내려받으세요. 저장 버튼으로 작업을 보관하고, PNG·GLB·프로젝트 파일로 내보내세요. AI 시안은 원본 장면과 비교한 뒤 JPG로 내려받을 수 있습니다.</p></div><div className="shortcut-grid"><span>선택 <kbd>V</kbd></span><span>이동 <kbd>M</kbd></span><span>회전 <kbd>R</kbd></span><span>실행 취소 <kbd>Ctrl Z</kbd></span></div><p className="fineprint">현재 버전은 사각형 스케치·돌출 높이·원기둥·파티션과 치수 편집을 지원합니다. 외부 정적 GLB 모델의 배치·치수·소재를 편집할 수 있습니다. SKP·MAX 직접 편집과 범용 메시 모델링은 지원하지 않습니다. 평면 보기는 정사영으로 표시합니다. 초안은 시공 도면이 아니며 현장 확인이 필요합니다.</p></DialogContent></Dialog>
  </TooltipProvider>;
 }
