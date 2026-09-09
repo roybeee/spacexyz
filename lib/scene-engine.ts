@@ -3,6 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+import { parseModel, cloneModel, disposeModel } from './model-loader';
 import { materials, nodeAppearance, type MaterialFinish, type MaterialId, type SceneData, type SceneNode, type Selection } from './scene-model';
 export type ToolMode = 'select' | 'translate' | 'rotate' | 'draw';
 export type ViewMode = 'perspective' | 'top' | 'front' | 'interior';
@@ -15,6 +16,16 @@ export class SceneEngine {
     perspective: T.PerspectiveCamera;
     planCamera = new T.OrthographicCamera(-5, 5, 5, -5, .01, 200);
     private geometryKey = "";
+    private disposed = false;
+    private modelCache = new Map<string, {
+        promise: Promise<T.Group>;
+        root?: T.Group;
+        error?: string;
+    }>();
+    onModelStatus?: (status: {
+        loading: number;
+        errors: string[];
+    }) => void;
     orbit: OrbitControls;
     transform: TransformControls;
     observer: ResizeObserver;
@@ -328,6 +339,14 @@ export class SceneEngine {
         const roomResized = this.data?.room.width !== data.room.width || this.data?.room.depth !== data.room.depth;
         const key = JSON.stringify({ room: data.room, nodes: data.nodes });
         this.data = data;
+        const used = new Set(data.nodes.filter(n => n.kind === 'model').map(n => n.assetId));
+        for (const [id, entry] of this.modelCache)
+            if (!used.has(id)) {
+                this.modelCache.delete(id);
+                if (entry.root)
+                    disposeModel(entry.root);
+            }
+        this.publishModelStatus();
         if (key === this.geometryKey) {
             for (const n of data.nodes) {
                 const o = this.root.children.find(o => o.userData.nodeId === n.id);
@@ -408,6 +427,9 @@ export class SceneEngine {
         const box = (ww: number, hh: number, dd: number, x: number, y: number, z: number, part: string, mat: MaterialId = n.material) => this.box(g, ww, hh, dd, x, y, z, n.id, part, mat, n);
         const cylinder = (r: number, hh: number, x: number, y: number, z: number, part: string, mat: MaterialId = n.material, rt?: number) => this.cylinder(g, r, hh, x, y, z, n.id, part, mat, n, rt);
         switch (n.kind) {
+            case 'model':
+                this.buildModel(g, n);
+                break;
             case 'table':
             case 'round-table': {
                 const thick = .045;
@@ -514,6 +536,33 @@ export class SceneEngine {
         this.root.add(g);
         return g;
     }
+    private publishModelStatus() { const entries = [...this.modelCache.values()]; this.onModelStatus?.({ loading: entries.filter(e => !e.root && !e.error).length, errors: entries.flatMap(e => e.error ? [e.error] : []) }); }
+    private modelAsset(id: string) { let entry = this.modelCache.get(id); if (entry)
+        return entry.promise; entry = { promise: Promise.resolve(new T.Group()) }; const record = entry; this.modelCache.set(id, record); record.promise = (async () => { const response = await fetch(`/api/assets?id=${encodeURIComponent(id)}`); if (!response.ok)
+        throw new Error('3D 모델을 불러오지 못했습니다. 같은 계정의 모델인지 확인하세요.'); const data = await response.arrayBuffer(); const { root } = await parseModel(data); if (this.disposed || this.modelCache.get(id) !== record) {
+        disposeModel(root);
+        throw new Error('다른 장면으로 이동했습니다.');
+    } record.root = root; return root; })().catch(e => { record.error = e instanceof Error ? e.message : '3D 모델 읽기 실패'; throw e; }).finally(() => this.publishModelStatus()); this.publishModelStatus(); return record.promise; }
+    private buildModel(g: T.Group, n: SceneNode) { const placeholder = new T.Mesh(new T.BoxGeometry(n.width / 1000, n.height / 1000, n.depth / 1000), new T.MeshBasicMaterial({ color: 0x948cb0, wireframe: true })); placeholder.position.y = n.height / 2000; placeholder.userData = { nodeId: n.id }; g.add(placeholder); this.modelAsset(n.assetId!).then(source => { if (this.disposed || !this.root.children.includes(g))
+        return; this.clearGroup(g); const model = cloneModel(source); model.scale.multiply(new T.Vector3(n.width / 1000, n.height / 1000, n.depth / 1000)); model.traverse(o => { if (!(o instanceof T.Mesh))
+        return; o.userData.nodeId = n.id; const part = o.userData.part; const wasArray = Array.isArray(o.material); const list = wasArray ? o.material as T.Material[] : [o.material as T.Material]; const mapped = list.map((native, i) => { const key = `${part}:${i}`, appearance = nodeAppearance(n, key); if (!appearance.original) {
+        this.disposeMaterial(native);
+        return this.nodeMaterial(n, key);
+    } const f = appearance.finish; if (native instanceof T.MeshStandardMaterial) {
+        if (f.roughness !== undefined)
+            native.roughness = f.roughness;
+        if (f.metalness !== undefined)
+            native.metalness = f.metalness;
+    } if ('color' in native && f.color)
+        (native.color as T.Color).set(f.color); return native; }); o.material = wasArray ? mapped : mapped[0]; }); g.add(model); this.setSelection(this.selection); }).catch(() => { if (!this.disposed && this.root.children.includes(g))
+        (placeholder.material as T.MeshBasicMaterial).color.set(0xd96357); }); }
+    async modelsReady() { const key = this.geometryKey; const entries = [...this.modelCache.values()]; await Promise.all(entries.map(e => e.promise)); if (key !== this.geometryKey)
+        throw new Error('모델을 읽는 동안 장면이 변경되었습니다. 다시 시도하세요.'); if (this.disposed)
+        throw new Error('3D 화면이 닫혔습니다.'); }
+    retryModels() { for (const [id, entry] of this.modelCache)
+        if (entry.error)
+            this.modelCache.delete(id); this.geometryKey = ''; if (this.data)
+        this.setScene(this.data); }
     setLighting(value: SceneData['lighting']) { this.renderer.toneMappingExposure = .85 + value.intensity * .35; this.ambient.intensity = 1.3 + value.intensity * .65; this.light.intensity = 2.5 * value.intensity; const t = (value.warmth - 2700) / (6500 - 2700); this.light.color.setRGB(1, .77 + t * .22, .5 + t * .5); }
     private updateCutaway() {
         if (!this.data)
@@ -611,21 +660,26 @@ export class SceneEngine {
         this.orbit.update();
         this.setSelection(this.selection);
     }
-    zoom(factor: number) { if (this.camera instanceof T.OrthographicCamera) {
-        this.camera.zoom = Math.max(.1, Math.min(20, this.camera.zoom / factor));
-        this.camera.updateProjectionMatrix();
+    zoom(factor: number) {
+        if (this.camera instanceof T.OrthographicCamera) {
+            this.camera.zoom = Math.max(.1, Math.min(20, this.camera.zoom / factor));
+            this.camera.updateProjectionMatrix();
+        }
+        else
+            this.camera.position.sub(this.orbit.target).multiplyScalar(factor).add(this.orbit.target);
+        this.orbit.update();
     }
-    else
-        this.camera.position.sub(this.orbit.target).multiplyScalar(factor).add(this.orbit.target); this.orbit.update(); }
-    captureCamera() { return { view: this.view, zoom: this.camera.zoom, position: this.camera.position.toArray() as [
-            number,
-            number,
-            number
-        ], target: this.orbit.target.toArray() as [
-            number,
-            number,
-            number
-        ] }; }
+    captureCamera() {
+        return { view: this.view, zoom: this.camera.zoom, position: this.camera.position.toArray() as [
+                number,
+                number,
+                number
+            ], target: this.orbit.target.toArray() as [
+                number,
+                number,
+                number
+            ] };
+    }
     restoreCamera(camera: {
         position: [
             number,
@@ -641,6 +695,7 @@ export class SceneEngine {
         zoom?: number;
     }) { this.setView(camera.view ?? 'perspective'); this.camera.position.fromArray(camera.position); this.orbit.target.fromArray(camera.target); this.camera.zoom = camera.zoom ?? 1; this.camera.updateProjectionMatrix(); this.orbit.update(); }
     async exportGlb() {
+        await this.modelsReady();
         const clone = this.root.clone(true);
         clone.traverse(o => {
             if (o.userData.wall || o.userData.host)
@@ -648,7 +703,8 @@ export class SceneEngine {
         });
         return await new GLTFExporter().parseAsync(clone, { binary: true, onlyVisible: true, maxTextureSize: 1024 }) as ArrayBuffer;
     }
-    async screenshot() {
+    async screenshot(width = 2048, requestedAspect?: number) {
+        await this.modelsReady();
         const oldSize = new T.Vector2();
         this.renderer.getSize(oldSize);
         const oldRatio = this.renderer.getPixelRatio();
@@ -658,7 +714,12 @@ export class SceneEngine {
         this.helpers.visible = false;
         this.transform.getHelper().visible = false;
         try {
-            const width = 2048, height = Math.round(width / oldAspect);
+            const aspect = requestedAspect ?? oldAspect;
+            width = Math.max(1, Math.min(width, Math.floor(4096 * aspect)));
+            const height = Math.max(1, Math.round(width / aspect));
+            if (this.camera instanceof T.PerspectiveCamera)
+                this.camera.aspect = aspect;
+            this.camera.updateProjectionMatrix();
             this.renderer.setPixelRatio(1);
             this.renderer.setSize(width, height, false);
             this.renderer.render(this.scene, this.camera);
@@ -676,8 +737,9 @@ export class SceneEngine {
     }
     private disposeMaterial(material: T.Material | T.Material[]) {
         for (const m of Array.isArray(material) ? material : [material]) {
-            if (m instanceof T.MeshStandardMaterial)
-                m.map?.dispose();
+            for (const value of Object.values(m))
+                if (value instanceof T.Texture)
+                    value.dispose();
             m.dispose();
         }
     }
@@ -691,6 +753,11 @@ export class SceneEngine {
         group.clear();
     }
     dispose() {
+        this.disposed = true;
+        for (const entry of this.modelCache.values())
+            if (entry.root)
+                disposeModel(entry.root);
+        this.modelCache.clear();
         cancelAnimationFrame(this.frame);
         this.observer.disconnect();
         this.renderer.domElement.removeEventListener('pointerdown', this.pointerDown);

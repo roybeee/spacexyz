@@ -28,17 +28,23 @@ export const materials: {
 const hex = z.string().regex(/^#[a-fA-F0-9]{6}$/);
 export const finishSchema = z.object({ color: hex.optional(), roughness: z.number().min(0).max(1).optional(), metalness: z.number().min(0).max(1).optional(), scale: z.number().min(50).max(5000).optional(), rotation: z.number().min(-180).max(180).optional() });
 export type MaterialFinish = z.infer<typeof finishSchema>;
-export const nodeSchema = z.object({ id: z.string().min(1).max(80), kind: z.enum(kinds), name: z.string().max(80), x: z.number().finite().min(-30000).max(30000), y: z.number().finite().min(0).max(12000), z: z.number().finite().min(-30000).max(30000), width: z.number().finite().min(20).max(20000), height: z.number().finite().min(20).max(12000), depth: z.number().finite().min(20).max(20000), rotation: z.number().finite().min(-3600).max(3600), material: z.enum(materialIds), faces: z.record(z.enum(materialIds)).default({}), color: hex.optional(), finish: finishSchema.optional(), faceFinishes: z.record(z.string().max(60), finishSchema).optional(), uniformMaterial: z.boolean().optional(), estimated: z.boolean().optional(), locked: z.boolean().default(false), hidden: z.boolean().default(false), host: z.enum(['back', 'left', 'right', 'front']).optional() });
+export const nodeSchema = z.object({ id: z.string().min(1).max(80), kind: z.enum([...kinds, 'model']), assetId: z.string().uuid().optional(), name: z.string().max(80), x: z.number().finite().min(-30000).max(30000), y: z.number().finite().min(0).max(12000), z: z.number().finite().min(-30000).max(30000), width: z.number().finite().min(20).max(20000), height: z.number().finite().min(20).max(12000), depth: z.number().finite().min(20).max(20000), rotation: z.number().finite().min(-3600).max(3600), material: z.enum(materialIds), faces: z.record(z.enum(materialIds)).default({}), color: hex.optional(), finish: finishSchema.optional(), faceFinishes: z.record(z.string().max(60), finishSchema).optional(), uniformMaterial: z.boolean().optional(), estimated: z.boolean().optional(), locked: z.boolean().default(false), hidden: z.boolean().default(false), host: z.enum(['back', 'left', 'right', 'front']).optional() });
 export type SceneNode = z.infer<typeof nodeSchema>;
 const surface = z.object({ material: z.enum(materialIds), color: hex.optional(), finish: finishSchema.optional() });
-export const sceneSchema = z.object({ version: z.literal(1), name: z.string().min(1).max(100), room: z.object({ width: z.number().min(2400).max(20000), depth: z.number().min(2400).max(20000), height: z.number().min(2200).max(6000), source: z.enum(['example', 'entered', 'measured']), surfaces: z.object({ floor: surface, back: surface, left: surface, right: surface, front: surface }) }), nodes: z.array(nodeSchema).max(300), lighting: z.object({ intensity: z.number().min(.2).max(2), warmth: z.number().min(2700).max(6500) }), photoId: z.string().max(80).optional(), palette: z.array(hex).max(8).optional(), draft: z.object({ method: z.enum(['photo-ai', 'template']), summary: z.string().max(1000), notes: z.array(z.string().max(500)).max(30) }).optional(), cameras: z.array(z.object({ id: z.string().max(80), name: z.string().max(80), view: z.enum(['perspective', 'top', 'front', 'interior']).optional(), zoom: z.number().min(.01).max(100).optional(), position: z.tuple([z.number().finite().min(-100).max(100), z.number().finite().min(-100).max(100), z.number().finite().min(-100).max(100)]), target: z.tuple([z.number().finite().min(-100).max(100), z.number().finite().min(-100).max(100), z.number().finite().min(-100).max(100)]) })).max(10).default([]) });
+export const sceneSchema = z.object({ version: z.literal(1), name: z.string().min(1).max(100), room: z.object({ width: z.number().min(2400).max(20000), depth: z.number().min(2400).max(20000), height: z.number().min(2200).max(6000), source: z.enum(['example', 'entered', 'measured']), surfaces: z.object({ floor: surface, back: surface, left: surface, right: surface, front: surface }) }), nodes: z.array(nodeSchema).max(300), lighting: z.object({ intensity: z.number().min(.2).max(2), warmth: z.number().min(2700).max(6500) }), photoId: z.string().max(80).optional(), renders: z.array(z.object({ id: z.string().uuid(), name: z.string().max(100), createdAt: z.string().datetime(), prompt: z.string().max(2000) })).max(20).optional(), palette: z.array(hex).max(8).optional(), draft: z.object({ method: z.enum(['photo-ai', 'template']), summary: z.string().max(1000), notes: z.array(z.string().max(500)).max(30) }).optional(), cameras: z.array(z.object({ id: z.string().max(80), name: z.string().max(80), view: z.enum(['perspective', 'top', 'front', 'interior']).optional(), zoom: z.number().min(.01).max(100).optional(), position: z.tuple([z.number().finite().min(-100).max(100), z.number().finite().min(-100).max(100), z.number().finite().min(-100).max(100)]), target: z.tuple([z.number().finite().min(-100).max(100), z.number().finite().min(-100).max(100), z.number().finite().min(-100).max(100)]) })).max(10).default([]) });
+export type RenderResult = {
+    id: string;
+    name: string;
+    createdAt: string;
+    prompt: string;
+};
 export type SceneData = z.infer<typeof sceneSchema>;
 export type Selection = {
     id: string;
     face?: string;
 } | null;
 export const surfaceNames: Record<string, string> = { floor: '바닥', back: '안쪽 벽', left: '왼쪽 벽', right: '오른쪽 벽', front: '입구 벽' };
-export const kindNames: Record<Kind, string> = { table: '카페 테이블', 'round-table': '원형 테이블', chair: '다이닝 체어', bench: '붙박이 벤치', counter: '카운터', shelf: '오픈 선반', plant: '실내 식물', pendant: '펜던트 조명', box: '직육면체', cylinder: '원기둥', partition: '파티션', door: '출입문', window: '창문' };
+export const kindNames: Record<SceneNode['kind'], string> = { table: '카페 테이블', 'round-table': '원형 테이블', chair: '다이닝 체어', bench: '붙박이 벤치', counter: '카운터', shelf: '오픈 선반', plant: '실내 식물', pendant: '펜던트 조명', box: '직육면체', cylinder: '원기둥', partition: '파티션', door: '출입문', window: '창문', model: '가져온 3D 모델' };
 const dims: Record<Kind, [
     number,
     number,
@@ -49,12 +55,18 @@ export function createNode(kind: Kind, id: string, x = 0, z = 0): SceneNode { co
 export function initialScene(): SceneData { const a: SceneNode[] = []; const add = (k: Kind, id: string, x: number, z: number, extra: Partial<SceneNode> = {}) => a.push({ ...createNode(k, id, x, z), ...extra }); add('counter', 'counter', -1500, -2100); add('shelf', 'shelf', -1900, -2920, { width: 1800, height: 2000, depth: 300 }); add('bench', 'bench', 2960, 100, { width: 3800, rotation: 90 }); [-1300, 0, 1300].forEach((z, i) => { add('table', `table-${i}`, 2040, z); add('chair', `chair-${i}`, 1200, z, { rotation: -90 }); }); add('plant', 'plant', -2900, -2650); add('plant', 'plant2', 2900, -2650, { height: 1200, width: 380, depth: 380 }); add('round-table', 'round', -1700, 1250, { width: 900, depth: 900 }); add('chair', 'round-chair1', -2600, 1250, { rotation: -90 }); add('chair', 'round-chair2', -800, 1250, { rotation: 90 }); add('pendant', 'lamp', -1500, -1700, { y: 2350 }); add('pendant', 'lamp2', 2100, 0, { y: 2350 }); add('window', 'window-left', 0, 600, { host: 'left', width: 2200, y: 850, height: 1450 }); add('door', 'door-front', -1600, 0, { host: 'front' }); return { version: 1, name: 'OFD · 스토어 컨셉', room: { width: 7200, depth: 6400, height: 2900, source: 'example', surfaces: { floor: { material: 'terrazzo' }, back: { material: 'plaster' }, left: { material: 'plaster' }, right: { material: 'plaster' }, front: { material: 'plaster' } } }, nodes: a, lighting: { intensity: 1, warmth: 4200 }, cameras: [] }; }
 export function validateScene(input: unknown): SceneData {
     const s = sceneSchema.parse(input);
+    if (s.nodes.filter(n => n.kind === 'model').length > 20)
+        throw new Error('외부 모델은 장면당 20개까지 배치할 수 있습니다.');
     const ids = new Set<string>();
     for (const n of s.nodes) {
         if (ids.has(n.id) || Object.hasOwn(surfaceNames, n.id))
             throw new Error('요소 ID가 중복되었습니다.');
         ids.add(n.id);
-        const minimum: Partial<Record<Kind, [
+        if (n.kind === 'model' && !n.assetId)
+            throw new Error('3D 모델 원본 파일을 지정하세요.');
+        if (n.kind !== 'model' && n.assetId)
+            throw new Error('모델 파일은 가져온 모델에만 연결할 수 있습니다.');
+        const minimum: Partial<Record<SceneNode['kind'], [
             number,
             number,
             number
@@ -195,9 +207,10 @@ export function partDefaultMaterial(node: SceneNode, part: string): MaterialId {
     return node.material;
 }
 export function nodeAppearance(node: SceneNode, face?: string) {
+    const original = node.kind === 'model' && !node.uniformMaterial && !(face && node.faces[face]);
     const material = face ? (node.faces[face] ?? partDefaultMaterial(node, face.split(':')[0])) : node.material;
     const finish: MaterialFinish = face && node.faces[face] ? { ...node.faceFinishes?.[face] } : { ...(node.color ? { color: node.color } : {}), ...node.finish, ...(face ? node.faceFinishes?.[face] : {}) };
-    return { material, finish };
+    return { material, finish, original };
 }
 export function selectionAppearance(scene: SceneData, selection: Selection) {
     if (!selection)
@@ -296,22 +309,26 @@ export function placeAgainst(scene: SceneData, id: string, edge: 'left' | 'right
     }
     return validateScene(s);
 }
-export function collisions(scene: SceneData) { const list = scene.nodes.filter(n => !n.hidden && !n.host), out: {
-    a: string;
-    b: string;
-    names: [
-        string,
-        string
-    ];
-}[] = []; for (let i = 0; i < list.length; i++)
-    for (let j = i + 1; j < list.length; j++) {
-        const a = list[i], b = list[j];
-        if (a.y + a.height <= b.y + 2 || b.y + b.height <= a.y + 2)
-            continue;
-        const ra = a.rotation * Math.PI / 180, rb = b.rotation * Math.PI / 180;
-        const ax = [Math.cos(ra), -Math.sin(ra)], az = [Math.sin(ra), Math.cos(ra)], bx = [Math.cos(rb), -Math.sin(rb)], bz = [Math.sin(rb), Math.cos(rb)];
-        const dot = (u: number[], v: number[]) => u[0] * v[0] + u[1] * v[1], diff = [b.x - a.x, b.z - a.z];
-        const separated = [ax, az, bx, bz].some(v => Math.abs(dot(diff, v)) >= Math.abs(dot(ax, v)) * a.width / 2 + Math.abs(dot(az, v)) * a.depth / 2 + Math.abs(dot(bx, v)) * b.width / 2 + Math.abs(dot(bz, v)) * b.depth / 2 - 2);
-        if (!separated)
-            out.push({ a: a.id, b: b.id, names: [a.name, b.name] });
-    } return out; }
+export function collisions(scene: SceneData) {
+    const list = scene.nodes.filter(n => !n.hidden && !n.host), out: {
+        a: string;
+        b: string;
+        names: [
+            string,
+            string
+        ];
+    }[] = [];
+    for (let i = 0; i < list.length; i++)
+        for (let j = i + 1; j < list.length; j++) {
+            const a = list[i], b = list[j];
+            if (a.y + a.height <= b.y + 2 || b.y + b.height <= a.y + 2)
+                continue;
+            const ra = a.rotation * Math.PI / 180, rb = b.rotation * Math.PI / 180;
+            const ax = [Math.cos(ra), -Math.sin(ra)], az = [Math.sin(ra), Math.cos(ra)], bx = [Math.cos(rb), -Math.sin(rb)], bz = [Math.sin(rb), Math.cos(rb)];
+            const dot = (u: number[], v: number[]) => u[0] * v[0] + u[1] * v[1], diff = [b.x - a.x, b.z - a.z];
+            const separated = [ax, az, bx, bz].some(v => Math.abs(dot(diff, v)) >= Math.abs(dot(ax, v)) * a.width / 2 + Math.abs(dot(az, v)) * a.depth / 2 + Math.abs(dot(bx, v)) * b.width / 2 + Math.abs(dot(bz, v)) * b.depth / 2 - 2);
+            if (!separated)
+                out.push({ a: a.id, b: b.id, names: [a.name, b.name] });
+        }
+    return out;
+}

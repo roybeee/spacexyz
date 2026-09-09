@@ -27,6 +27,10 @@ export default function SceneCanvas({ scene, selection, tool, view, faceMode, sn
     callbacks.current = { onSelect, onTransform, onDraw, onReady };
     const current = useRef({ scene, selection, tool, view, faceMode, snap, cutaway });
     current.current = { scene, selection, tool, view, faceMode, snap, cutaway };
+    const [modelStatus, setModelStatus] = useState<{
+        loading: number;
+        errors: string[];
+    }>({ loading: 0, errors: [] });
     const [error, setError] = useState(''), [ready, setReady] = useState(false);
     useEffect(() => {
         let cancelled = false;
@@ -36,6 +40,8 @@ export default function SceneCanvas({ scene, selection, tool, view, faceMode, sn
             try {
                 const e = new SceneEngine(host.current, { onDraw: p => callbacks.current.onDraw(p), onSelect: s => callbacks.current.onSelect(s), onTransform: (id, p) => callbacks.current.onTransform(id, p) });
                 engine.current = e;
+                e.onModelStatus = status => { if (!cancelled)
+                    setModelStatus(status); };
                 e.setScene(current.current.scene);
                 e.setView(current.current.view);
                 e.setSelection(current.current.selection);
@@ -62,7 +68,9 @@ export default function SceneCanvas({ scene, selection, tool, view, faceMode, sn
         if (engine.current)
             engine.current.cutaway = cutaway;
     }, [cutaway]);
-    useEffect(() => { if (restoreCamera)
-        engine.current?.restoreCamera(restoreCamera); }, [restoreCamera]);
-    return <div className="canvas-host" ref={host}>{!ready && !error && <div className="canvas-message"><LoaderCircle className="spin"/><b>3D 공간 불러오는 중</b></div>}{error && <div className="canvas-message"><MonitorX /><b>3D 화면을 사용할 수 없습니다</b><p>{error}</p></div>}</div>;
+    useEffect(() => {
+        if (restoreCamera)
+            engine.current?.restoreCamera(restoreCamera);
+    }, [restoreCamera]);
+    return <div className="canvas-host" ref={host}>{ready && (modelStatus.loading > 0 || modelStatus.errors.length > 0) && <div className="model-load-status" role="status">{modelStatus.loading > 0 ? <><LoaderCircle size={15} className="spin"/>모델 {modelStatus.loading}개 불러오는 중</> : <>{modelStatus.errors[0]}<button onClick={() => engine.current?.retryModels()}>다시 시도</button></>}</div>}{!ready && !error && <div className="canvas-message"><LoaderCircle className="spin"/><b>3D 공간 불러오는 중</b></div>}{error && <div className="canvas-message"><MonitorX /><b>3D 화면을 사용할 수 없습니다</b><p>{error}</p></div>}</div>;
 }

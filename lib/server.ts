@@ -32,30 +32,44 @@ export function sameOrigin(req: Request) {
     if (origin && origin !== new URL(req.url).origin)
         throw new HttpError(403, '허용되지 않은 요청입니다.');
 }
-export async function readBody(req: Request, max: number) { if (Number(req.headers.get('content-length')) > max)
-    throw new HttpError(413, '파일 또는 요청 크기가 너무 큽니다.'); const reader = req.body?.getReader(); if (!reader)
-    return new Uint8Array(0); const chunks: Uint8Array[] = []; let total = 0; try {
-    while (true) {
-        const result = await reader.read();
-        if (result.done)
-            break;
-        total += result.value.byteLength;
-        if (total > max) {
-            await reader.cancel();
-            throw new HttpError(413, '파일 또는 요청 크기가 너무 큽니다.');
+export async function readBody(req: Request | Response, max: number) {
+    if (Number(req.headers.get('content-length')) > max)
+        throw new HttpError(413, '파일 또는 요청 크기가 너무 큽니다.');
+    const reader = req.body?.getReader();
+    if (!reader)
+        return new Uint8Array(0);
+    const chunks: Uint8Array[] = [];
+    let total = 0;
+    try {
+        while (true) {
+            const result = await reader.read();
+            if (result.done)
+                break;
+            total += result.value.byteLength;
+            if (total > max) {
+                await reader.cancel();
+                throw new HttpError(413, '파일 또는 요청 크기가 너무 큽니다.');
+            }
+            chunks.push(result.value);
         }
-        chunks.push(result.value);
+    }
+    finally {
+        reader.releaseLock();
+    }
+    const out = new Uint8Array(total);
+    let offset = 0;
+    for (const c of chunks) {
+        out.set(c, offset);
+        offset += c.length;
+    }
+    return out;
+}
+export async function jsonBody(req: Request, max = 1500000) {
+    const bytes = await readBody(req, max);
+    try {
+        return JSON.parse(new TextDecoder().decode(bytes));
+    }
+    catch {
+        throw new HttpError(400, '잘못된 입력입니다.');
     }
 }
-finally {
-    reader.releaseLock();
-} const out = new Uint8Array(total); let offset = 0; for (const c of chunks) {
-    out.set(c, offset);
-    offset += c.length;
-} return out; }
-export async function jsonBody(req: Request, max = 1500000) { const bytes = await readBody(req, max); try {
-    return JSON.parse(new TextDecoder().decode(bytes));
-}
-catch {
-    throw new HttpError(400, '잘못된 입력입니다.');
-} }

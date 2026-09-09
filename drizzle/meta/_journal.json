@@ -8,6 +8,13 @@
       "when": 1788988834854,
       "tag": "0000_spotty_scarecrow",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1788996608847,
+      "tag": "0001_special_hedge_knight",
+      "breakpoints": true
     }
   ]
 }

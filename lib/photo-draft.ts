@@ -47,17 +47,20 @@ export function buildPhotoDraft(input: DraftInput, result: unknown, idFactory = 
 }
 export function templateDraft(input: DraftInput, idFactory = () => crypto.randomUUID()): SceneData {
     const q = draftInputSchema.parse(input), s = emptyDraft(q), w = q.width, d = q.depth, notes: string[] = [];
-    const add = (kind: SceneNode['kind'], patch: Partial<SceneNode>) => { const n = { ...createNode(kind, idFactory()), ...patch, estimated: true }; try {
-        const candidate = validateScene({ ...s, nodes: [...s.nodes, n] });
-        if (collisions(candidate).some(pair => pair.a === n.id || pair.b === n.id)) {
-            notes.push(`${n.name}: 다른 가구와 겹쳐 기본 배치에서 제외했습니다.`);
-            return;
+    const add = (kind: typeof kinds[number], patch: Partial<SceneNode>) => {
+        const n = { ...createNode(kind, idFactory()), ...patch, estimated: true };
+        try {
+            const candidate = validateScene({ ...s, nodes: [...s.nodes, n] });
+            if (collisions(candidate).some(pair => pair.a === n.id || pair.b === n.id)) {
+                notes.push(`${n.name}: 다른 가구와 겹쳐 기본 배치에서 제외했습니다.`);
+                return;
+            }
+            s.nodes.push(n);
         }
-        s.nodes.push(n);
-    }
-    catch {
-        notes.push(`${n.name}: 공간 크기에 맞지 않아 기본 배치에서 제외했습니다.`);
-    } };
+        catch {
+            notes.push(`${n.name}: 공간 크기에 맞지 않아 기본 배치에서 제외했습니다.`);
+        }
+    };
     const counterW = Math.max(600, Math.min(2500, w * .45)), cx = -w / 2 + counterW / 2 + 100, cz = -d / 2 + 1500;
     add('counter', { x: cx, z: cz, width: counterW, depth: 800, material: q.brand === 'oda' ? 'steel' : 'oak' });
     if (q.brand === 'oda')
