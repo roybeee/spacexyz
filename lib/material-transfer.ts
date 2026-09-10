@@ -1,3 +1,4 @@
+import {finishTextureKey} from './material-products';
 import {z} from 'zod';
 import {finishSchema,kindNames,materialIds,nodeAppearance,selectionAppearance,surfaceNames,validateScene,type MaterialFinish,type MaterialId,type SceneData,type SceneNode,type Selection} from './scene-model';
 import {finishKey} from './material-board';
@@ -40,7 +41,7 @@ function selectedSlot(node:SceneNode,face:string|undefined,catalog:MaterialSlot[
 }
 function copyable(appearance:Appearance,slots:MaterialSlot[]){
     if(appearance.original)throw new Error('가져온 모델의 원본 소재는 직접 복사할 수 없습니다. 기본 소재나 업로드 이미지를 적용한 뒤 복사하세요.');
-    if(appearance.finish.textureId&&slots.some(s=>!s.hasUv))throw new Error('이미지 좌표(UV)가 없는 면의 이미지 소재는 복사할 수 없습니다. 기본 소재를 먼저 적용하세요.');
+    if(finishTextureKey(appearance.finish)&&slots.some(s=>!s.hasUv))throw new Error('이미지 좌표(UV)가 없는 면의 이미지 소재는 복사할 수 없습니다. 기본 소재를 먼저 적용하세요.');
 }
 function sameAppearance(appearance:Appearance,sample:MaterialSample){return !appearance.original&&finishKey(appearance)===finishKey(sample);}
 
@@ -80,7 +81,7 @@ export function pasteMaterial(scene:SceneData,selection:Selection,sample:Materia
         const node=sourceNode(scene,id);
         if(node.locked)throw new Error(`${node.name||kindNames[node.kind]}: 잠금을 해제한 뒤 소재를 붙이세요.`);
         const slots=scope==='face'?[selectedSlot(node,selection!.face,catalog)]:slotsFor(node,catalog);
-        if(choice.finish.textureId&&slots.some(s=>!s.hasUv))throw new Error(`${node.name||kindNames[node.kind]}: 이미지 좌표(UV)가 없는 면이 있습니다. 해당 요소를 제외하거나 기본 소재를 복사하세요.`);
+        if(finishTextureKey(choice.finish)&&slots.some(s=>!s.hasUv))throw new Error(`${node.name||kindNames[node.kind]}: 이미지 좌표(UV)가 없는 면이 있습니다. 해당 요소를 제외하거나 기본 소재를 복사하세요.`);
         return {node,slots,changed:slots.some(slot=>!sameAppearance(nodeAppearance(node,slot.face),choice))};
     });
     if(!targets.some(target=>target.changed))return scene;

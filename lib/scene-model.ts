@@ -1,3 +1,5 @@
+import {objectPhotoSchema} from './object-photo-schema';
+import {materialProduct} from './material-products';
 import {randomId} from '@/lib/random-id';
 import {doorGeometry,toWorldDoorBox,physicalNodeBounds,partitionObstacleBoxes,type LocalDoorBox} from './door-geometry';
 import {partitionOpeningSchema,validatePartitionOpenings} from './partition-openings-schema';
@@ -45,12 +47,12 @@ export function validateFacade(room:{width:number;height:number},facade?:FacadeD
     if(sign.enabled&&sign.bottom+sign.height>room.height)throw new Error('간판 상단이 매장 높이를 벗어납니다.');
     if(awning.enabled){if(awning.mount>room.height||awning.mount+20>room.height)throw new Error('어닝 설치 높이가 매장 높이를 벗어납니다.');if(awning.mount-awning.drop-awning.valance<1000)throw new Error('어닝 하단 높이가 1,000mm 미만입니다. 설치 높이와 경사를 조정하세요.');if(awning.drop>awning.projection)throw new Error('어닝의 내려가는 높이는 돌출 길이 이내로 입력하세요.');if(sign.enabled&&Math.abs(sign.x-awning.x)<(sign.width+awning.width)/2&&awning.mount+20>sign.bottom&&awning.mount-awning.drop-awning.valance<sign.bottom+sign.height)throw new Error('간판과 어닝이 겹칩니다. 어닝을 간판 아래로 조정하세요.');}
 }
-export const finishSchema = z.object({ textureId:z.string().uuid().nullable().optional(), color: hex.optional(), roughness: z.number().min(0).max(1).optional(), metalness: z.number().min(0).max(1).optional(), scale: z.number().min(50).max(5000).optional(), rotation: z.number().min(-180).max(180).optional() });
+export const finishSchema = z.object({ catalogId:z.string().max(80).refine(id=>!!materialProduct(id),'등록된 제조사 제품을 선택하세요.').nullable().optional(), textureId:z.string().uuid().nullable().optional(), color: hex.optional(), roughness: z.number().min(0).max(1).optional(), metalness: z.number().min(0).max(1).optional(), scale: z.number().min(50).max(5000).optional(), rotation: z.number().min(-180).max(180).optional() });
 export type MaterialFinish = z.infer<typeof finishSchema>;
 export const layerSchema=z.object({id:z.string().uuid(),name:z.string().trim().min(1).max(50),color:hex});
 export type SceneLayer=z.infer<typeof layerSchema>;
 export const layerNameKey=(name:string)=>name.normalize('NFKC').trim().toLowerCase();
-export const nodeSchema = z.object({ openings:z.array(partitionOpeningSchema).max(8).optional(), estimate:estimateSchema.optional(), layerId:z.string().uuid().optional(), id: z.string().min(1).max(80), kind: z.enum([...kinds, 'model']), assetId: z.string().uuid().optional(), group: z.object({id:z.string().uuid(),name:z.string().trim().min(1).max(80)}).optional(), name: z.string().max(80), x: z.number().finite().min(-30000).max(30000), y: z.number().finite().min(0).max(12000), z: z.number().finite().min(-30000).max(30000), width: z.number().finite().min(20).max(20000), height: z.number().finite().min(20).max(12000), depth: z.number().finite().min(20).max(20000), rotation: z.number().finite().min(-3600).max(3600), material: z.enum(materialIds), faces: z.record(z.enum(materialIds)).default({}), color: hex.optional(), finish: finishSchema.optional(), faceFinishes: z.record(z.string().max(60), finishSchema).optional(), uniformMaterial: z.boolean().optional(), estimated: z.boolean().optional(), locked: z.boolean().default(false), hidden: z.boolean().default(false), host: z.enum(['back', 'left', 'right', 'front']).optional() });
+export const nodeSchema = z.object({ objectPhoto:objectPhotoSchema.optional(), openings:z.array(partitionOpeningSchema).max(8).optional(), estimate:estimateSchema.optional(), layerId:z.string().uuid().optional(), id: z.string().min(1).max(80), kind: z.enum([...kinds, 'model']), assetId: z.string().uuid().optional(), group: z.object({id:z.string().uuid(),name:z.string().trim().min(1).max(80)}).optional(), name: z.string().max(80), x: z.number().finite().min(-30000).max(30000), y: z.number().finite().min(0).max(12000), z: z.number().finite().min(-30000).max(30000), width: z.number().finite().min(20).max(20000), height: z.number().finite().min(20).max(12000), depth: z.number().finite().min(20).max(20000), rotation: z.number().finite().min(-3600).max(3600), material: z.enum(materialIds), faces: z.record(z.enum(materialIds)).default({}), color: hex.optional(), finish: finishSchema.optional(), faceFinishes: z.record(z.string().max(60), finishSchema).optional(), uniformMaterial: z.boolean().optional(), estimated: z.boolean().optional(), locked: z.boolean().default(false), hidden: z.boolean().default(false), host: z.enum(['back', 'left', 'right', 'front']).optional() });
 export type SceneNode = z.infer<typeof nodeSchema>;
 export function cloneUngroupedNode(node:SceneNode){const copy=structuredClone(node);delete copy.group;return copy;}
 const surface = z.object({ material: z.enum(materialIds), color: hex.optional(), finish: finishSchema.optional() });
@@ -81,7 +83,7 @@ const dims: Record<Kind, [
 ]> = { table: [750, 740, 750, 'oak'], 'round-table': [800, 740, 800, 'oak'], chair: [460, 800, 480, 'oak'], bench: [2800, 800, 600, 'linen'], counter: [2600, 1050, 750, 'steel'], shelf: [1100, 1900, 380, 'oak'], plant: [480, 1500, 480, 'sage'], pendant: [450, 350, 450, 'charcoal'], box: [1000, 500, 600, 'oak'], cylinder: [600, 700, 600, 'concrete'], partition: [2000, 1200, 120, 'plaster'], door: [950, 2100, 160, 'oak'], window: [1800, 1300, 160, 'glass'] };
 export function createNode(kind: Kind, id: string, x = 0, z = 0): SceneNode { const [width, height, depth, material] = dims[kind]; return { id, kind, name: kindNames[kind], x, y: kind === 'pendant' ? 2300 : kind === 'window' ? 900 : 0, z, width, height, depth, rotation: 0, material, faces: {}, locked: false, hidden: false, ...(kind === 'window' || kind === 'door' ? { host: 'back' as const } : {}) }; }
 export function initialScene(): SceneData { const a: SceneNode[] = []; const add = (k: Kind, id: string, x: number, z: number, extra: Partial<SceneNode> = {}) => a.push({ ...createNode(k, id, x, z), ...extra }); add('counter', 'counter', -1500, -2100); add('shelf', 'shelf', -1900, -2920, { width: 1800, height: 2000, depth: 300 }); add('bench', 'bench', 2960, 100, { width: 3800, rotation: 90 }); [-1300, 0, 1300].forEach((z, i) => { add('table', `table-${i}`, 2040, z); add('chair', `chair-${i}`, 1200, z, { rotation: -90 }); }); add('plant', 'plant', -2900, -2650); add('plant', 'plant2', 2900, -2650, { height: 1200, width: 380, depth: 380 }); add('round-table', 'round', -1700, 1250, { width: 900, depth: 900 }); add('chair', 'round-chair1', -2600, 1250, { rotation: -90 }); add('chair', 'round-chair2', -800, 1250, { rotation: 90 }); add('pendant', 'lamp', -1500, -1700, { y: 2350 }); add('pendant', 'lamp2', 2100, 0, { y: 2350 }); add('window', 'window-left', 0, 600, { host: 'left', width: 2200, y: 850, height: 1450 }); add('door', 'door-front', -1600, 0, { host: 'front' }); return { version: 1, name: 'OFD · 스토어 컨셉', room: { width: 7200, depth: 6400, height: 2900, source: 'example', surfaces: { floor: { material: 'terrazzo' }, back: { material: 'plaster' }, left: { material: 'plaster' }, right: { material: 'plaster' }, front: { material: 'plaster' } } }, nodes: a, lighting: { intensity: 1, warmth: 4200 }, cameras: [] }; }
-export function imageReferences(s:Pick<SceneData,'room'|'nodes'|'facade'|'underlay'>):string[]{return [...new Set([...Object.values(s.room.surfaces).map(v=>v.finish?.textureId),...s.nodes.flatMap(n=>[n.finish?.textureId,...Object.values(n.faceFinishes??{}).map(f=>f.textureId)]),s.facade?.sign.logoId,s.underlay?.imageId].filter((id):id is string=>!!id))];}
+export function imageReferences(s:Pick<SceneData,'room'|'nodes'|'facade'|'underlay'>):string[]{return [...new Set([...Object.values(s.room.surfaces).map(v=>v.finish?.textureId),...s.nodes.flatMap(n=>[n.objectPhoto?.imageId,n.finish?.textureId,...Object.values(n.faceFinishes??{}).map(f=>f.textureId)]),s.facade?.sign.logoId,s.underlay?.imageId].filter((id):id is string=>!!id))];}
 export function validateScene(input: unknown): SceneData {
     const s = sceneSchema.parse(input);
     validateLayout(s);
@@ -93,12 +95,13 @@ export function validateScene(input: unknown): SceneData {
 }
 function validateLayout(s:Pick<SceneData,'room'|'nodes'|'facade'|'measurements'|'layers'|'budget'|'underlay'>){
     if(s.underlay)validateUnderlay(s.underlay);
+    for(const f of [...Object.values(s.room.surfaces).map(v=>v.finish),...s.nodes.flatMap(n=>[n.finish,...Object.values(n.faceFinishes??{})])])if(f?.catalogId&&f.textureId)throw new Error('제조사 제품과 업로드 소재 이미지는 하나만 선택하세요.');
     if(s.nodes.reduce((sum,n)=>sum+(n.openings?.length??0),0)>100)throw new Error('한 디자인에는 파티션 개구부 100개까지 만들 수 있습니다.');
     const layerIds=new Set<string>(),layerNames=new Set<string>();for(const layer of s.layers??[]){if(layerIds.has(layer.id))throw new Error('레이어 ID가 중복되었습니다.');const name=layerNameKey(layer.name);if(name==='미분류'||layerNames.has(name))throw new Error('서로 다른 레이어 이름을 입력하세요. 미분류는 기본 분류입니다.');layerIds.add(layer.id);layerNames.add(name);}
     const extraIds=new Set<string>();for(const e of s.budget?.extras??[]){if(extraIds.has(e.id))throw new Error('별도 비용 ID가 중복되었습니다.');extraIds.add(e.id);}
     const groupLayers=new Map<string,string|undefined>();
     const measurementIds=new Set<string>();for(const m of s.measurements??[]){if(measurementIds.has(m.id))throw new Error('치수 ID가 중복되었습니다.');measurementIds.add(m.id);for(const a of [m.start,m.end])if(a.kind==='room'&&(a.surface==='floor'?a.offset>0:a.offset< -60))throw new Error('벽·바닥 측정점의 표면 위치를 확인하세요.');}
-    if(imageReferences(s).length>8)throw new Error('한 디자인에 이미지 8개까지 사용할 수 있습니다. 사용하지 않는 소재·로고·도면 이미지를 제거하세요.');
+    if(imageReferences(s).length>8)throw new Error('한 디자인에 이미지 8개까지 사용할 수 있습니다. 사용하지 않는 소재·로고·도면·물체 사진을 제거하세요.');
     validateFacade(s.room,s.facade);
     if (s.nodes.filter(n => n.kind === 'model').length > 20)
         throw new Error('외부 모델은 장면당 20개까지 배치할 수 있습니다.');
@@ -107,6 +110,7 @@ function validateLayout(s:Pick<SceneData,'room'|'nodes'|'facade'|'measurements'|
     const ids = new Set<string>(),groups=new Map<string,string>();
     for (const n of s.nodes) {
         validatePartitionOpenings(n);
+        if(n.objectPhoto&&['model','partition','door','window'].includes(n.kind))throw new Error('물체 사진은 지원되는 가구 기본형에만 연결할 수 있습니다.');
         if (ids.has(n.id) || Object.hasOwn(surfaceNames, n.id) || n.id==='facade-sign' || n.id==='facade-awning')
             throw new Error('요소 ID가 중복되었습니다.');
         ids.add(n.id);
@@ -269,7 +273,7 @@ export function partDefaultMaterial(node: SceneNode, part: string): MaterialId {
 export function nodeAppearance(node: SceneNode, face?: string) {
     const material = face ? (node.faces[face] ?? partDefaultMaterial(node, face.split(':')[0])) : node.material;
     const finish: MaterialFinish = face && node.faces[face] ? { ...node.faceFinishes?.[face] } : { ...(node.color ? { color: node.color } : {}), ...node.finish, ...(face ? node.faceFinishes?.[face] : {}) };
-    const original = node.kind === 'model' && !node.uniformMaterial && !(face && node.faces[face]) && !finish.textureId;
+    const original = node.kind === 'model' && !node.uniformMaterial && !(face && node.faces[face]) && !finish.textureId && !finish.catalogId;
     return { material, finish, original };
 }
 export function selectionAppearance(scene: SceneData, selection: Selection) {

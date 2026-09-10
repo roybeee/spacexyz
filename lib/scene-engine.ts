@@ -1,3 +1,4 @@
+import {finishTextureKey,catalogTextureKeys} from './material-products';
 import {partitionWallGeometry} from './partition-geometry';
 import {prepareSelectionExport} from './selection-export';
 import {doorGeometry} from './door-geometry';
@@ -349,7 +350,7 @@ export class SceneEngine {
             material.opacity = .28;
             material.depthWrite = false;
         }
-        if(finish.textureId)this.bindImage(finish.textureId,material,source=>{
+        const textureKey=finishTextureKey(finish);if(textureKey)this.bindImage(textureKey,material,source=>{
             const image=materialImage(source,repeat,finish.scale,finish.rotation,flipY);
             material.map?.dispose();material.map=image;material.color.set('#ffffff');material.needsUpdate=true;
         });
@@ -400,7 +401,7 @@ export class SceneEngine {
     setScene(data: SceneData) {
         this.cancelTransform();
         const roomResized = this.data?.room.width !== data.room.width || this.data?.room.depth !== data.room.depth;
-        const key = JSON.stringify({ room: data.room, nodes: data.nodes.map(({estimate,...node})=>node), facade:data.facade });
+        const key = JSON.stringify({ room: data.room, nodes: data.nodes.map(({estimate,objectPhoto,...node})=>node), facade:data.facade });
         if(key!==this.geometryKey&&this.measureStart)this.cancelMeasurement();
         if(key!==this.geometryKey&&this.drawStart)this.cancelDrawing();
         this.data = data;
@@ -415,7 +416,7 @@ export class SceneEngine {
                     disposeModel(entry.root);
             }
         this.imageCache??=new Map();
-        const usedImages=new Set(imageReferences({...data,underlay:undefined}));
+        const usedImages=new Set([...imageReferences({...data,underlay:undefined}),...catalogTextureKeys(data)]);
         for(const [id,entry] of this.imageCache)if(!usedImages.has(id)){
             this.imageCache.delete(id);entry.controller.abort();entry.texture?.dispose();
         }
@@ -473,7 +474,7 @@ export class SceneEngine {
                     if (!open) {
                         const mesh = this.box(wall, xa[i + 1] - xa[i], ya[j + 1] - ya[j], .12, cx, cy, 0, key, 'surface', data.room.surfaces[key].material);
                         this.disposeMaterial(mesh.material);
-                        if(data.room.surfaces[key].finish?.textureId){
+                        if(finishTextureKey(data.room.surfaces[key].finish??{})){
                             wallImageUV(mesh.geometry,cx,cy,along,h);mesh.material=this.surfaceMaterial(key,[along,h]);
                         }else mesh.material = this.surfaceMaterial(key, [xa[i + 1] - xa[i], ya[j + 1] - ya[j]]);
                     }
@@ -696,7 +697,7 @@ export class SceneEngine {
         throw new Error('다른 장면으로 이동했습니다.');
     } record.root = root; return root; })().catch(e => { record.error = e instanceof Error ? e.message : '3D 모델 읽기 실패'; throw e; }).finally(() => this.publishModelStatus()); this.publishModelStatus(); return record.promise; }
     private buildModel(g: T.Group, n: SceneNode) { const placeholder = new T.Mesh(new T.BoxGeometry(n.width / 1000, n.height / 1000, n.depth / 1000), new T.MeshBasicMaterial({ color: 0x948cb0, wireframe: true })); placeholder.position.y = n.height / 2000; placeholder.userData = { nodeId: n.id,unmeasurable:true }; g.add(placeholder); const epoch=this.assetEpoch??0;const job=this.modelAsset(n.assetId!).then(source => { if (this.disposed || !this.root.children.includes(g))
-        return; source.traverse(o=>{if(o instanceof T.Mesh&&!o.geometry.getAttribute('uv')){const list=Array.isArray(o.material)?o.material:[o.material];if(list.some((_,i)=>nodeAppearance(n,`${o.userData.part}:${i}`).finish.textureId))throw new Error('이 모델에는 UV 좌표가 없어 이미지를 적용할 수 없습니다. 원본 소재를 복원하거나 UV가 있는 GLB를 선택하세요.');}}); this.clearGroup(g); const model = cloneModel(source); model.scale.multiply(new T.Vector3(n.width / 1000, n.height / 1000, n.depth / 1000)); model.traverse(o => { if (!(o instanceof T.Mesh))
+        return; source.traverse(o=>{if(o instanceof T.Mesh&&!o.geometry.getAttribute('uv')){const list=Array.isArray(o.material)?o.material:[o.material];if(list.some((_,i)=>finishTextureKey(nodeAppearance(n,`${o.userData.part}:${i}`).finish)))throw new Error('이 모델에는 UV 좌표가 없어 이미지를 적용할 수 없습니다. 원본 소재를 복원하거나 UV가 있는 GLB를 선택하세요.');}}); this.clearGroup(g); const model = cloneModel(source); model.scale.multiply(new T.Vector3(n.width / 1000, n.height / 1000, n.depth / 1000)); model.traverse(o => { if (!(o instanceof T.Mesh))
         return; o.userData.nodeId = n.id; const part = o.userData.part; const wasArray = Array.isArray(o.material); const list = wasArray ? o.material as T.Material[] : [o.material as T.Material]; const mapped = list.map((native, i) => { const key = `${part}:${i}`, appearance = nodeAppearance(n, key); if (!appearance.original) {
         this.disposeMaterial(native);
         return this.nodeMaterial(n, key);

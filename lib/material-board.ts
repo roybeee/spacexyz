@@ -1,3 +1,4 @@
+import {finishTextureKey,finishLabel} from './material-products';
 import {finishSchema,materialIds,materials,nodeAppearance,selectionAppearance,surfaceNames,validateScene,type MaterialFinish,type MaterialId,type SceneData} from './scene-model';
 import type {MaterialSlot} from './material-catalog';
 export type FinishChoice={material:MaterialId;finish:MaterialFinish};
@@ -8,13 +9,13 @@ export type MaterialPlan={baseScene:string;scene:SceneData;changedRegions:number
 export function finishKey(choice:FinishChoice){
     const b=materials.find(m=>m.id===choice.material)!;const f=choice.finish;
     // Image pixels replace tint. Explicit defaults and absent defaults render identically.
-    return JSON.stringify([choice.material,f.textureId??null,f.textureId?null:(f.color??b.color).toLowerCase(),f.roughness??b.roughness,f.metalness??b.metalness,f.scale??900,f.rotation??0]);
+    return JSON.stringify([choice.material,finishTextureKey(f),finishTextureKey(f)?null:(f.color??b.color).toLowerCase(),f.roughness??b.roughness,f.metalness??b.metalness,f.scale??900,f.rotation??0]);
 }
 export function materialRows(scene:SceneData,catalog:MaterialSlot[]):MaterialRow[]{
     const rows=new Map<string,MaterialRow>(),nodes=new Map(scene.nodes.map(n=>[n.id,n])),seen=new Set<string>();
     const add=(key:string,choice:FinishChoice,use:MaterialUse,original=false,name?:string,color?:string)=>{
         if(seen.has(use.key))return;seen.add(use.key);
-        let row=rows.get(key);if(!row){const base=materials.find(m=>m.id===choice.material)!;row={...choice,key,name:name??base.name,color:color??choice.finish.color??base.color,original,uses:[]};rows.set(key,row);}row.uses.push(use);
+        let row=rows.get(key);if(!row){const base=materials.find(m=>m.id===choice.material)!;row={...choice,key,name:name??finishLabel(choice.finish,base.name),color:color??choice.finish.color??base.color,original,uses:[]};rows.set(key,row);}row.uses.push(use);
     };
     for(const id of Object.keys(surfaceNames)){const a=selectionAppearance(scene,{id})!;add(finishKey(a),a,{key:JSON.stringify(['room',id]),id,name:surfaceNames[id],hidden:false,locked:false,hasUv:true});}
     for(const slot of catalog){const n=nodes.get(slot.nodeId);if(!n)continue;const a=nodeAppearance(n,slot.face);
@@ -31,7 +32,7 @@ export function planMaterialReplacement(scene:SceneData,catalog:MaterialSlot[],s
     const keys=new Set(useKeys);if(!keys.size)throw new Error('교체할 요소를 선택하세요.');
     const uses=row.uses.filter(u=>keys.has(u.key));if(uses.length!==keys.size)throw new Error('소재 적용 대상이 변경되었습니다. 다시 선택하세요.');
     if(uses.some(u=>u.locked))throw new Error('잠긴 요소가 포함되어 있습니다. 잠금을 해제하거나 대상에서 제외하세요.');
-    if(choice.finish.textureId&&uses.some(u=>!u.hasUv))throw new Error('선택한 모델에 이미지 좌표(UV)가 없는 부위가 있습니다. 해당 요소를 제외하거나 기본 소재를 선택하세요.');
+    if(finishTextureKey(choice.finish)&&uses.some(u=>!u.hasUv))throw new Error('선택한 모델에 이미지 좌표(UV)가 없는 부위가 있습니다. 해당 요소를 제외하거나 기본 소재를 선택하세요.');
     const baseScene=JSON.stringify(scene);
     if(!row.original&&finishKey(row)===finishKey(choice))return {baseScene,scene,changedRegions:0,changedElements:0,reviewPrices:0};
     const next=structuredClone(scene),nodes=new Map(next.nodes.map(n=>[n.id,n])),changed=new Set<string>();

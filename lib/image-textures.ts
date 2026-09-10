@@ -1,9 +1,12 @@
+import {materialProduct} from './material-products';
 import * as T from 'three';
 import {inspectImage,IMAGE_LIMIT} from './image-assets';
 
-/** Only same-origin, owner-authorized assets are decoded. Never load a supplied URL. */
+/** Load owner-authorized images or bundled manufacturer swatches, never an arbitrary URL. */
 export async function loadImageTexture(id:string,signal:AbortSignal):Promise<T.Texture> {
-    const response=await fetch(`/api/assets?id=${encodeURIComponent(id)}`,{signal});
+    const product=id.startsWith('catalog:')?materialProduct(id.slice(8)):undefined;
+    if(id.startsWith('catalog:')&&!product)throw new Error('등록된 제조사 제품을 찾을 수 없습니다.');
+    const response=await fetch(product?.image??`/api/assets?id=${encodeURIComponent(id)}`,{signal});
     if(!response.ok)throw new Error('소재·로고 이미지를 불러오지 못했습니다. 같은 계정의 이미지인지 확인하세요.');
     if(Number(response.headers.get('Content-Length'))>IMAGE_LIMIT)throw new Error('이미지 크기가 허용 범위를 넘었습니다.');
     const bytes=new Uint8Array(await response.arrayBuffer()),info=inspectImage(bytes);

@@ -9,6 +9,7 @@ import {materials,type MaterialFinish,type MaterialId} from '@/lib/scene-model';
 import {validateMaterialPreset,toMaterialSample,type MaterialPreset,type MaterialPresetRow} from '@/lib/material-presets';
 import type {MaterialSample} from '@/lib/material-transfer';
 import './material-presets.css';
+import {finishImageUrl,finishTextureKey,finishLabel} from '@/lib/material-products';
 
 class PresetRequestError extends Error{constructor(message:string,public status?:number){super(message);}}
 async function request<T>(url:string,options?:RequestInit):Promise<T>{
@@ -20,11 +21,11 @@ async function request<T>(url:string,options?:RequestInit):Promise<T>{
 function Swatch({material,finish,large=false}:{material:MaterialId;finish:MaterialFinish;large?:boolean}){
  const base=materials.find(m=>m.id===material)!,[failed,setFailed]=useState(false);
  useEffect(()=>setFailed(false),[finish.textureId]);
- return <span className={`material-preset-swatch pattern-${base.pattern}${large?' large':''}`} style={{backgroundColor:finish.color??base.color}}>{finish.textureId&&!failed&&<img src={`/api/assets?id=${finish.textureId}`} alt="저장한 소재 이미지" loading="lazy" onError={()=>setFailed(true)}/>}<span className="material-preset-swatch-label">{finish.textureId?<><ImageIcon size={12}/>{failed?'이미지 미리보기 없음':'이미지 소재'}</>:base.group}</span></span>;
+ return <span className={`material-preset-swatch pattern-${base.pattern}${large?' large':''}`} style={{backgroundColor:finish.color??base.color}}>{finishTextureKey(finish)&&!failed&&<img src={finishImageUrl(finish)} alt="저장한 소재 이미지" loading="lazy" onError={()=>setFailed(true)}/>}<span className="material-preset-swatch-label">{finishTextureKey(finish)?<><ImageIcon size={12}/>{failed?'이미지 미리보기 없음':'이미지 소재'}</>:base.group}</span></span>;
 }
 function FinishSummary({preset}:{preset:Pick<MaterialPreset,'material'|'finish'>}){
  const base=materials.find(m=>m.id===preset.material)!,f=preset.finish;
- return <dl className="material-preset-finish"><div><dt>기본 소재</dt><dd>{base.name}</dd></div><div><dt>반복 크기</dt><dd>{(f.scale??900).toLocaleString()} mm</dd></div><div><dt>결 방향</dt><dd>{f.rotation??0}°</dd></div><div><dt>거칠기 / 금속성</dt><dd>{Math.round((f.roughness??base.roughness)*100)}% / {Math.round((f.metalness??base.metalness)*100)}%</dd></div></dl>;
+ return <dl className="material-preset-finish"><div><dt>기본 소재</dt><dd>{finishLabel(f,base.name)}</dd></div><div><dt>반복 크기</dt><dd>{(f.scale??900).toLocaleString()} mm</dd></div><div><dt>결 방향</dt><dd>{f.rotation??0}°</dd></div><div><dt>거칠기 / 금속성</dt><dd>{Math.round((f.roughness??base.roughness)*100)}% / {Math.round((f.metalness??base.metalness)*100)}%</dd></div></dl>;
 }
 const normalized=(value:string)=>value.normalize('NFKC').toLowerCase().replace(/\s+/gu,'');
 

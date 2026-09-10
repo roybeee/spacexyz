@@ -3,15 +3,16 @@ import {useMemo,useState} from 'react';
 import {ArrowRight,Check,Eye,Lock,Palette,Search} from 'lucide-react';
 import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription} from '@/components/ui/dialog';
 import MaterialDetail from './material-detail';
+import {finishImageUrl,finishTextureKey} from '@/lib/material-products';
 import {materials,type SceneData,type Selection} from '@/lib/scene-model';
 import {selectionIds} from '@/lib/selection';
 import {materialRows,scopedMaterialUses,planMaterialReplacement,type FinishChoice,type MaterialPlan,type MaterialRow,type MaterialScope} from '@/lib/material-board';
 import type {MaterialSlot} from '@/lib/material-catalog';
 function Swatch({row}:{row:MaterialRow|FinishChoice}){
     const base=materials.find(m=>m.id===row.material)!;
-    return <span className={`board-swatch pattern-${base.pattern}`} style={{backgroundColor:'color' in row?row.color:row.finish.color??base.color}}>{row.finish.textureId?<img src={`/api/assets?id=${row.finish.textureId}`} alt="소재 이미지"/>:'original' in row&&row.original?<Palette size={19}/>:null}</span>;
+    return <span className={`board-swatch pattern-${base.pattern}`} style={{backgroundColor:'color' in row?row.color:row.finish.color??base.color}}>{finishImageUrl(row.finish)?<img src={finishImageUrl(row.finish)!} alt="소재 이미지"/>:'original' in row&&row.original?<Palette size={19}/>:null}</span>;
 }
-function finishLabel(row:MaterialRow){const f=row.finish;if(row.original)return ['모델 원본',f.color,f.roughness!==undefined?`광택 ${Math.round((1-f.roughness)*100)}%`:null,f.metalness!==undefined?`금속 ${Math.round(f.metalness*100)}%`:null].filter(Boolean).join(' · ');const b=materials.find(m=>m.id===row.material)!;return `${f.textureId?'소재 사진':f.color??b.color} · 광택 ${Math.round((1-(f.roughness??b.roughness))*100)}% · 금속 ${Math.round((f.metalness??b.metalness)*100)}% · ${f.scale??900}mm · ${f.rotation??0}°`;}
+function finishLabel(row:MaterialRow){const f=row.finish;if(row.original)return ['모델 원본',f.color,f.roughness!==undefined?`광택 ${Math.round((1-f.roughness)*100)}%`:null,f.metalness!==undefined?`금속 ${Math.round(f.metalness*100)}%`:null].filter(Boolean).join(' · ');const b=materials.find(m=>m.id===row.material)!;return `${finishTextureKey(f)?'소재 사진':f.color??b.color} · 광택 ${Math.round((1-(f.roughness??b.roughness))*100)}% · 금속 ${Math.round((f.metalness??b.metalness)*100)}% · ${f.scale??900}mm · ${f.rotation??0}°`;}
 export default function MaterialBoardDialog({scene,catalog,selection,onClose,onPreview}:{scene:SceneData;catalog:MaterialSlot[];selection:Selection;onClose:()=>void;onPreview:(plan:MaterialPlan,name:string)=>void}){
     const rows=useMemo(()=>materialRows(scene,catalog),[scene,catalog]);
     const initial=rows.find(r=>r.uses.some(u=>u.id===selection?.id&&(!selection?.face||u.face===selection.face)))??rows[0];

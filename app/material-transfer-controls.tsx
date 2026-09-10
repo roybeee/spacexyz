@@ -2,11 +2,13 @@
 
 import {ClipboardPaste, Copy, LoaderCircle, X, BookmarkPlus, FolderOpen} from 'lucide-react';
 import './material-transfer.css';
+import {materialProduct} from '@/lib/material-products';
 
 export type MaterialTransferSample = {
     name: string;
     color: string;
     textureId?: string | null;
+    catalogId?: string | null;
     sourceName: string;
 };
 
@@ -30,7 +32,7 @@ export default function MaterialTransferControls({sample, canCopy, canPaste, bus
             <button type="button" disabled={pasteDisabled} onClick={onPaste}><ClipboardPaste size={15}/><span>붙이기</span></button>
         </div>
         {sample ? <div className="material-transfer-sample">
-            <span className={`material-transfer-chip${sample.textureId ? ' has-texture' : ''}`} style={{backgroundColor:sample.textureId ? undefined : sample.color}} aria-hidden="true"/>
+            <span className={`material-transfer-chip${sample.textureId ? ' has-texture' : ''}`} style={{backgroundColor:sample.textureId ? undefined : sample.color}} aria-hidden="true">{sample.catalogId&&<img src={materialProduct(sample.catalogId)?.image} alt="" style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:6}}/>}</span>
             <div className="material-transfer-copy"><div><b title={sample.name}>{sample.name}</b>{sample.textureId && <span className="material-transfer-image-badge">이미지 소재</span>}</div><small title={sample.sourceName}>복사한 곳 · {sample.sourceName}</small></div>
             <button className="material-transfer-clear" type="button" disabled={busy} onClick={onClear} title="복사한 소재 지우기" aria-label="복사한 소재 지우기"><X size={14}/></button>
         </div> : <p className="material-transfer-hint">소재를 복사한 뒤 다른 면을 선택해 붙이세요.</p>}
