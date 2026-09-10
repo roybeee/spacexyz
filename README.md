@@ -275,3 +275,20 @@ SKP/MAX 직접 편집·양방향 호환, 범용 폴리곤/곡면 모델링, CAD 
 물체 사진에서 AI가 최대 16개 box/cylinder 부품을 제안하고, 사용자가 입력한 전체 W/D/H에 맞춰 편집 가능한 그룹으로 추가합니다. AI 없이 표준 기본형을 선택할 수도 있습니다. 사진은 소유자 자산으로 보관하며 프로젝트 및 세트에 참조가 유지됩니다. 정밀 사진측량이나 SKP/MAX 직접 편집은 포함하지 않습니다.
 
 [기능·사용 방법·검증 한계](DEVELOPMENT-PRODUCTS-PHOTO-2026-09-10.md). 전체 47개 파일·651개 코드/계약 검사, TypeScript와 프로덕션 빌드 통과. 실제 AI 제공자 호출은 키 미설정으로 미검증입니다.
+
+## GitHub 소스로 실행·검증하기
+
+저장소: [roybeee/spacexyz](https://github.com/roybeee/spacexyz). Node.js 24 LTS와 npm을 사용합니다.
+
+```bash
+git clone https://github.com/roybeee/spacexyz.git
+cd spacexyz
+npm run install:ci
+node --test tests/*.test.mjs
+npx tsc --noEmit --incremental false
+npm run dev
+```
+
+배포용 빌드는 `npm run build`입니다. 새 체크아웃은 portable 실행 설정을 사용합니다. 실제 저장·업로드에는 D1/R2 바인딩과 플랫폼 인증이 필요하며, 개발 화면을 열었다고 사용자 인증이나 AI 연결이 자동으로 만들어지지는 않습니다. AI 환경변수 이름은 값이 비어 있는 `.env.example`에 정리했습니다. 실제 키와 `.dev.vars`는 커밋하지 마세요.
+
+최신 검증: **48개 파일·659개 검사 통과**. [GitHub 업로드 전 동작 검증](VERIFICATION-GITHUB-2026-09-10.md)에 실제 서버·브라우저 확인과 시험 대역을 사용한 범위를 구분해 기록했습니다. 서비스 런타임은 v22와 동일하며 이번에는 통합 시험·문서·로컬 비밀파일 제외 규칙을 보강했습니다.
