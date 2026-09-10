@@ -1,3 +1,4 @@
+import {groupExportNodes} from './group-export';
 import * as T from 'three';
 import {buildFacade} from './facade-mesh';
 import {loadImageTexture,materialImage,fitLogo,wallImageUV,bakeImageTransforms} from './image-textures';
@@ -811,7 +812,7 @@ export class SceneEngine {
             if (o.userData.wall || o.userData.host || o.userData.facade)
                 o.visible = !this.data?.nodes.find(n => n.id === o.userData.nodeId)?.hidden;
         });
-        try{bakeImageTransforms(clone);return await new GLTFExporter().parseAsync(clone, { binary: true, onlyVisible: true, maxTextureSize: 1024 }) as ArrayBuffer;}finally{this.clearGroup(clone);}
+        try{groupExportNodes(clone,this.data?.nodes??[]);bakeImageTransforms(clone);return await new GLTFExporter().parseAsync(clone, { binary: true, onlyVisible: true, maxTextureSize: 1024 }) as ArrayBuffer;}finally{this.clearGroup(clone);}
     }
     async screenshot(width = 2048, requestedAspect?: number) {
         await this.modelsReady();

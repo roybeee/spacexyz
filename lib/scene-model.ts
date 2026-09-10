@@ -40,8 +40,9 @@ export function validateFacade(room:{width:number;height:number},facade?:FacadeD
 }
 export const finishSchema = z.object({ textureId:z.string().uuid().nullable().optional(), color: hex.optional(), roughness: z.number().min(0).max(1).optional(), metalness: z.number().min(0).max(1).optional(), scale: z.number().min(50).max(5000).optional(), rotation: z.number().min(-180).max(180).optional() });
 export type MaterialFinish = z.infer<typeof finishSchema>;
-export const nodeSchema = z.object({ id: z.string().min(1).max(80), kind: z.enum([...kinds, 'model']), assetId: z.string().uuid().optional(), name: z.string().max(80), x: z.number().finite().min(-30000).max(30000), y: z.number().finite().min(0).max(12000), z: z.number().finite().min(-30000).max(30000), width: z.number().finite().min(20).max(20000), height: z.number().finite().min(20).max(12000), depth: z.number().finite().min(20).max(20000), rotation: z.number().finite().min(-3600).max(3600), material: z.enum(materialIds), faces: z.record(z.enum(materialIds)).default({}), color: hex.optional(), finish: finishSchema.optional(), faceFinishes: z.record(z.string().max(60), finishSchema).optional(), uniformMaterial: z.boolean().optional(), estimated: z.boolean().optional(), locked: z.boolean().default(false), hidden: z.boolean().default(false), host: z.enum(['back', 'left', 'right', 'front']).optional() });
+export const nodeSchema = z.object({ id: z.string().min(1).max(80), kind: z.enum([...kinds, 'model']), assetId: z.string().uuid().optional(), group: z.object({id:z.string().uuid(),name:z.string().trim().min(1).max(80)}).optional(), name: z.string().max(80), x: z.number().finite().min(-30000).max(30000), y: z.number().finite().min(0).max(12000), z: z.number().finite().min(-30000).max(30000), width: z.number().finite().min(20).max(20000), height: z.number().finite().min(20).max(12000), depth: z.number().finite().min(20).max(20000), rotation: z.number().finite().min(-3600).max(3600), material: z.enum(materialIds), faces: z.record(z.enum(materialIds)).default({}), color: hex.optional(), finish: finishSchema.optional(), faceFinishes: z.record(z.string().max(60), finishSchema).optional(), uniformMaterial: z.boolean().optional(), estimated: z.boolean().optional(), locked: z.boolean().default(false), hidden: z.boolean().default(false), host: z.enum(['back', 'left', 'right', 'front']).optional() });
 export type SceneNode = z.infer<typeof nodeSchema>;
+export function cloneUngroupedNode(node:SceneNode){const copy=structuredClone(node);delete copy.group;return copy;}
 const surface = z.object({ material: z.enum(materialIds), color: hex.optional(), finish: finishSchema.optional() });
 export const coreSceneSchema = z.object({ version: z.literal(1), name: z.string().min(1).max(100), room: z.object({ width: z.number().min(2400).max(20000), depth: z.number().min(2400).max(20000), height: z.number().min(2200).max(6000), source: z.enum(['example', 'entered', 'measured']), surfaces: z.object({ floor: surface, back: surface, left: surface, right: surface, front: surface }) }), nodes: z.array(nodeSchema).max(300), facade: facadeSchema.optional(), lighting: z.object({ intensity: z.number().min(.2).max(2), warmth: z.number().min(2700).max(6500) }), photoId: z.string().max(80).optional(), renders: z.array(z.object({ id: z.string().uuid(), name: z.string().max(100), createdAt: z.string().datetime(), prompt: z.string().max(2000) })).max(20).optional(), palette: z.array(hex).max(8).optional(), draft: z.object({ method: z.enum(['photo-ai', 'template']), summary: z.string().max(1000), notes: z.array(z.string().max(500)).max(30) }).optional(), cameras: z.array(z.object({ id: z.string().max(80), name: z.string().max(80), view: z.enum(['perspective', 'top', 'front', 'interior']).optional(), zoom: z.number().min(.01).max(100).optional(), position: z.tuple([z.number().finite().min(-200).max(200), z.number().finite().min(-200).max(200), z.number().finite().min(-200).max(200)]), target: z.tuple([z.number().finite().min(-200).max(200), z.number().finite().min(-200).max(200), z.number().finite().min(-200).max(200)]) })).max(10).default([]) });
 export const designSchema=coreSceneSchema.pick({room:true,nodes:true,lighting:true,photoId:true,palette:true,draft:true,facade:true});
@@ -87,11 +88,16 @@ function validateLayout(s:Pick<SceneData,'room'|'nodes'|'facade'>){
         throw new Error('외부 모델은 장면당 20개까지 배치할 수 있습니다.');
     const sign=s.facade?.sign;
     if(sign?.enabled&&s.nodes.some(n=>n.host==='front'&&!n.hidden&&Math.abs(n.x-sign.x)<(n.width+sign.width)/2&&n.y<sign.bottom+sign.height&&n.y+n.height>sign.bottom))throw new Error('간판이 전면 문·창문을 가립니다. 간판 높이를 올리거나 유리 전면을 새로 구성하세요.');
-    const ids = new Set<string>();
+    const ids = new Set<string>(),groups=new Map<string,string>();
     for (const n of s.nodes) {
         if (ids.has(n.id) || Object.hasOwn(surfaceNames, n.id) || n.id==='facade-sign' || n.id==='facade-awning')
             throw new Error('요소 ID가 중복되었습니다.');
         ids.add(n.id);
+        if(n.group){
+            if(n.host||n.kind==='door'||n.kind==='window')throw new Error('문·창문은 그룹에 포함할 수 없습니다.');
+            if(groups.has(n.group.id)&&groups.get(n.group.id)!==n.group.name)throw new Error('같은 그룹의 이름이 일치하지 않습니다.');
+            groups.set(n.group.id,n.group.name);
+        }
         if (n.kind === 'model' && !n.assetId)
             throw new Error('3D 모델 원본 파일을 지정하세요.');
         if (n.kind !== 'model' && n.assetId)
@@ -174,6 +180,7 @@ export function applyCommands(scene: SceneData, commands: SceneCommand[], idFact
             }
             if (!n)
                 throw new Error(`요소를 찾을 수 없습니다: ${id}`);
+            if(n.group&&c.type!=='material')throw new Error('그룹의 위치·회전은 함께 이동·회전에서, 개별 크기는 그룹 안 편집에서 조정하세요.');
             if (c.type === 'material') {
                 n.material = c.material;
                 n.faces = {};
@@ -313,7 +320,7 @@ export function arrayNode(scene: SceneData, id: string, count: number, gap: numb
     const f = footprint(n), step = (n.host ? n.width : axis === 'x' ? f.width : f.depth) + gap;
     const s = structuredClone(scene);
     for (let i = 1; i <= count; i++)
-        s.nodes.push({ ...structuredClone(n), id: idFactory(), name: `${n.name.slice(0, 65)} ${i + 1}`, [axis]: n[axis] + step * i });
+        s.nodes.push({ ...cloneUngroupedNode(n), id: idFactory(), name: `${n.name.slice(0, 65)} ${i + 1}`, [axis]: n[axis] + step * i });
     return validateScene(s);
 }
 export function placeAgainst(scene: SceneData, id: string, edge: 'left' | 'right' | 'back' | 'front' | 'center'): SceneData {

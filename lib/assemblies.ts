@@ -1,5 +1,5 @@
 import {z} from 'zod';
-import {nodeSchema,initialScene,validateScene,createNode,collisions,type SceneData,type SceneNode} from './scene-model';
+import {nodeSchema,cloneUngroupedNode,initialScene,validateScene,createNode,collisions,type SceneData,type SceneNode} from './scene-model';
 import {groupBounds,selectedNodes} from './selection';
 
 export const assemblyCategories={seating:'좌석',counter:'카운터',display:'진열',equipment:'설비',custom:'기타'} as const;
@@ -26,7 +26,7 @@ export function captureAssembly(scene:SceneData,ids:string[],name:string,note=''
     if(selected.some(n=>n.hidden))throw new Error('숨긴 가구를 표시하거나 선택에서 제외하세요.');
     if(selected.some(n=>n.host||n.kind==='door'||n.kind==='window'))throw new Error('문·창문을 선택에서 제외한 뒤 저장하세요.');
     const bounds=groupBounds(selected);
-    return validateAssembly({version:1,name,note,category,elevation:bounds.min.y,nodes:selected.map((n,i)=>({...structuredClone(n),id:`part-${i+1}`,x:n.x-bounds.center.x,y:n.y-bounds.min.y,z:n.z-bounds.center.z,rotation:yaw(n.rotation),locked:false,hidden:false}))});
+    return validateAssembly({version:1,name,note,category,elevation:bounds.min.y,nodes:selected.map((n,i)=>({...cloneUngroupedNode(n),id:`part-${i+1}`,x:n.x-bounds.center.x,y:n.y-bounds.min.y,z:n.z-bounds.center.z,rotation:yaw(n.rotation),locked:false,hidden:false}))});
 }
 
 export function assemblySummary(id:string,a:Assembly,created_at=''):AssemblySummary {
@@ -36,11 +36,13 @@ export function assemblySummary(id:string,a:Assembly,created_at=''):AssemblySumm
 export function placedAssembly(a:Assembly,p:AssemblyPlacement,idFactory=()=>crypto.randomUUID()):SceneNode[] {
     if(!Object.values(p).every(Number.isFinite)||p.y<0||Math.abs(p.rotation)>360)throw new Error('위치·높이·회전 값을 확인하세요.');
     const angle=yaw(p.rotation)*Math.PI/180,c=Math.cos(angle),s=Math.sin(angle);
-    return a.nodes.map(n=>({...structuredClone(n),id:idFactory(),x:p.x+n.x*c+n.z*s,y:p.y+n.y,z:p.z-n.x*s+n.z*c,rotation:yaw(n.rotation+p.rotation),locked:false,hidden:false}));
+    return a.nodes.map(n=>({...cloneUngroupedNode(n),id:idFactory(),x:p.x+n.x*c+n.z*s,y:p.y+n.y,z:p.z-n.x*s+n.z*c,rotation:yaw(n.rotation+p.rotation),locked:false,hidden:false}));
 }
 
 export function insertAssembly(scene:SceneData,input:unknown,p:AssemblyPlacement,idFactory=()=>crypto.randomUUID()) {
-    const a=validateAssembly(input),added=placedAssembly(a,p,idFactory),next=validateScene({...scene,nodes:[...scene.nodes,...added]}),ids=added.map(n=>n.id),set=new Set(ids);
+    const a=validateAssembly(input),added=placedAssembly(a,p,idFactory);
+    if(added.length>1){const group={id:crypto.randomUUID(),name:a.name};for(const n of added)n.group=group;}
+    const next=validateScene({...scene,nodes:[...scene.nodes,...added]}),ids=added.map(n=>n.id),set=new Set(ids);
     const overlaps=collisions(next).filter(c=>set.has(c.a)||set.has(c.b));
     return {scene:next,ids,overlaps};
 }

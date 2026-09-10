@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Check, Copy, Move, ScanLine } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import {selectionIds} from '@/lib/selection';
 import { collisions, arrayNode, placeAgainst, type SceneData, type Selection } from '@/lib/scene-model';
 export default function PlacementDialog({ open, onClose, scene, selection, onCommit, onSelect }: {
     open: boolean;
@@ -11,7 +12,7 @@ export default function PlacementDialog({ open, onClose, scene, selection, onCom
     selection: Selection;
     onCommit: (s: SceneData, label?: string) => boolean;
     onSelect: (s: Selection) => void;
-}) { const [count, setCount] = useState(2), [gap, setGap] = useState(300), [axis, setAxis] = useState<'x' | 'z'>('x'), [error, setError] = useState(''); const node = scene.nodes.find(n => n.id === selection?.id), conflicts = collisions(scene); const run = (fn: () => SceneData) => { setError(''); try {
+}) { const [count, setCount] = useState(2), [gap, setGap] = useState(300), [axis, setAxis] = useState<'x' | 'z'>('x'), [error, setError] = useState(''); const node = selectionIds(selection).length>1?undefined:scene.nodes.find(n => n.id === selection?.id), conflicts = collisions(scene); const run = (fn: () => SceneData) => { setError(''); try {
     onCommit(fn(), '배치를 변경했습니다.');
 }
 catch (e) {
