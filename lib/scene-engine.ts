@@ -1,4 +1,5 @@
 import {MeasurementOverlay} from './measurement-overlay';
+import {UnderlayRenderer,type UnderlayStatus} from './underlay-renderer';
 import {SectionClipper,clearExportClipping} from './section-clipper';
 import {sectionSchema,sectionContains,type SectionView} from './section-view';
 import {renderedMaterialSlots} from './material-catalog';
@@ -27,6 +28,8 @@ export class SceneEngine {
     perspective: T.PerspectiveCamera;
     planCamera = new T.OrthographicCamera(-5, 5, 5, -5, .01, 200);
     private geometryKey = "";
+    private underlayRenderer?:UnderlayRenderer;
+    onUnderlayStatus?:(status:UnderlayStatus)=>void;
     private disposed = false;
     private modelCache = new Map<string, {
         promise: Promise<T.Group>;
@@ -392,6 +395,7 @@ export class SceneEngine {
         const key = JSON.stringify({ room: data.room, nodes: data.nodes.map(({estimate,...node})=>node), facade:data.facade });
         if(key!==this.geometryKey&&this.measureStart)this.cancelMeasurement();
         this.data = data;
+        this.updateUnderlay();
         this.updateInteriorCeiling();
         this.measurementOverlay?.update(data,this.measureStart);
         const used = new Set(data.nodes.filter(n => n.kind === 'model').map(n => n.assetId));
@@ -402,7 +406,7 @@ export class SceneEngine {
                     disposeModel(entry.root);
             }
         this.imageCache??=new Map();
-        const usedImages=new Set(imageReferences(data));
+        const usedImages=new Set(imageReferences({...data,underlay:undefined}));
         for(const [id,entry] of this.imageCache)if(!usedImages.has(id)){
             this.imageCache.delete(id);entry.controller.abort();entry.texture?.dispose();
         }
@@ -687,7 +691,10 @@ export class SceneEngine {
         if(this.data&&this.sectionClipper)this.sectionClipper.update(this.data.room,this.sectionSuspended?null:this.section,[this.root,this.helpers,this.interiorCeiling]);
         if(this.measurementOverlay?.group)this.measurementOverlay.group.visible=(this.measurementsVisible??true)&&!(this.section&&!this.sectionSuspended);
         if(this.data&&this.root&&this.camera)this.updateCutaway();
+        this.underlayRenderer?.setDisplay(this.view==='top'&&!(this.section&&!this.sectionSuspended));
     }
+    private updateUnderlay(){if(!this.underlayRenderer&&this.data?.underlay){this.underlayRenderer=new UnderlayRenderer(status=>this.onUnderlayStatus?.(status));this.scene.add(this.underlayRenderer.group);}this.underlayRenderer?.update(this.data?.underlay);this.underlayRenderer?.setDisplay(this.view==='top'&&!this.section);}
+    retryUnderlay(){this.underlayRenderer?.retry();}
     setMeasurementsVisible(value:boolean){this.measurementsVisible=value;if(this.measurementOverlay)this.measurementOverlay.group.visible=value&&!this.section;}
     sectionPointVisible(point:T.Vector3){return !this.data||sectionContains(this.data.room,this.sectionSuspended?null:this.section,point);}
     private updateCutaway() {
@@ -827,6 +834,7 @@ export class SceneEngine {
         }
         this.resize();
         this.orbit.update();
+        this.underlayRenderer?.setDisplay(this.view==='top'&&!this.section);
         this.setSelection(this.selection);
     }
     zoom(factor: number) {
@@ -882,13 +890,15 @@ export class SceneEngine {
         });
         try{groupExportNodes(clone,this.data?.nodes??[],this.data?.layers??[]);bakeImageTransforms(clone);return await new GLTFExporter().parseAsync(clone, { binary: true, onlyVisible: true, maxTextureSize: 1024 }) as ArrayBuffer;}finally{this.clearGroup(clone);}
     }
-    async screenshot(width = 2048, requestedAspect?: number,includeMeasurements=false,includeSection=false) {
+    async screenshot(width = 2048, requestedAspect?: number,includeMeasurements=false,includeSection=false,includeUnderlay=false) {
+        if(includeUnderlay){if(this.view!=='top'||this.section||!this.data?.underlay?.visible)throw new Error('도면 배경을 표시한 평면 보기에서 저장하세요. 단면 보기는 종료하세요.');await this.underlayRenderer?.ready();}
         await this.modelsReady();
         const oldSize = new T.Vector2();
         this.renderer.getSize(oldSize);
         const oldRatio = this.renderer.getPixelRatio();
         const oldAspect = oldSize.x / oldSize.y;
         const sectionSuspended=this.sectionSuspended,guideVis=this.sectionClipper?.guide.visible;
+        const underlayVis=this.underlayRenderer?.group.visible;
         const measureVis=this.measurementOverlay?.group.visible;
         if(this.measurementOverlay)this.measurementOverlay.group.visible=includeMeasurements&&!(this.section&&includeSection);
         const helperVis = this.helpers.visible;
@@ -897,6 +907,7 @@ export class SceneEngine {
         this.transform.getHelper().visible = false;
         try {
             if(this.section){this.sectionSuspended=!includeSection;this.refreshSection();if(this.sectionClipper)this.sectionClipper.guide.visible=false;}
+            if(this.underlayRenderer)this.underlayRenderer.group.visible=!!includeUnderlay&&!!underlayVis;
             if(this.measurementOverlay)this.measurementOverlay.group.visible=includeMeasurements&&!(this.section&&includeSection);
             const aspect = requestedAspect ?? oldAspect;
             width = Math.max(1, Math.min(width, Math.floor(4096 * aspect)));
@@ -911,6 +922,7 @@ export class SceneEngine {
         }
         finally {
             if(this.section){this.sectionSuspended=sectionSuspended;this.refreshSection();if(this.sectionClipper)this.sectionClipper.guide.visible=guideVis??false;}
+            if(this.underlayRenderer)this.underlayRenderer.group.visible=underlayVis??false;
             this.renderer.setPixelRatio(oldRatio);
             this.renderer.setSize(oldSize.x, oldSize.y, false);
             if (this.camera instanceof T.PerspectiveCamera)
@@ -956,6 +968,7 @@ export class SceneEngine {
         this.transform.dispose();
         this.clearGroup(this.root);
         this.measurementOverlay?.dispose();
+        this.underlayRenderer?.dispose();
         this.sectionClipper?.dispose();
         if(this.interiorCeiling){this.scene.remove(this.interiorCeiling);this.interiorCeiling.geometry.dispose();this.interiorCeiling.material.dispose();this.interiorCeiling=undefined;}
         this.grid.geometry.dispose();

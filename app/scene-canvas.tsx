@@ -40,6 +40,7 @@ export default function SceneCanvas({ scene, selection, tool, view, faceMode, sn
         loading: number;
         errors: string[];
     }>({ loading: 0, errors: [] });
+    const [underlayStatus,setUnderlayStatus]=useState({loading:false,error:''});
     const [error, setError] = useState(''), [ready, setReady] = useState(false);
     useEffect(() => {
         let cancelled = false;
@@ -51,6 +52,7 @@ export default function SceneCanvas({ scene, selection, tool, view, faceMode, sn
                 engine.current = e;
                 e.onTransformGroup=(ids,delta,pivot)=>callbacks.current.onTransformGroup?.(ids,delta,pivot);e.multiSelect=!!current.current.multiSelect;
                 e.onMeasure=(start,end)=>callbacks.current.onMeasure?.(start,end)??false;e.onMeasureStatus=(started,error)=>callbacks.current.onMeasureStatus?.(started,error);e.setMeasurementsVisible(current.current.measurementsVisible!==false);
+                e.onUnderlayStatus=status=>{if(!cancelled)setUnderlayStatus(status)};
                 e.onModelStatus = status => { if (!cancelled)
                     setModelStatus(status); };
                 e.setScene(current.current.scene);
@@ -88,5 +90,5 @@ export default function SceneCanvas({ scene, selection, tool, view, faceMode, sn
             engine.current?.restoreCamera(restoreCamera);
     }, [restoreCamera]);
     useEffect(()=>{engine.current?.setSection(section??null);},[section]);
-    return <div className="canvas-host" ref={host}>{ready && (modelStatus.loading > 0 || modelStatus.errors.length > 0) && <div className="model-load-status" role="status">{modelStatus.loading > 0 ? <><LoaderCircle size={15} className="spin"/>3D 소재·모델 준비 중…</> : <>{modelStatus.errors[0]}<button onClick={() => engine.current?.retryModels()}>다시 시도</button></>}</div>}{!ready && !error && <div className="canvas-message"><LoaderCircle className="spin"/><b>3D 공간 불러오는 중</b></div>}{error && <div className="canvas-message"><MonitorX /><b>3D 화면을 사용할 수 없습니다</b><p>{error}</p></div>}</div>;
+    return <div className="canvas-host" ref={host}>{ready&&view==='top'&&(underlayStatus.loading||underlayStatus.error)&&<div className="underlay-load-status" role="status">{underlayStatus.loading?'도면 이미지 준비 중…':<>{underlayStatus.error}<button onClick={()=>engine.current?.retryUnderlay()}>다시 시도</button></>}</div>}{ready && (modelStatus.loading > 0 || modelStatus.errors.length > 0) && <div className="model-load-status" role="status">{modelStatus.loading > 0 ? <><LoaderCircle size={15} className="spin"/>3D 소재·모델 준비 중…</> : <>{modelStatus.errors[0]}<button onClick={() => engine.current?.retryModels()}>다시 시도</button></>}</div>}{!ready && !error && <div className="canvas-message"><LoaderCircle className="spin"/><b>3D 공간 불러오는 중</b></div>}{error && <div className="canvas-message"><MonitorX /><b>3D 화면을 사용할 수 없습니다</b><p>{error}</p></div>}</div>;
 }
