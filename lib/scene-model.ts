@@ -27,7 +27,7 @@ export const materials: {
 ];
 const hex = z.string().regex(/^#[a-fA-F0-9]{6}$/);
 export const facadeSchema = z.object({
-    sign: z.object({enabled:z.boolean(),text:z.string().min(1).max(60).regex(/^[^\n\r\t]+$/),font:z.enum(['sans','serif','condensed']),width:z.number().finite().min(600).max(19800),height:z.number().finite().min(100).max(1400),x:z.number().finite().min(-10000).max(10000),bottom:z.number().finite().min(0).max(5900),depth:z.number().finite().min(40).max(400),material:z.enum(materialIds),color:hex,textColor:hex,illuminated:z.boolean()}),
+    sign: z.object({logoId:z.string().uuid().nullable().optional(),logoScale:z.number().min(.1).max(1).optional(),enabled:z.boolean(),text:z.string().min(1).max(60).regex(/^[^\n\r\t]+$/),font:z.enum(['sans','serif','condensed']),width:z.number().finite().min(600).max(19800),height:z.number().finite().min(100).max(1400),x:z.number().finite().min(-10000).max(10000),bottom:z.number().finite().min(0).max(5900),depth:z.number().finite().min(40).max(400),material:z.enum(materialIds),color:hex,textColor:hex,illuminated:z.boolean()}),
     awning: z.object({enabled:z.boolean(),width:z.number().finite().min(600).max(19800),x:z.number().finite().min(-10000).max(10000),mount:z.number().finite().min(1000).max(6000),projection:z.number().finite().min(200).max(2400),drop:z.number().finite().min(0).max(1200),valance:z.number().finite().min(0).max(400),color:hex,stripeColor:hex,striped:z.boolean(),stripeWidth:z.number().finite().min(80).max(500)})
 });
 export type FacadeData=z.infer<typeof facadeSchema>;
@@ -38,7 +38,7 @@ export function validateFacade(room:{width:number;height:number},facade?:FacadeD
     if(sign.enabled&&sign.bottom+sign.height>room.height)throw new Error('간판 상단이 매장 높이를 벗어납니다.');
     if(awning.enabled){if(awning.mount>room.height||awning.mount+20>room.height)throw new Error('어닝 설치 높이가 매장 높이를 벗어납니다.');if(awning.mount-awning.drop-awning.valance<1000)throw new Error('어닝 하단 높이가 1,000mm 미만입니다. 설치 높이와 경사를 조정하세요.');if(awning.drop>awning.projection)throw new Error('어닝의 내려가는 높이는 돌출 길이 이내로 입력하세요.');if(sign.enabled&&Math.abs(sign.x-awning.x)<(sign.width+awning.width)/2&&awning.mount+20>sign.bottom&&awning.mount-awning.drop-awning.valance<sign.bottom+sign.height)throw new Error('간판과 어닝이 겹칩니다. 어닝을 간판 아래로 조정하세요.');}
 }
-export const finishSchema = z.object({ color: hex.optional(), roughness: z.number().min(0).max(1).optional(), metalness: z.number().min(0).max(1).optional(), scale: z.number().min(50).max(5000).optional(), rotation: z.number().min(-180).max(180).optional() });
+export const finishSchema = z.object({ textureId:z.string().uuid().nullable().optional(), color: hex.optional(), roughness: z.number().min(0).max(1).optional(), metalness: z.number().min(0).max(1).optional(), scale: z.number().min(50).max(5000).optional(), rotation: z.number().min(-180).max(180).optional() });
 export type MaterialFinish = z.infer<typeof finishSchema>;
 export const nodeSchema = z.object({ id: z.string().min(1).max(80), kind: z.enum([...kinds, 'model']), assetId: z.string().uuid().optional(), name: z.string().max(80), x: z.number().finite().min(-30000).max(30000), y: z.number().finite().min(0).max(12000), z: z.number().finite().min(-30000).max(30000), width: z.number().finite().min(20).max(20000), height: z.number().finite().min(20).max(12000), depth: z.number().finite().min(20).max(20000), rotation: z.number().finite().min(-3600).max(3600), material: z.enum(materialIds), faces: z.record(z.enum(materialIds)).default({}), color: hex.optional(), finish: finishSchema.optional(), faceFinishes: z.record(z.string().max(60), finishSchema).optional(), uniformMaterial: z.boolean().optional(), estimated: z.boolean().optional(), locked: z.boolean().default(false), hidden: z.boolean().default(false), host: z.enum(['back', 'left', 'right', 'front']).optional() });
 export type SceneNode = z.infer<typeof nodeSchema>;
@@ -70,6 +70,7 @@ const dims: Record<Kind, [
 ]> = { table: [750, 740, 750, 'oak'], 'round-table': [800, 740, 800, 'oak'], chair: [460, 800, 480, 'oak'], bench: [2800, 800, 600, 'linen'], counter: [2600, 1050, 750, 'steel'], shelf: [1100, 1900, 380, 'oak'], plant: [480, 1500, 480, 'sage'], pendant: [450, 350, 450, 'charcoal'], box: [1000, 500, 600, 'oak'], cylinder: [600, 700, 600, 'concrete'], partition: [2000, 1200, 120, 'plaster'], door: [950, 2100, 160, 'oak'], window: [1800, 1300, 160, 'glass'] };
 export function createNode(kind: Kind, id: string, x = 0, z = 0): SceneNode { const [width, height, depth, material] = dims[kind]; return { id, kind, name: kindNames[kind], x, y: kind === 'pendant' ? 2300 : kind === 'window' ? 900 : 0, z, width, height, depth, rotation: 0, material, faces: {}, locked: false, hidden: false, ...(kind === 'window' || kind === 'door' ? { host: 'back' as const } : {}) }; }
 export function initialScene(): SceneData { const a: SceneNode[] = []; const add = (k: Kind, id: string, x: number, z: number, extra: Partial<SceneNode> = {}) => a.push({ ...createNode(k, id, x, z), ...extra }); add('counter', 'counter', -1500, -2100); add('shelf', 'shelf', -1900, -2920, { width: 1800, height: 2000, depth: 300 }); add('bench', 'bench', 2960, 100, { width: 3800, rotation: 90 }); [-1300, 0, 1300].forEach((z, i) => { add('table', `table-${i}`, 2040, z); add('chair', `chair-${i}`, 1200, z, { rotation: -90 }); }); add('plant', 'plant', -2900, -2650); add('plant', 'plant2', 2900, -2650, { height: 1200, width: 380, depth: 380 }); add('round-table', 'round', -1700, 1250, { width: 900, depth: 900 }); add('chair', 'round-chair1', -2600, 1250, { rotation: -90 }); add('chair', 'round-chair2', -800, 1250, { rotation: 90 }); add('pendant', 'lamp', -1500, -1700, { y: 2350 }); add('pendant', 'lamp2', 2100, 0, { y: 2350 }); add('window', 'window-left', 0, 600, { host: 'left', width: 2200, y: 850, height: 1450 }); add('door', 'door-front', -1600, 0, { host: 'front' }); return { version: 1, name: 'OFD · 스토어 컨셉', room: { width: 7200, depth: 6400, height: 2900, source: 'example', surfaces: { floor: { material: 'terrazzo' }, back: { material: 'plaster' }, left: { material: 'plaster' }, right: { material: 'plaster' }, front: { material: 'plaster' } } }, nodes: a, lighting: { intensity: 1, warmth: 4200 }, cameras: [] }; }
+export function imageReferences(s:Pick<SceneData,'room'|'nodes'|'facade'>):string[]{return [...new Set([...Object.values(s.room.surfaces).map(v=>v.finish?.textureId),...s.nodes.flatMap(n=>[n.finish?.textureId,...Object.values(n.faceFinishes??{}).map(f=>f.textureId)]),s.facade?.sign.logoId].filter((id):id is string=>!!id))];}
 export function validateScene(input: unknown): SceneData {
     const s = sceneSchema.parse(input);
     validateLayout(s);
@@ -80,6 +81,7 @@ export function validateScene(input: unknown): SceneData {
     return s;
 }
 function validateLayout(s:Pick<SceneData,'room'|'nodes'|'facade'>){
+    if(imageReferences(s).length>8)throw new Error('한 디자인에 이미지 8개까지 사용할 수 있습니다. 사용하지 않는 소재·로고 이미지를 제거하세요.');
     validateFacade(s.room,s.facade);
     if (s.nodes.filter(n => n.kind === 'model').length > 20)
         throw new Error('외부 모델은 장면당 20개까지 배치할 수 있습니다.');
@@ -233,9 +235,9 @@ export function partDefaultMaterial(node: SceneNode, part: string): MaterialId {
     return node.material;
 }
 export function nodeAppearance(node: SceneNode, face?: string) {
-    const original = node.kind === 'model' && !node.uniformMaterial && !(face && node.faces[face]);
     const material = face ? (node.faces[face] ?? partDefaultMaterial(node, face.split(':')[0])) : node.material;
     const finish: MaterialFinish = face && node.faces[face] ? { ...node.faceFinishes?.[face] } : { ...(node.color ? { color: node.color } : {}), ...node.finish, ...(face ? node.faceFinishes?.[face] : {}) };
+    const original = node.kind === 'model' && !node.uniformMaterial && !(face && node.faces[face]) && !finish.textureId;
     return { material, finish, original };
 }
 export function selectionAppearance(scene: SceneData, selection: Selection) {

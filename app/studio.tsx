@@ -276,7 +276,7 @@ export default function InteriorStudio() {
     useEffect(() => {
         const keys = (e: KeyboardEvent) => {
             const target = e.target as HTMLElement;
-            if (target.closest('input,textarea,[contenteditable=true]'))
+            if (target.closest('input,textarea,[contenteditable=true],[role=dialog]'))
                 return;
             if (modal || mobileLibrary || mobileInspector)
                 return;
@@ -590,7 +590,7 @@ export default function InteriorStudio() {
                     if (window.innerWidth <= 1050)
                         setMobileLibrary(true);
                 }}><span className={`swatch pattern-${material.pattern}`} style={{ backgroundColor: material.color }}/><div><small>현재 소재</small><b>{material.name}</b></div><ChevronRight size={17}/></button>}{originalMaterial && <button className="current-material native-material" onClick={() => { setTab('materials'); if (window.innerWidth <= 1050)
-            setMobileLibrary(true); }}><Box size={22}/><div><small>현재 소재</small><b>모델 원본 소재</b><small>소재를 선택하면 교체됩니다</small></div><ChevronRight size={17}/></button>}{node?.kind === 'model' && <button className="text-button full" disabled={node.locked} onClick={() => updateNode(node.id, { uniformMaterial: false, faces: {}, faceFinishes: {}, finish: {}, color: undefined })}>모델 전체 원본 소재 복원</button>}{appearance && !originalMaterial && <MaterialDetail material={appearance.material} finish={appearance.finish} disabled={node?.locked} onChange={finish => {
+            setMobileLibrary(true); }}><Box size={22}/><div><small>현재 소재</small><b>모델 원본 소재</b><small>소재를 선택하면 교체됩니다</small></div><ChevronRight size={17}/></button>}{node?.kind === 'model' && <button className="text-button full" disabled={node.locked} onClick={() => updateNode(node.id, { uniformMaterial: false, faces: {}, faceFinishes: {}, finish: {}, color: undefined })}>모델 전체 원본 소재 복원</button>}{appearance && <MaterialDetail key={`${projectSession.current}:${selection?.id}:${faceMode}:${selection?.face??''}`} original={originalMaterial} model={node?.kind==='model'} material={appearance.material} finish={appearance.finish} disabled={node?.locked} onChange={finish => {
                     try {
                         commit(editAppearance(sceneRef.current, selection, { finish }, faceMode));
                     }

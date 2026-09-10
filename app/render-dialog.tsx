@@ -69,7 +69,7 @@ export default function RenderDialog({ open, onClose, scene, view, photoUrl, api
         return;
     } flight.current = true; setBusy(true); setError(''); const inputImage = image; try {
         const ref = reference ? (await photoData(photoUrl)).image : undefined;
-        const response = await fetch('/api/render', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ requestId: crypto.randomUUID(), name: `${scene.name.slice(0, 80)} · ${view==='exterior'?'외관':'실내'} AI 시안`, prompt, quality, view, signText:view==='exterior'&&scene.facade?.sign.enabled?scene.facade.sign.text:undefined, image: inputImage, reference: ref, apiKey: apiKey || undefined }) });
+        const response = await fetch('/api/render', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ requestId: crypto.randomUUID(), name: `${scene.name.slice(0, 80)} · ${view==='exterior'?'외관':'실내'} AI 시안`, prompt, quality, view, signText:view==='exterior'&&scene.facade?.sign.enabled&&!scene.facade.sign.logoId?scene.facade.sign.text:undefined, image: inputImage, reference: ref, apiKey: apiKey || undefined }) });
         const data = await response.json() as {
             error?: string;
             result: RenderResult;

@@ -22,7 +22,7 @@ export function facadeTexture(kind:'sign'|'awning',data:FacadeData):T.Texture|nu
     const texture=new T.CanvasTexture(canvas);texture.colorSpace=T.SRGBColorSpace;texture.anisotropy=4;return texture;
 }
 
-export function buildFacade(scene:Pick<SceneData,'room'|'facade'>,material:MaterialFactory,textureFactory:FacadeTextureFactory=facadeTexture):T.Group {
+export function buildFacade(scene:Pick<SceneData,'room'|'facade'>,material:MaterialFactory,textureFactory:FacadeTextureFactory=facadeTexture,bindLogo?:(label:T.Mesh<T.PlaneGeometry,T.MeshStandardMaterial>,id:string,width:number,height:number)=>void):T.Group {
     const root=new T.Group();root.name='매장 외관';root.userData.facade=true;
     const f=scene.facade;if(!f)return root;const front=scene.room.depth/2000;
     const mesh=(parent:T.Group,name:string,geometry:T.BufferGeometry,mat:T.Material,x:number,y:number,z:number,id:string)=>{
@@ -31,7 +31,8 @@ export function buildFacade(scene:Pick<SceneData,'room'|'facade'>,material:Mater
     if(f.sign.enabled){
         const s=f.sign,w=s.width/1000,h=s.height/1000,d=s.depth/1000,g=new T.Group();g.name='간판';g.userData.facadePart='sign';root.add(g);
         mesh(g,'간판 본체',new T.BoxGeometry(w,h,d),material(s.material,s.color,[w,h]),s.x/1000,(s.bottom+s.height/2)/1000,front+.06+d/2,'facade-sign');
-        const map=textureFactory('sign',f);
+        const map=s.logoId?null:textureFactory('sign',f);
+        if(s.logoId){const lettering=new T.MeshStandardMaterial({color:'#ffffff',transparent:true,alphaTest:.01,roughness:.55,metalness:0,emissive:s.illuminated?'#ffffff':'#000000',emissiveIntensity:s.illuminated?.8:0});const label=new T.Mesh(new T.PlaneGeometry(1,1),lettering);label.name='간판 로고';label.position.set(s.x/1000,(s.bottom+s.height/2)/1000,front+.063+d);label.userData={nodeId:'facade-sign',facade:true};label.visible=false;g.add(label);bindLogo?.(label,s.logoId,w*.9*(s.logoScale??.9),h*.82*(s.logoScale??.9));}
         if(map){const lettering=new T.MeshStandardMaterial({map,transparent:true,alphaTest:.05,roughness:.55,metalness:0,emissive:s.illuminated?'#ffffff':'#000000',emissiveMap:s.illuminated?map:null,emissiveIntensity:s.illuminated?.8:0});const label=mesh(g,'간판 문자',new T.PlaneGeometry(w*.9,h*.82),lettering,s.x/1000,(s.bottom+s.height/2)/1000,front+.063+d,'facade-sign');label.castShadow=false;}
     }
     if(f.awning.enabled){

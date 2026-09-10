@@ -1,5 +1,6 @@
 import * as T from 'three';
 import {buildFacade} from './facade-mesh';
+import {loadImageTexture,materialImage,fitLogo,wallImageUV,bakeImageTransforms} from './image-textures';
 import {facadeProjection} from './facade';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
@@ -7,7 +8,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 import { parseModel, cloneModel, disposeModel } from './model-loader';
 import {selectionIds,groupBounds,groupPoses,type GroupDelta} from './selection';
-import { materials, nodeAppearance, type MaterialFinish, type MaterialId, type SceneData, type SceneNode, type Selection } from './scene-model';
+import { imageReferences, materials, nodeAppearance, type MaterialFinish, type MaterialId, type SceneData, type SceneNode, type Selection } from './scene-model';
 export type ToolMode = 'select' | 'translate' | 'rotate' | 'draw';
 export type ViewMode = 'perspective' | 'top' | 'front' | 'interior';
 export class SceneEngine {
@@ -25,6 +26,10 @@ export class SceneEngine {
         root?: T.Group;
         error?: string;
     }>();
+    private imageCache = new Map<string,{promise:Promise<T.Texture>;texture?:T.Texture;error?:string;controller:AbortController}>();
+    private assetEpoch=0;
+    private pendingAssets=new Map<Promise<void>,number>();
+    private assetErrors:string[]=[];
     onModelStatus?: (status: {
         loading: number;
         errors: string[];
@@ -293,7 +298,7 @@ export class SceneEngine {
     private material(id: MaterialId, color?: string, repeat: [
         number,
         number
-    ] = [1, 1], finish: MaterialFinish = {}) {
+    ] = [1, 1], finish: MaterialFinish = {}, flipY=true) {
         const m = materials.find(m => m.id === id)!;
         const map = this.texture(id, finish.color ?? color).clone();
         map.needsUpdate = true;
@@ -307,12 +312,16 @@ export class SceneEngine {
             material.opacity = .28;
             material.depthWrite = false;
         }
+        if(finish.textureId)this.bindImage(finish.textureId,material,source=>{
+            const image=materialImage(source,repeat,finish.scale,finish.rotation,flipY);
+            material.map?.dispose();material.map=image;material.color.set('#ffffff');material.needsUpdate=true;
+        });
         return material;
     }
     private nodeMaterial(node: SceneNode, face: string, size: [
         number,
         number
-    ] = [1, 1]) { const a = nodeAppearance(node, face); return this.material(a.material, undefined, size, a.finish); }
+    ] = [1, 1]) { const a = nodeAppearance(node, face); return this.material(a.material, undefined, size, a.finish,node.kind!=='model'); }
     private box(parent: T.Object3D, w: number, h: number, d: number, x: number, y: number, z: number, id: string, part: string, mat: MaterialId, node?: SceneNode): T.Mesh<T.BoxGeometry, T.Material | T.Material[]> {
         const geometry = new T.BoxGeometry(Math.max(.006, w), Math.max(.006, h), Math.max(.006, d));
         const sizes: [
@@ -363,6 +372,11 @@ export class SceneEngine {
                 if (entry.root)
                     disposeModel(entry.root);
             }
+        this.imageCache??=new Map();
+        const usedImages=new Set(imageReferences(data));
+        for(const [id,entry] of this.imageCache)if(!usedImages.has(id)){
+            this.imageCache.delete(id);entry.controller.abort();entry.texture?.dispose();
+        }
         this.publishModelStatus();
         if (key === this.geometryKey) {
             for (const n of data.nodes) {
@@ -376,6 +390,7 @@ export class SceneEngine {
             this.setSelection(this.selection);return;
         }
         this.geometryKey = key;
+        this.assetEpoch=(this.assetEpoch??0)+1;this.assetErrors=[];
         this.transform.detach();
         this.clearGroup(this.root);
         const w = data.room.width / 1000, d = data.room.depth / 1000, h = data.room.height / 1000;
@@ -416,14 +431,17 @@ export class SceneEngine {
                     if (!open) {
                         const mesh = this.box(wall, xa[i + 1] - xa[i], ya[j + 1] - ya[j], .12, cx, cy, 0, key, 'surface', data.room.surfaces[key].material);
                         this.disposeMaterial(mesh.material);
-                        mesh.material = this.surfaceMaterial(key, [xa[i + 1] - xa[i], ya[j + 1] - ya[j]]);
+                        if(data.room.surfaces[key].finish?.textureId){
+                            wallImageUV(mesh.geometry,cx,cy,along,h);mesh.material=this.surfaceMaterial(key,[along,h]);
+                        }else mesh.material = this.surfaceMaterial(key, [xa[i + 1] - xa[i], ya[j + 1] - ya[j]]);
                     }
                 }
             this.root.add(wall);
         }
         for (const node of data.nodes)
             this.buildNode(node);
-        if(data.facade)this.root.add(buildFacade(data,(id,color,repeat)=>this.material(id,color,repeat)));
+        if(data.facade)this.root.add(buildFacade(data,(id,color,repeat)=>this.material(id,color,repeat),undefined,(label,id,w,h)=>this.bindLogo(label,id,w,h)));
+        this.publishModelStatus();
         this.setLighting(data.lighting);
         if (roomResized && (this.view === 'top'||this.view==='front'))
             this.setView(this.view);
@@ -554,15 +572,51 @@ export class SceneEngine {
         this.root.add(g);
         return g;
     }
-    private publishModelStatus() { const entries = [...this.modelCache.values()]; this.onModelStatus?.({ loading: entries.filter(e => !e.root && !e.error).length, errors: entries.flatMap(e => e.error ? [e.error] : []) }); }
+    private publishModelStatus() {
+        const models=[...(this.modelCache?.values()??[])],images=[...(this.imageCache?.values()??[])];
+        this.onModelStatus?.({loading:models.filter(e=>!e.root&&!e.error).length+images.filter(e=>!e.texture&&!e.error).length,
+            errors:[...new Set([...models,...images].flatMap(e=>e.error?[e.error]:[]).concat(this.assetErrors??[]))]});
+    }
+    private imageAsset(id:string):Promise<T.Texture> {
+        this.imageCache??=new Map();const existing=this.imageCache.get(id);if(existing)return existing.promise;
+        const controller=new AbortController(),record:{promise:Promise<T.Texture>;texture?:T.Texture;error?:string;controller:AbortController}={promise:Promise.resolve(new T.Texture()),controller};
+        this.imageCache.set(id,record);
+        record.promise=loadImageTexture(id,controller.signal).then(texture=>{
+            if(this.disposed||this.imageCache.get(id)!==record){texture.dispose();throw new Error('다른 장면으로 이동했습니다.');}
+            record.texture=texture;return texture;
+        }).catch(e=>{record.error=e instanceof Error?e.message:'소재·로고 이미지를 읽지 못했습니다.';throw e;}).finally(()=>this.publishModelStatus());
+        this.publishModelStatus();return record.promise;
+    }
+    /** Track application, including texture jobs started by asynchronously loaded GLB models. */
+    private trackAsset(job:Promise<unknown>,epoch=this.assetEpoch??0) {
+        this.pendingAssets??=new Map();
+        const settled=job.then(()=>{},e=>{if(!this.disposed&&epoch===(this.assetEpoch??0))(this.assetErrors??=[]).push(e instanceof Error?e.message:'3D 소재를 적용하지 못했습니다.');}).finally(()=>{this.pendingAssets.delete(settled);if(!this.disposed)this.publishModelStatus();});
+        this.pendingAssets.set(settled,epoch);
+    }
+    private bindImage(id:string,material:T.Material,apply:(source:T.Texture)=>void) {
+        const epoch=this.assetEpoch??0;let live=true;
+        const onDispose=()=>{live=false};material.addEventListener('dispose',onDispose);
+        const job=this.imageAsset(id).then(source=>{if(live&&!this.disposed&&epoch===(this.assetEpoch??0))apply(source);}).catch(e=>{if(live&&!this.disposed&&epoch===(this.assetEpoch??0))throw e;}).finally(()=>material.removeEventListener('dispose',onDispose));
+        this.trackAsset(job,epoch);
+    }
+    private bindLogo(label:T.Mesh<T.PlaneGeometry,T.MeshStandardMaterial>,id:string,width:number,height:number) {
+        this.bindImage(id,label.material,source=>{
+            const image=source.image as {width:number;height:number};
+            const [w,h]=fitLogo(width,height,image.width,image.height),map=source.clone();
+            map.wrapS=map.wrapT=T.ClampToEdgeWrapping;map.needsUpdate=true;
+            label.scale.set(w,h,1);label.material.map=map;
+            if(label.material.emissiveIntensity>0)label.material.emissiveMap=map;
+            label.material.needsUpdate=true;label.visible=true;
+        });
+    }
     private modelAsset(id: string) { let entry = this.modelCache.get(id); if (entry)
         return entry.promise; entry = { promise: Promise.resolve(new T.Group()) }; const record = entry; this.modelCache.set(id, record); record.promise = (async () => { const response = await fetch(`/api/assets?id=${encodeURIComponent(id)}`); if (!response.ok)
         throw new Error('3D 모델을 불러오지 못했습니다. 같은 계정의 모델인지 확인하세요.'); const data = await response.arrayBuffer(); const { root } = await parseModel(data); if (this.disposed || this.modelCache.get(id) !== record) {
         disposeModel(root);
         throw new Error('다른 장면으로 이동했습니다.');
     } record.root = root; return root; })().catch(e => { record.error = e instanceof Error ? e.message : '3D 모델 읽기 실패'; throw e; }).finally(() => this.publishModelStatus()); this.publishModelStatus(); return record.promise; }
-    private buildModel(g: T.Group, n: SceneNode) { const placeholder = new T.Mesh(new T.BoxGeometry(n.width / 1000, n.height / 1000, n.depth / 1000), new T.MeshBasicMaterial({ color: 0x948cb0, wireframe: true })); placeholder.position.y = n.height / 2000; placeholder.userData = { nodeId: n.id }; g.add(placeholder); this.modelAsset(n.assetId!).then(source => { if (this.disposed || !this.root.children.includes(g))
-        return; this.clearGroup(g); const model = cloneModel(source); model.scale.multiply(new T.Vector3(n.width / 1000, n.height / 1000, n.depth / 1000)); model.traverse(o => { if (!(o instanceof T.Mesh))
+    private buildModel(g: T.Group, n: SceneNode) { const placeholder = new T.Mesh(new T.BoxGeometry(n.width / 1000, n.height / 1000, n.depth / 1000), new T.MeshBasicMaterial({ color: 0x948cb0, wireframe: true })); placeholder.position.y = n.height / 2000; placeholder.userData = { nodeId: n.id }; g.add(placeholder); const epoch=this.assetEpoch??0;const job=this.modelAsset(n.assetId!).then(source => { if (this.disposed || !this.root.children.includes(g))
+        return; source.traverse(o=>{if(o instanceof T.Mesh&&!o.geometry.getAttribute('uv')){const list=Array.isArray(o.material)?o.material:[o.material];if(list.some((_,i)=>nodeAppearance(n,`${o.userData.part}:${i}`).finish.textureId))throw new Error('이 모델에는 UV 좌표가 없어 이미지를 적용할 수 없습니다. 원본 소재를 복원하거나 UV가 있는 GLB를 선택하세요.');}}); this.clearGroup(g); const model = cloneModel(source); model.scale.multiply(new T.Vector3(n.width / 1000, n.height / 1000, n.depth / 1000)); model.traverse(o => { if (!(o instanceof T.Mesh))
         return; o.userData.nodeId = n.id; const part = o.userData.part; const wasArray = Array.isArray(o.material); const list = wasArray ? o.material as T.Material[] : [o.material as T.Material]; const mapped = list.map((native, i) => { const key = `${part}:${i}`, appearance = nodeAppearance(n, key); if (!appearance.original) {
         this.disposeMaterial(native);
         return this.nodeMaterial(n, key);
@@ -572,15 +626,23 @@ export class SceneEngine {
         if (f.metalness !== undefined)
             native.metalness = f.metalness;
     } if ('color' in native && f.color)
-        (native.color as T.Color).set(f.color); return native; }); o.material = wasArray ? mapped : mapped[0]; }); g.add(model); this.setSelection(this.selection); }).catch(() => { if (!this.disposed && this.root.children.includes(g))
-        (placeholder.material as T.MeshBasicMaterial).color.set(0xd96357); }); }
-    async modelsReady() { const key = this.geometryKey; const entries = [...this.modelCache.values()]; await Promise.all(entries.map(e => e.promise)); if (key !== this.geometryKey)
-        throw new Error('모델을 읽는 동안 장면이 변경되었습니다. 다시 시도하세요.'); if (this.disposed)
-        throw new Error('3D 화면이 닫혔습니다.'); }
-    retryModels() { for (const [id, entry] of this.modelCache)
-        if (entry.error)
-            this.modelCache.delete(id); this.geometryKey = ''; if (this.data)
-        this.setScene(this.data); }
+        (native.color as T.Color).set(f.color); return native; }); o.material = wasArray ? mapped : mapped[0]; }); g.add(model); this.setSelection(this.selection); }).catch(e => { if (!this.disposed && this.root.children.includes(g)){
+        (placeholder.material as T.MeshBasicMaterial).color.set(0xd96357);throw e;} }); this.trackAsset(job,epoch); }
+    async modelsReady() {
+        const key=this.geometryKey,epoch=this.assetEpoch??0;
+        do {
+            await Promise.all([...(this.pendingAssets?.entries()??[])].filter(([,version])=>version===epoch).map(([promise])=>promise));
+            if(key!==this.geometryKey||epoch!==(this.assetEpoch??0))throw new Error('소재를 읽는 동안 장면이 변경되었습니다. 다시 시도하세요.');
+            if(this.disposed)throw new Error('3D 화면이 닫혔습니다.');
+        }while([...(this.pendingAssets?.values()??[])].some(version=>version===epoch));
+        const errors=[...(this.assetErrors??[]),...[...this.modelCache.values(),...(this.imageCache?.values()??[])].flatMap(e=>e.error?[e.error]:[])];
+        if(errors.length)throw new Error(errors[0]);
+    }
+    retryModels() {
+        for(const [id,entry] of this.modelCache)if(entry.error)this.modelCache.delete(id);
+        for(const [id,entry] of this.imageCache??[])if(entry.error){entry.controller.abort();entry.texture?.dispose();this.imageCache.delete(id);}
+        this.geometryKey='';if(this.data)this.setScene(this.data);
+    }
     setLighting(value: SceneData['lighting']) { this.renderer.toneMappingExposure = .85 + value.intensity * .35; this.ambient.intensity = 1.3 + value.intensity * .65; this.light.intensity = 2.5 * value.intensity; const t = (value.warmth - 2700) / (6500 - 2700); this.light.color.setRGB(1, .77 + t * .22, .5 + t * .5); }
     private updateCutaway() {
         if (!this.data)
@@ -744,12 +806,12 @@ export class SceneEngine {
     }) { this.setView(camera.view ?? 'perspective'); this.camera.position.fromArray(camera.position); this.orbit.target.fromArray(camera.target); this.camera.zoom = camera.zoom ?? 1; this.camera.updateProjectionMatrix(); this.orbit.update(); }
     async exportGlb() {
         await this.modelsReady();
-        const clone = this.root.clone(true);
+        const clone = cloneModel(this.root);
         clone.traverse(o => {
             if (o.userData.wall || o.userData.host || o.userData.facade)
                 o.visible = !this.data?.nodes.find(n => n.id === o.userData.nodeId)?.hidden;
         });
-        return await new GLTFExporter().parseAsync(clone, { binary: true, onlyVisible: true, maxTextureSize: 1024 }) as ArrayBuffer;
+        try{bakeImageTransforms(clone);return await new GLTFExporter().parseAsync(clone, { binary: true, onlyVisible: true, maxTextureSize: 1024 }) as ArrayBuffer;}finally{this.clearGroup(clone);}
     }
     async screenshot(width = 2048, requestedAspect?: number) {
         await this.modelsReady();
@@ -806,6 +868,8 @@ export class SceneEngine {
             if (entry.root)
                 disposeModel(entry.root);
         this.modelCache.clear();
+        for(const entry of this.imageCache.values()){entry.controller.abort();entry.texture?.dispose();}
+        this.imageCache.clear();this.pendingAssets.clear();
         cancelAnimationFrame(this.frame);
         this.observer.disconnect();
         this.renderer.domElement.removeEventListener('pointerdown', this.pointerDown);

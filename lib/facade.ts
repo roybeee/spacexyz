@@ -45,7 +45,7 @@ export function facadeCandidate(scene:SceneData,facade:FacadeData,storefront?:St
 
 export function facadeRows(scene:Pick<SceneData,'facade'>) {
     const f=scene.facade,rows:string[][]=[];
-    if(f?.sign.enabled)rows.push(['간판',f.sign.text,`${Math.round(f.sign.width)} × ${Math.round(f.sign.height)} × ${Math.round(f.sign.depth)}`,`하단 ${Math.round(f.sign.bottom)}`,f.sign.color]);
+    if(f?.sign.enabled)rows.push(['간판',f.sign.logoId?`로고 이미지 · ${f.sign.text}`:f.sign.text,`${Math.round(f.sign.width)} × ${Math.round(f.sign.height)} × ${Math.round(f.sign.depth)}`,`하단 ${Math.round(f.sign.bottom)}`,f.sign.color]);
     if(f?.awning.enabled)rows.push(['어닝',f.awning.striped?'스트라이프':'단색',`가로 ${Math.round(f.awning.width)} · 돌출 ${Math.round(f.awning.projection)}`,`설치 ${Math.round(f.awning.mount)} · 하단 ${Math.round(awningDimensions(f.awning).clearance)}`,`${f.awning.color}${f.awning.striped?' / '+f.awning.stripeColor:''}`]);
     return rows;
 }
