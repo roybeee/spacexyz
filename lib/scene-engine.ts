@@ -42,6 +42,11 @@ export class SceneEngine {
     transform: TransformControls;
     observer: ResizeObserver;
     frame = 0;
+    paused = false;
+    navigationActive = false;
+    navigationUpdate?: (time:number)=>void;
+    private interiorCeiling?:T.Mesh<T.PlaneGeometry,T.MeshStandardMaterial>;
+    private ceilingKey='';
     data?: SceneData;
     selection: Selection = null;
     multiSelect=false;
@@ -165,8 +170,9 @@ export class SceneEngine {
             if (patch.x !== n.x || patch.y !== n.y || patch.z !== n.z || patch.rotation !== n.rotation)
                 this.onTransform(id, patch);
         });
-        this.pointerDown = e => { this.down = [e.clientX, e.clientY]; this.suppress = this.dragActive; };
+        this.pointerDown = e => { if(this.navigationActive)return;this.down = [e.clientX, e.clientY]; this.suppress = this.dragActive; };
         this.pointerUp = e => {
+            if(this.navigationActive)return;
             if (this.suppress || this.dragActive || Math.hypot(e.clientX - this.down[0], e.clientY - this.down[1]) > 5)
                 return;
             const r = this.renderer.domElement.getBoundingClientRect();
@@ -229,7 +235,7 @@ export class SceneEngine {
             this.fitPlan(w / h);
         this.camera.updateProjectionMatrix();
     }
-    private loop = () => { this.frame = requestAnimationFrame(this.loop); this.orbit.update(); this.updateCutaway(); this.outline?.update();this.multiOutlines.forEach(o=>o.update()); this.renderer.render(this.scene, this.camera); };
+    private loop = (time=performance.now()) => { if(this.disposed)return;this.frame = requestAnimationFrame(this.loop);if(this.paused)return;if(this.navigationActive)this.navigationUpdate?.(time);else this.orbit.update(); this.updateCutaway(); this.outline?.update();this.multiOutlines.forEach(o=>o.update()); this.renderer.render(this.scene, this.camera); };
     texture(id: MaterialId, color?: string) {
         const existing = this.textures.get(`${id}:${color ?? "default"}`);
         if (existing)
@@ -376,6 +382,7 @@ export class SceneEngine {
         const key = JSON.stringify({ room: data.room, nodes: data.nodes, facade:data.facade });
         if(key!==this.geometryKey&&this.measureStart)this.cancelMeasurement();
         this.data = data;
+        this.updateInteriorCeiling();
         this.measurementOverlay?.update(data,this.measureStart);
         const used = new Set(data.nodes.filter(n => n.kind === 'model').map(n => n.assetId));
         for (const [id, entry] of this.modelCache)
@@ -748,6 +755,8 @@ export class SceneEngine {
     private fitPlan(aspect: number) { const w = (this.data?.room.width ?? 7200) / 1000, d = ((this.data?.room.depth ?? 6400)+(this.data?facadeProjection(this.data)*2:0)) / 1000; const half = Math.max(d * 1.25 / 2, w * 1.25 / (2 * aspect)); this.planCamera.left = -half * aspect; this.planCamera.right = half * aspect; this.planCamera.top = half; this.planCamera.bottom = -half; this.planCamera.updateProjectionMatrix(); }
     setView(view: ViewMode) {
         this.cancelTransform();this.view = view;
+        this.updateInteriorCeiling();
+        this.perspective.fov=38;this.perspective.zoom=1;this.perspective.updateProjectionMatrix();
         this.planCamera.up.set(0, 0, -1);
         const nextCamera = view === 'top' ? this.planCamera : this.perspective;
         if (nextCamera !== this.camera) {
@@ -765,7 +774,7 @@ export class SceneEngine {
         this.orbit.maxDistance=70;
         this.orbit.target.set(0, .55, 0);
         this.orbit.enableRotate = view !== 'top';
-        this.orbit.maxPolarAngle = view === 'top' ? Math.PI : view === 'interior' ? Math.PI * .58 : Math.PI * .49;
+        this.orbit.maxPolarAngle = view === 'top' ? Math.PI : view === 'interior' ? Math.PI * .94 : Math.PI * .49;
         if (view === 'perspective')
             this.camera.position.set(size * 1.25, size * 1.12, size * 1.5);
         if (view === 'top') {
@@ -801,7 +810,7 @@ export class SceneEngine {
         this.orbit.update();
     }
     captureCamera() {
-        return { view: this.view, zoom: this.camera.zoom, position: this.camera.position.toArray() as [
+        return { view: this.view, zoom: this.camera.zoom, ...(this.camera instanceof T.PerspectiveCamera?{fov:this.camera.fov}:{}), position: this.camera.position.toArray() as [
                 number,
                 number,
                 number
@@ -810,6 +819,13 @@ export class SceneEngine {
                 number,
                 number
             ] };
+    }
+    private updateInteriorCeiling(){
+        if(!this.scene||!this.data)return;
+        const {width,depth,height}=this.data.room,key=`${width}:${depth}:${height}`;
+        if(this.interiorCeiling&&key!==this.ceilingKey){this.scene.remove(this.interiorCeiling);this.interiorCeiling.geometry.dispose();this.interiorCeiling.material.dispose();this.interiorCeiling=undefined;}
+        if(this.view==='interior'&&!this.interiorCeiling){const ceiling=new T.Mesh(new T.PlaneGeometry(width/1000,depth/1000),new T.MeshStandardMaterial({color:'#f2f0e8',roughness:.9,side:T.DoubleSide}));ceiling.rotation.x=Math.PI/2;ceiling.position.y=height/1000;ceiling.receiveShadow=true;ceiling.name='INTERIOR_CEILING';this.scene.add(ceiling);this.interiorCeiling=ceiling;this.ceilingKey=key;}
+        if(this.interiorCeiling)this.interiorCeiling.visible=this.view==='interior';
     }
     restoreCamera(camera: {
         position: [
@@ -824,7 +840,8 @@ export class SceneEngine {
         ];
         view?: ViewMode;
         zoom?: number;
-    }) { this.setView(camera.view ?? 'perspective'); this.camera.position.fromArray(camera.position); this.orbit.target.fromArray(camera.target); this.camera.zoom = camera.zoom ?? 1; this.camera.updateProjectionMatrix(); this.orbit.update(); }
+        fov?: number;
+    }) { this.setView(camera.view ?? 'perspective'); this.camera.position.fromArray(camera.position); this.orbit.target.fromArray(camera.target); this.camera.zoom = camera.zoom ?? 1;if(this.camera instanceof T.PerspectiveCamera)this.camera.fov=camera.fov??38; this.camera.updateProjectionMatrix(); this.orbit.update(); }
     async exportGlb() {
         await this.modelsReady();
         const clone = cloneModel(this.root);
@@ -904,6 +921,7 @@ export class SceneEngine {
         this.transform.dispose();
         this.clearGroup(this.root);
         this.measurementOverlay?.dispose();
+        if(this.interiorCeiling){this.scene.remove(this.interiorCeiling);this.interiorCeiling.geometry.dispose();this.interiorCeiling.material.dispose();this.interiorCeiling=undefined;}
         this.grid.geometry.dispose();
         (this.grid.material as T.Material).dispose();
         if (this.outline) {
