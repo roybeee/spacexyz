@@ -1,0 +1,3494 @@
+{
+  "checkedAt": "2026-09-10",
+  "count": 126,
+  "scope": "Selected official LX Z:IN and Hyundai L&C catalog products with verified code-to-swatch mapping; not complete manufacturer inventories.",
+  "imagePolicy": "Unmodified manufacturer JPEG/PNG bytes; maximum 2 MB / 2048 px. Physical swatch scale unverified.",
+  "countsByCategory": {
+    "인테리어 필름": 33,
+    "인조대리석": 12,
+    "강화천연석": 8,
+    "LVT 바닥재": 24,
+    "벽지": 7,
+    "가구용 보드": 14,
+    "포세린": 20,
+    "카펫타일": 8
+  },
+  "records": [
+    {
+      "group": "bodaq-stone",
+      "sourceRecordId": 3797,
+      "sourceRecord": {
+        "pattern_name": "　",
+        "product_info": "0.42mm(T) X 1,220mm(W) X 50,000mm(L)",
+        "sale_info": "1Roll/box(200mm X 200mm X 1,300mm)",
+        "bright": 50,
+        "idx": 3797,
+        "prod_idx": 0,
+        "mng_cd": "8A14B629",
+        "code": "NS201",
+        "color_cd": 4,
+        "pattern_cd": 10,
+        "material_cd": 0,
+        "color_rgb": "#FDE9D9",
+        "pattern_style": "스톤&amp;마블",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "new",
+        "thumbnail": "/uploads/interior_film/20260316011710813.jpg",
+        "original": "",
+        "regdate": "2026-03-16",
+        "prod_type": "interior_film",
+        "ord": 0,
+        "rn": 2,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "8A14B629",
+        "colorList": [],
+        "patternList": [
+          10
+        ],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "afcb8e10578f744ec4814b9b905c58b1606b8ab0655cc599b94e7f8bb389f9fe",
+      "imageBytes": 481297,
+      "thumbnailFallback": false,
+      "id": "bodaq-ns201",
+      "image": "/material-products/bodaq-ns201.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=8A14B629",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_film/20260316011710813.jpg",
+      "imagePixels": [
+        1100,
+        500
+      ]
+    },
+    {
+      "group": "bodaq-stone",
+      "sourceRecordId": 3798,
+      "sourceRecord": {
+        "pattern_name": "　",
+        "product_info": "0.42mm(T) X 1,220mm(W) X 50,000mm(L)",
+        "sale_info": "1Roll/box(200mm X 200mm X 1,300mm)",
+        "bright": 60,
+        "idx": 3798,
+        "prod_idx": 0,
+        "mng_cd": "8A14B629",
+        "code": "NS202",
+        "color_cd": 4,
+        "pattern_cd": 10,
+        "material_cd": 0,
+        "color_rgb": "#FDE9D9",
+        "pattern_style": "스톤&amp;마블",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "new",
+        "thumbnail": "/uploads/interior_film/20260316011752208.jpg",
+        "original": "",
+        "regdate": "2026-03-16",
+        "prod_type": "interior_film",
+        "ord": 0,
+        "rn": 1,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "8A14B629",
+        "colorList": [],
+        "patternList": [
+          10
+        ],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "b32cf1c7080848b9f141a18e9d786590d1830273143e992ec480f8f790663e79",
+      "imageBytes": 588978,
+      "thumbnailFallback": false,
+      "id": "bodaq-ns202",
+      "image": "/material-products/bodaq-ns202.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=8A14B629",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_film/20260316011752208.jpg",
+      "imagePixels": [
+        1100,
+        500
+      ]
+    },
+    {
+      "group": "bodaq-stone",
+      "sourceRecordId": 1220,
+      "sourceRecord": {
+        "pattern_name": "오닉스",
+        "product_info": "0.42mm(T) x 1,220mm(W) x 50,000mm(L)",
+        "sale_info": "1Roll/BOX (200mm x 200mm x 1,300mm)",
+        "bright": 23,
+        "idx": 1220,
+        "prod_idx": 0,
+        "mng_cd": "8A14B629",
+        "code": "PM003",
+        "color_cd": 3,
+        "pattern_cd": 10,
+        "material_cd": 0,
+        "color_rgb": "#FFFFFF",
+        "pattern_style": "스톤&amp;마블",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "best",
+        "thumbnail": "/uploads/interior_film/PM003.jpg",
+        "original": "",
+        "regdate": "2019-08-19",
+        "prod_type": "interior_film",
+        "ord": 0,
+        "rn": 3,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "8A14B629",
+        "colorList": [],
+        "patternList": [
+          10
+        ],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "e5ac03930dc9a374a891673e50f13f163bbea6677959892ea5e8b2507a48ae3d",
+      "imageBytes": 151055,
+      "thumbnailFallback": false,
+      "id": "bodaq-pm003",
+      "image": "/material-products/bodaq-pm003.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=8A14B629",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_film/PM003.jpg",
+      "imagePixels": [
+        812,
+        358
+      ]
+    },
+    {
+      "group": "bodaq-stone",
+      "sourceRecordId": 2951,
+      "sourceRecord": {
+        "pattern_name": "&nbsp;",
+        "product_info": "0.42mm(T) X 1,220mm(W) X 50,000mm(L)",
+        "sale_info": "1Roll/box(200mm X 200mm X 1,300mm)",
+        "bright": 30,
+        "idx": 2951,
+        "prod_idx": 0,
+        "mng_cd": "8A14B629",
+        "code": "PM019",
+        "color_cd": 4,
+        "pattern_cd": 10,
+        "material_cd": 0,
+        "color_rgb": "#FDE9D9",
+        "pattern_style": "스톤&amp;마블",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "",
+        "thumbnail": "/uploads/interior_film/20240312022016812.jpg",
+        "original": "",
+        "regdate": "2024-03-12",
+        "prod_type": "interior_film",
+        "ord": 0,
+        "rn": 4,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "8A14B629",
+        "colorList": [],
+        "patternList": [
+          10
+        ],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "13980a407c8e6301c90b7f76f492f3d080be4994710dc1cf52674a41bfed0226",
+      "imageBytes": 114818,
+      "thumbnailFallback": false,
+      "id": "bodaq-pm019",
+      "image": "/material-products/bodaq-pm019.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=8A14B629",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_film/20240312022016812.jpg",
+      "imagePixels": [
+        1100,
+        500
+      ]
+    },
+    {
+      "group": "bodaq-metal",
+      "sourceRecordId": 1282,
+      "sourceRecord": {
+        "pattern_name": "리얼 메탈",
+        "product_info": "0.42mm(T) x 1,220mm(W) x 50,000mm(L)",
+        "sale_info": "1Roll/BOX (200mm x 200mm x 1,300mm)",
+        "bright": 115,
+        "idx": 1282,
+        "prod_idx": 0,
+        "mng_cd": "8A14B629",
+        "code": "RM009",
+        "color_cd": 2,
+        "pattern_cd": 15,
+        "material_cd": 0,
+        "color_rgb": "#808080",
+        "pattern_style": "메탈",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "best",
+        "thumbnail": "/uploads/interior_film/RM009.jpg",
+        "original": "",
+        "regdate": "2019-08-19",
+        "prod_type": "interior_film",
+        "ord": 0,
+        "rn": 1,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "8A14B629",
+        "colorList": [],
+        "patternList": [
+          15
+        ],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "66c49df5b0cb7d7684567f4a6a80616e78fe137cbdd2ac7ce31e9b80a6cabd13",
+      "imageBytes": 202034,
+      "thumbnailFallback": false,
+      "id": "bodaq-rm009",
+      "image": "/material-products/bodaq-rm009.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=8A14B629",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_film/RM009.jpg",
+      "imagePixels": [
+        812,
+        358
+      ]
+    },
+    {
+      "group": "bodaq-fabric",
+      "sourceRecordId": 3789,
+      "sourceRecord": {
+        "pattern_name": "　",
+        "product_info": "0.42mm(T) X 1,220mm(W) X 50,000mm(L)",
+        "sale_info": "1Roll/box(200mm X 200mm X 1,300mm)",
+        "bright": 50,
+        "idx": 3789,
+        "prod_idx": 0,
+        "mng_cd": "8A14B629",
+        "code": "SF801",
+        "color_cd": 4,
+        "pattern_cd": 18,
+        "material_cd": 0,
+        "color_rgb": "#FDE9D9",
+        "pattern_style": "패브릭",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "new",
+        "thumbnail": "/uploads/interior_film/20260316010957878.jpg",
+        "original": "",
+        "regdate": "2026-03-16",
+        "prod_type": "interior_film",
+        "ord": 0,
+        "rn": 4,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "8A14B629",
+        "colorList": [],
+        "patternList": [
+          18
+        ],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "4aefb7ee05ef56d8010ace30d983d6259955cb34aa7780cf5bb7b947bcd4997d",
+      "imageBytes": 874715,
+      "thumbnailFallback": false,
+      "id": "bodaq-sf801",
+      "image": "/material-products/bodaq-sf801.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=8A14B629",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_film/20260316010957878.jpg",
+      "imagePixels": [
+        1100,
+        500
+      ]
+    },
+    {
+      "group": "bodaq-fabric",
+      "sourceRecordId": 3790,
+      "sourceRecord": {
+        "pattern_name": "　",
+        "product_info": "0.42mm(T) X 1,220mm(W) X 50,000mm(L)",
+        "sale_info": "1Roll/box(200mm X 200mm X 1,300mm)",
+        "bright": 60,
+        "idx": 3790,
+        "prod_idx": 0,
+        "mng_cd": "8A14B629",
+        "code": "SF802",
+        "color_cd": 4,
+        "pattern_cd": 18,
+        "material_cd": 0,
+        "color_rgb": "#FDE9D9",
+        "pattern_style": "패브릭",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "new",
+        "thumbnail": "/uploads/interior_film/2026031601110072.jpg",
+        "original": "",
+        "regdate": "2026-03-16",
+        "prod_type": "interior_film",
+        "ord": 0,
+        "rn": 3,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "8A14B629",
+        "colorList": [],
+        "patternList": [
+          18
+        ],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "c7e76d9c4210844b9f9fe356f9ea6e4f80b327c4ab9439974b950615a9bf7321",
+      "imageBytes": 854617,
+      "thumbnailFallback": false,
+      "id": "bodaq-sf802",
+      "image": "/material-products/bodaq-sf802.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=8A14B629",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_film/2026031601110072.jpg",
+      "imagePixels": [
+        1100,
+        500
+      ]
+    },
+    {
+      "group": "bodaq-fabric",
+      "sourceRecordId": 3791,
+      "sourceRecord": {
+        "pattern_name": "　",
+        "product_info": "0.42mm(T) X 1,220mm(W) X 50,000mm(L)",
+        "sale_info": "1Roll/box(200mm X 200mm X 1,300mm)",
+        "bright": 35,
+        "idx": 3791,
+        "prod_idx": 0,
+        "mng_cd": "8A14B629",
+        "code": "SF803",
+        "color_cd": 4,
+        "pattern_cd": 18,
+        "material_cd": 0,
+        "color_rgb": "#FDE9D9",
+        "pattern_style": "패브릭",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "new",
+        "thumbnail": "/uploads/interior_film/20260316011139245.jpg",
+        "original": "",
+        "regdate": "2026-03-16",
+        "prod_type": "interior_film",
+        "ord": 0,
+        "rn": 2,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "8A14B629",
+        "colorList": [],
+        "patternList": [
+          18
+        ],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "1fd0228002d371e18adc02847a20cf918342fe502b2f5ff4724950db73e8d015",
+      "imageBytes": 410783,
+      "thumbnailFallback": false,
+      "id": "bodaq-sf803",
+      "image": "/material-products/bodaq-sf803.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=8A14B629",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_film/20260316011139245.jpg",
+      "imagePixels": [
+        1100,
+        500
+      ]
+    },
+    {
+      "group": "bodaq-fabric",
+      "sourceRecordId": 3792,
+      "sourceRecord": {
+        "pattern_name": "　",
+        "product_info": "0.42mm(T) X 1,220mm(W) X 50,000mm(L)",
+        "sale_info": "1Roll/box(200mm X 200mm X 1,300mm)",
+        "bright": 60,
+        "idx": 3792,
+        "prod_idx": 0,
+        "mng_cd": "8A14B629",
+        "code": "SF804",
+        "color_cd": 4,
+        "pattern_cd": 18,
+        "material_cd": 0,
+        "color_rgb": "#FDE9D9",
+        "pattern_style": "패브릭",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "new",
+        "thumbnail": "/uploads/interior_film/20260316011217219.jpg",
+        "original": "",
+        "regdate": "2026-03-16",
+        "prod_type": "interior_film",
+        "ord": 0,
+        "rn": 1,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "8A14B629",
+        "colorList": [],
+        "patternList": [
+          18
+        ],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "23c94ee515846f3d6f91ebd895cfa702495e25bd9f0cb4d87a1a2f800db5c190",
+      "imageBytes": 434278,
+      "thumbnailFallback": false,
+      "id": "bodaq-sf804",
+      "image": "/material-products/bodaq-sf804.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=8A14B629",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_film/20260316011217219.jpg",
+      "imagePixels": [
+        1100,
+        500
+      ]
+    },
+    {
+      "group": "bodaq-leather",
+      "sourceRecordId": 3793,
+      "sourceRecord": {
+        "pattern_name": "　",
+        "product_info": "0.42mm(T) X 1,220mm(W) X 50,000mm(L)",
+        "sale_info": "1Roll/box(200mm X 200mm X 1,300mm)",
+        "bright": 30,
+        "idx": 3793,
+        "prod_idx": 0,
+        "mng_cd": "8A14B629",
+        "code": "SL401",
+        "color_cd": 3,
+        "pattern_cd": 19,
+        "material_cd": 0,
+        "color_rgb": "#FFFFFF",
+        "pattern_style": "레더",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "new",
+        "thumbnail": "/uploads/interior_film/20260316011329404.jpg",
+        "original": "",
+        "regdate": "2026-03-16",
+        "prod_type": "interior_film",
+        "ord": 0,
+        "rn": 4,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "8A14B629",
+        "colorList": [],
+        "patternList": [
+          19
+        ],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "81412b1dcb205796fbbdb0d6150ce502cbeb7ba79592e48c7f2033936898e8e6",
+      "imageBytes": 477385,
+      "thumbnailFallback": false,
+      "id": "bodaq-sl401",
+      "image": "/material-products/bodaq-sl401.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=8A14B629",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_film/20260316011329404.jpg",
+      "imagePixels": [
+        1100,
+        500
+      ]
+    },
+    {
+      "group": "bodaq-leather",
+      "sourceRecordId": 3794,
+      "sourceRecord": {
+        "pattern_name": "　",
+        "product_info": "0.42mm(T) X 1,220mm(W) X 50,000mm(L)",
+        "sale_info": "1Roll/box(200mm X 200mm X 1,300mm)",
+        "bright": 40,
+        "idx": 3794,
+        "prod_idx": 0,
+        "mng_cd": "8A14B629",
+        "code": "SL402",
+        "color_cd": 4,
+        "pattern_cd": 19,
+        "material_cd": 0,
+        "color_rgb": "#FDE9D9",
+        "pattern_style": "레더",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "new",
+        "thumbnail": "/uploads/interior_film/20260316011423986.jpg",
+        "original": "",
+        "regdate": "2026-03-16",
+        "prod_type": "interior_film",
+        "ord": 0,
+        "rn": 3,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "8A14B629",
+        "colorList": [],
+        "patternList": [
+          19
+        ],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "c32248a028981a32a934ac0c961da0020148b8546ebc720a22e08b8e1dc26599",
+      "imageBytes": 454285,
+      "thumbnailFallback": false,
+      "id": "bodaq-sl402",
+      "image": "/material-products/bodaq-sl402.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=8A14B629",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_film/20260316011423986.jpg",
+      "imagePixels": [
+        1100,
+        500
+      ]
+    },
+    {
+      "group": "bodaq-leather",
+      "sourceRecordId": 3795,
+      "sourceRecord": {
+        "pattern_name": "　",
+        "product_info": "0.42mm(T) X 1,220mm(W) X 50,000mm(L)",
+        "sale_info": "1Roll/box(200mm X 200mm X 1,300mm)",
+        "bright": 70,
+        "idx": 3795,
+        "prod_idx": 0,
+        "mng_cd": "8A14B629",
+        "code": "SL403",
+        "color_cd": 9,
+        "pattern_cd": 19,
+        "material_cd": 0,
+        "color_rgb": "#974706",
+        "pattern_style": "레더",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "new",
+        "thumbnail": "/uploads/interior_film/20260316011518781.jpg",
+        "original": "",
+        "regdate": "2026-03-16",
+        "prod_type": "interior_film",
+        "ord": 0,
+        "rn": 2,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "8A14B629",
+        "colorList": [],
+        "patternList": [
+          19
+        ],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "6d72bb4a08961b1aa96644e3570d818562fe2ae3b51ed749d5d8e81f0909774f",
+      "imageBytes": 415338,
+      "thumbnailFallback": false,
+      "id": "bodaq-sl403",
+      "image": "/material-products/bodaq-sl403.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=8A14B629",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_film/20260316011518781.jpg",
+      "imagePixels": [
+        1100,
+        500
+      ]
+    },
+    {
+      "group": "bodaq-leather",
+      "sourceRecordId": 3796,
+      "sourceRecord": {
+        "pattern_name": "　",
+        "product_info": "0.42mm(T) X 1,220mm(W) X 50,000mm(L)",
+        "sale_info": "1Roll/box(200mm X 200mm X 1,300mm)",
+        "bright": 90,
+        "idx": 3796,
+        "prod_idx": 0,
+        "mng_cd": "8A14B629",
+        "code": "SL404",
+        "color_cd": 9,
+        "pattern_cd": 19,
+        "material_cd": 0,
+        "color_rgb": "#974706",
+        "pattern_style": "레더",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "new",
+        "thumbnail": "/uploads/interior_film/20260316011616194.jpg",
+        "original": "",
+        "regdate": "2026-03-16",
+        "prod_type": "interior_film",
+        "ord": 0,
+        "rn": 1,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "8A14B629",
+        "colorList": [],
+        "patternList": [
+          19
+        ],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "0e12ba1f05731558a3c5e253e7a3f22ba85700060279868fb29051e9a2d568a5",
+      "imageBytes": 331853,
+      "thumbnailFallback": false,
+      "id": "bodaq-sl404",
+      "image": "/material-products/bodaq-sl404.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=8A14B629",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_film/20260316011616194.jpg",
+      "imagePixels": [
+        1100,
+        500
+      ]
+    },
+    {
+      "group": "bodaq-matte",
+      "sourceRecordId": 1961,
+      "sourceRecord": {
+        "pattern_name": "슈퍼 매트",
+        "product_info": "0.42mm(T) X 1,220mm(W) X 50,000mm(L)",
+        "sale_info": "1Roll/Box(200mm X 200mm X 1,300mm)",
+        "bright": 145,
+        "idx": 1961,
+        "prod_idx": 0,
+        "mng_cd": "8A14B629",
+        "code": "SMT11",
+        "color_cd": 1,
+        "pattern_cd": 2,
+        "material_cd": 0,
+        "color_rgb": "#000000",
+        "pattern_style": "[단색] 수퍼매트",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "best",
+        "thumbnail": "/uploads/interior_film/20200623062209783.jpg",
+        "original": "",
+        "regdate": "2020-06-23",
+        "prod_type": "interior_film",
+        "ord": 0,
+        "rn": 1,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "8A14B629",
+        "colorList": [],
+        "patternList": [
+          2
+        ],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "2c95ada8aa12ba7bf9e9c632f90d98ed2699969e81c38f850e856d4166fb2253",
+      "imageBytes": 82907,
+      "thumbnailFallback": false,
+      "id": "bodaq-smt11",
+      "image": "/material-products/bodaq-smt11.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=8A14B629",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_film/20200623062209783.jpg",
+      "imagePixels": [
+        1100,
+        500
+      ]
+    },
+    {
+      "group": "bodaq-matte",
+      "sourceRecordId": 2756,
+      "sourceRecord": {
+        "pattern_name": "&nbsp;",
+        "product_info": "0.42mm(T) X 1,220mm(W) X 50,000mm(L)",
+        "sale_info": "1Roll/Box(200mm X 200mm X 1,300mm)",
+        "bright": 80,
+        "idx": 2756,
+        "prod_idx": 0,
+        "mng_cd": "8A14B629",
+        "code": "SMT20",
+        "color_cd": 6,
+        "pattern_cd": 2,
+        "material_cd": 0,
+        "color_rgb": "#8FC765",
+        "pattern_style": "[단색] 수퍼매트",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "",
+        "thumbnail": "/uploads/interior_film/20230302112904147.jpg",
+        "original": "",
+        "regdate": "2023-03-02",
+        "prod_type": "interior_film",
+        "ord": 0,
+        "rn": 4,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "8A14B629",
+        "colorList": [],
+        "patternList": [
+          2
+        ],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "a460ba8634c4cd368c6762596cd7faec287dd1c6d98d49317273e58f1280dae0",
+      "imageBytes": 4654,
+      "thumbnailFallback": false,
+      "id": "bodaq-smt20",
+      "image": "/material-products/bodaq-smt20.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=8A14B629",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_film/20230302112904147.jpg",
+      "imagePixels": [
+        815,
+        360
+      ]
+    },
+    {
+      "group": "bodaq-matte",
+      "sourceRecordId": 2757,
+      "sourceRecord": {
+        "pattern_name": "&nbsp;",
+        "product_info": "0.42mm(T) X 1,220mm(W) X 50,000mm(L)",
+        "sale_info": "1Roll/Box(200mm X 200mm X 1,300mm)",
+        "bright": 80,
+        "idx": 2757,
+        "prod_idx": 0,
+        "mng_cd": "8A14B629",
+        "code": "SMT21",
+        "color_cd": 4,
+        "pattern_cd": 2,
+        "material_cd": 0,
+        "color_rgb": "#FDE9D9",
+        "pattern_style": "[단색] 수퍼매트",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "",
+        "thumbnail": "/uploads/interior_film/20230302112953759.jpg",
+        "original": "",
+        "regdate": "2023-03-02",
+        "prod_type": "interior_film",
+        "ord": 0,
+        "rn": 3,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "8A14B629",
+        "colorList": [],
+        "patternList": [
+          2
+        ],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "cc7d58317e2623a5da57036154375b6487eb1e524f927176d34533e2b0bc1dae",
+      "imageBytes": 4653,
+      "thumbnailFallback": false,
+      "id": "bodaq-smt21",
+      "image": "/material-products/bodaq-smt21.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=8A14B629",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_film/20230302112953759.jpg",
+      "imagePixels": [
+        815,
+        360
+      ]
+    },
+    {
+      "group": "bodaq-matte",
+      "sourceRecordId": 2936,
+      "sourceRecord": {
+        "pattern_name": "&nbsp;",
+        "product_info": "0.42mm(T) X 1,220mm(W) X 50,000mm(L)",
+        "sale_info": "1Roll/box(200mm X 200mm X 1,300mm)",
+        "bright": 20,
+        "idx": 2936,
+        "prod_idx": 0,
+        "mng_cd": "8A14B629",
+        "code": "SMT24",
+        "color_cd": 3,
+        "pattern_cd": 2,
+        "material_cd": 0,
+        "color_rgb": "#FFFFFF",
+        "pattern_style": "[단색] 수퍼매트",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "",
+        "thumbnail": "/uploads/interior_film/2024031212003492.jpg",
+        "original": "",
+        "regdate": "2024-03-12",
+        "prod_type": "interior_film",
+        "ord": 0,
+        "rn": 2,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "8A14B629",
+        "colorList": [],
+        "patternList": [
+          2
+        ],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "7d865ecfb4f7f63cfee76d638e24aed6d3e53694c1e5a8fb08f0cf845df611ff",
+      "imageBytes": 14626,
+      "thumbnailFallback": false,
+      "id": "bodaq-smt24",
+      "image": "/material-products/bodaq-smt24.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=8A14B629",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_film/2024031212003492.jpg",
+      "imagePixels": [
+        1100,
+        500
+      ]
+    },
+    {
+      "group": "bodaq-wood",
+      "sourceRecordId": 3808,
+      "sourceRecord": {
+        "pattern_name": "　",
+        "product_info": "0.42mm(T) X 1,220mm(W) X 50,000mm(L)",
+        "sale_info": "1Roll/box(200mm X 200mm X 1,300mm)",
+        "bright": 90,
+        "idx": 3808,
+        "prod_idx": 0,
+        "mng_cd": "8A14B629",
+        "code": "SPW39",
+        "color_cd": 9,
+        "pattern_cd": 9,
+        "material_cd": 0,
+        "color_rgb": "#974706",
+        "pattern_style": "[우드] 오리진 우드",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "new",
+        "thumbnail": "/uploads/interior_film/20260316012710281.jpg",
+        "original": "",
+        "regdate": "2026-03-16",
+        "prod_type": "interior_film",
+        "ord": 0,
+        "rn": 3,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "8A14B629",
+        "colorList": [],
+        "patternList": [
+          9,
+          23,
+          14,
+          24
+        ],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "8a4b173390ab8cb0c3045678afc8eee4ad342b7b689dd7bd164b0b4c86fc7fd1",
+      "imageBytes": 560425,
+      "thumbnailFallback": false,
+      "id": "bodaq-spw39",
+      "image": "/material-products/bodaq-spw39.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=8A14B629",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_film/20260316012710281.jpg",
+      "imagePixels": [
+        1100,
+        500
+      ]
+    },
+    {
+      "group": "bodaq-wood",
+      "sourceRecordId": 3809,
+      "sourceRecord": {
+        "pattern_name": "　",
+        "product_info": "0.42mm(T) X 1,220mm(W) X 50,000mm(L)",
+        "sale_info": "1Roll/box(200mm X 200mm X 1,300mm)",
+        "bright": 60,
+        "idx": 3809,
+        "prod_idx": 0,
+        "mng_cd": "8A14B629",
+        "code": "SPW88",
+        "color_cd": 9,
+        "pattern_cd": 9,
+        "material_cd": 0,
+        "color_rgb": "#974706",
+        "pattern_style": "[우드] 오리진 우드",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "new",
+        "thumbnail": "/uploads/interior_film/20260316012812247.jpg",
+        "original": "",
+        "regdate": "2026-03-16",
+        "prod_type": "interior_film",
+        "ord": 0,
+        "rn": 2,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "8A14B629",
+        "colorList": [],
+        "patternList": [
+          9,
+          23,
+          14,
+          24
+        ],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "ad9204c870c58cc5c0aa431d8fb24b12091a0ddcc8694565c79ec744431c1379",
+      "imageBytes": 270350,
+      "thumbnailFallback": false,
+      "id": "bodaq-spw88",
+      "image": "/material-products/bodaq-spw88.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=8A14B629",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_film/20260316012812247.jpg",
+      "imagePixels": [
+        1100,
+        500
+      ]
+    },
+    {
+      "group": "bodaq-wood",
+      "sourceRecordId": 3810,
+      "sourceRecord": {
+        "pattern_name": "　",
+        "product_info": "0.42mm(T) X 1,220mm(W) X 50,000mm(L)",
+        "sale_info": "1Roll/box(200mm X 200mm X 1,300mm)",
+        "bright": 70,
+        "idx": 3810,
+        "prod_idx": 0,
+        "mng_cd": "8A14B629",
+        "code": "SPW89",
+        "color_cd": 9,
+        "pattern_cd": 9,
+        "material_cd": 0,
+        "color_rgb": "#974706",
+        "pattern_style": "[우드] 오리진 우드",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "new",
+        "thumbnail": "/uploads/interior_film/20260316012855493.jpg",
+        "original": "",
+        "regdate": "2026-03-16",
+        "prod_type": "interior_film",
+        "ord": 0,
+        "rn": 1,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "8A14B629",
+        "colorList": [],
+        "patternList": [
+          9,
+          23,
+          14,
+          24
+        ],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "f8a778dd640e08aa2023102e31c663ba535fd6ce9859a5e1cb477c6ee9741d55",
+      "imageBytes": 271332,
+      "thumbnailFallback": false,
+      "id": "bodaq-spw89",
+      "image": "/material-products/bodaq-spw89.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=8A14B629",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_film/20260316012855493.jpg",
+      "imagePixels": [
+        1100,
+        500
+      ]
+    },
+    {
+      "group": "hanex",
+      "sourceRecordId": 3376,
+      "sourceRecord": {
+        "pattern_name": "미스티 화이트",
+        "product_info": "",
+        "specificity": "",
+        "bright": 50,
+        "idx": 3376,
+        "prod_idx": 0,
+        "mng_cd": "01320B6C",
+        "code": "CS-401",
+        "color_cd": 4,
+        "pattern_cd": 4,
+        "material_cd": 0,
+        "color_rgb": "#FDE9D9",
+        "pattern_style": "벨라시모",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "new",
+        "thumbnail": "/uploads/interior_stone/20250319104935886.jpg",
+        "original": "",
+        "regdate": "2025-03-19",
+        "prod_type": "interior_stone",
+        "ord": 0,
+        "rn": 7,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "01320B6C",
+        "colorList": [],
+        "patternList": [],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "874547b0078cb99d13cfd222d78233f98892ad7abbb0984f2f30d384add0debf",
+      "imageBytes": 148557,
+      "thumbnailFallback": false,
+      "id": "hanex-cs-401",
+      "image": "/material-products/hanex-cs-401.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=01320B6C",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_stone/20250319104935886.jpg",
+      "imagePixels": [
+        1100,
+        500
+      ]
+    },
+    {
+      "group": "hanex",
+      "sourceRecordId": 3377,
+      "sourceRecord": {
+        "pattern_name": "샌드 콘크리트",
+        "product_info": "",
+        "specificity": "",
+        "bright": 80,
+        "idx": 3377,
+        "prod_idx": 0,
+        "mng_cd": "01320B6C",
+        "code": "CS-402",
+        "color_cd": 4,
+        "pattern_cd": 4,
+        "material_cd": 0,
+        "color_rgb": "#FDE9D9",
+        "pattern_style": "벨라시모",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "new",
+        "thumbnail": "/uploads/interior_stone/2025031910495821.jpg",
+        "original": "",
+        "regdate": "2025-03-19",
+        "prod_type": "interior_stone",
+        "ord": 0,
+        "rn": 6,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "01320B6C",
+        "colorList": [],
+        "patternList": [],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "e3a859fc6c205dcba207cf8b56ac10c21aa1de1b540f6ed6eefc7ad8a28ce71b",
+      "imageBytes": 440269,
+      "thumbnailFallback": false,
+      "id": "hanex-cs-402",
+      "image": "/material-products/hanex-cs-402.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=01320B6C",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_stone/2025031910495821.jpg",
+      "imagePixels": [
+        1100,
+        500
+      ]
+    },
+    {
+      "group": "hanex",
+      "sourceRecordId": 3396,
+      "sourceRecord": {
+        "pattern_name": "화이트 스완",
+        "product_info": "",
+        "specificity": "",
+        "bright": 40,
+        "idx": 3396,
+        "prod_idx": 0,
+        "mng_cd": "01320B6C",
+        "code": "T-519",
+        "color_cd": 3,
+        "pattern_cd": 2,
+        "material_cd": 0,
+        "color_rgb": "#FFFFFF",
+        "pattern_style": "다중색(칩)",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "new",
+        "thumbnail": "/uploads/interior_stone/2025031911042190.jpg",
+        "original": "",
+        "regdate": "2025-03-19",
+        "prod_type": "interior_stone",
+        "ord": 0,
+        "rn": 4,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "01320B6C",
+        "colorList": [],
+        "patternList": [],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "3083b8d0f2c0dbb18c775be7c13ce25f2dede419b9ea2ebc3cebabd33723f129",
+      "imageBytes": 328109,
+      "thumbnailFallback": false,
+      "id": "hanex-t-519",
+      "image": "/material-products/hanex-t-519.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=01320B6C",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_stone/2025031911042190.jpg",
+      "imagePixels": [
+        1100,
+        500
+      ]
+    },
+    {
+      "group": "hanex",
+      "sourceRecordId": 3393,
+      "sourceRecord": {
+        "pattern_name": "코튼 블랑",
+        "product_info": "",
+        "specificity": "",
+        "bright": 40,
+        "idx": 3393,
+        "prod_idx": 0,
+        "mng_cd": "01320B6C",
+        "code": "T-522",
+        "color_cd": 3,
+        "pattern_cd": 2,
+        "material_cd": 0,
+        "color_rgb": "#FFFFFF",
+        "pattern_style": "다중색(칩)",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "new",
+        "thumbnail": "/uploads/interior_stone/20250319110324318.jpg",
+        "original": "",
+        "regdate": "2025-03-19",
+        "prod_type": "interior_stone",
+        "ord": 0,
+        "rn": 3,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "01320B6C",
+        "colorList": [],
+        "patternList": [],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "e493907139be47401533e70ac553503a559c53194ea4cf0d0d36296f02998b1c",
+      "imageBytes": 249949,
+      "thumbnailFallback": false,
+      "id": "hanex-t-522",
+      "image": "/material-products/hanex-t-522.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=01320B6C",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_stone/20250319110324318.jpg",
+      "imagePixels": [
+        1100,
+        500
+      ]
+    },
+    {
+      "group": "hanex",
+      "sourceRecordId": 3394,
+      "sourceRecord": {
+        "pattern_name": "쿠키 그레이",
+        "product_info": "",
+        "specificity": "",
+        "bright": 80,
+        "idx": 3394,
+        "prod_idx": 0,
+        "mng_cd": "01320B6C",
+        "code": "T-523",
+        "color_cd": 2,
+        "pattern_cd": 2,
+        "material_cd": 0,
+        "color_rgb": "#808080",
+        "pattern_style": "다중색(칩)",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "new",
+        "thumbnail": "/uploads/interior_stone/20250319110344384.jpg",
+        "original": "",
+        "regdate": "2025-03-19",
+        "prod_type": "interior_stone",
+        "ord": 0,
+        "rn": 2,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "01320B6C",
+        "colorList": [],
+        "patternList": [],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "6f4937ec7f8808d268752acd40777ea4453f9d09b20b3b3d209e539b7509ec82",
+      "imageBytes": 506567,
+      "thumbnailFallback": false,
+      "id": "hanex-t-523",
+      "image": "/material-products/hanex-t-523.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=01320B6C",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_stone/20250319110344384.jpg",
+      "imagePixels": [
+        1100,
+        500
+      ]
+    },
+    {
+      "group": "hanex",
+      "sourceRecordId": 3395,
+      "sourceRecord": {
+        "pattern_name": "글레이셔 그레이",
+        "product_info": "",
+        "specificity": "",
+        "bright": 80,
+        "idx": 3395,
+        "prod_idx": 0,
+        "mng_cd": "01320B6C",
+        "code": "T-524",
+        "color_cd": 2,
+        "pattern_cd": 2,
+        "material_cd": 0,
+        "color_rgb": "#808080",
+        "pattern_style": "다중색(칩)",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "new",
+        "thumbnail": "/uploads/interior_stone/20250319110401351.jpg",
+        "original": "",
+        "regdate": "2025-03-19",
+        "prod_type": "interior_stone",
+        "ord": 0,
+        "rn": 1,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "01320B6C",
+        "colorList": [],
+        "patternList": [],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "2ad4f19fc6e3a04ed95343ced1b38f6948d08ffd35520f4ae71bda078e101a8b",
+      "imageBytes": 744586,
+      "thumbnailFallback": false,
+      "id": "hanex-t-524",
+      "image": "/material-products/hanex-t-524.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=01320B6C",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_stone/20250319110401351.jpg",
+      "imagePixels": [
+        1100,
+        500
+      ]
+    },
+    {
+      "group": "hanex",
+      "sourceRecordId": 3373,
+      "sourceRecord": {
+        "pattern_name": "베나토 스텔라",
+        "product_info": "",
+        "specificity": "",
+        "bright": 50,
+        "idx": 3373,
+        "prod_idx": 0,
+        "mng_cd": "01320B6C",
+        "code": "VM-005",
+        "color_cd": 4,
+        "pattern_cd": 7,
+        "material_cd": 0,
+        "color_rgb": "#FDE9D9",
+        "pattern_style": "베나토",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "",
+        "thumbnail": "/uploads/interior_stone/20250318105426969.jpg",
+        "original": "",
+        "regdate": "2025-03-18",
+        "prod_type": "interior_stone",
+        "ord": 0,
+        "rn": 8,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "01320B6C",
+        "colorList": [],
+        "patternList": [],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "7b462d6154a9e128b9ae44c307cdb6f1916c292a4c0612d3e68187fb67952f7a",
+      "imageBytes": 218955,
+      "thumbnailFallback": false,
+      "id": "hanex-vm-005",
+      "image": "/material-products/hanex-vm-005.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=01320B6C",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_stone/20250318105426969.jpg",
+      "imagePixels": [
+        1100,
+        500
+      ]
+    },
+    {
+      "group": "hanstone",
+      "sourceRecordId": 3400,
+      "sourceRecord": {
+        "pattern_name": "크리스탈로",
+        "product_info": "12T, 20T/  3,300(W) x 1,650(L)mm",
+        "specificity": "",
+        "bright": 50,
+        "idx": 3400,
+        "prod_idx": 0,
+        "mng_cd": "47453481",
+        "code": "CR901",
+        "color_cd": 4,
+        "pattern_cd": 3,
+        "material_cd": 0,
+        "color_rgb": "#FDE9D9",
+        "pattern_style": "흐름무늬",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "new",
+        "thumbnail": "/uploads/interior_stone/20250320014927811.jpg",
+        "original": "",
+        "regdate": "2025-03-20",
+        "prod_type": "interior_stone",
+        "ord": 0,
+        "rn": 8,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "47453481",
+        "colorList": [],
+        "patternList": [],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "d29a16508e562333ec1526d79166928b03381d1393e33fa01f3e4c4fc081f279",
+      "imageBytes": 394915,
+      "thumbnailFallback": false,
+      "id": "hanstone-cr901",
+      "image": "/material-products/hanstone-cr901.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=47453481",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_stone/20250320014927811.jpg",
+      "imagePixels": [
+        1100,
+        500
+      ]
+    },
+    {
+      "group": "hanstone",
+      "sourceRecordId": 2761,
+      "sourceRecord": {
+        "pattern_name": "로키마운틴",
+        "product_info": "1,400mm(W) x 3,050mm(L)",
+        "specificity": "",
+        "bright": 80,
+        "idx": 2761,
+        "prod_idx": 0,
+        "mng_cd": "47453481",
+        "code": "K4504",
+        "color_cd": 2,
+        "pattern_cd": 3,
+        "material_cd": 0,
+        "color_rgb": "#808080",
+        "pattern_style": "흐름무늬",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "new",
+        "thumbnail": "/uploads/interior_stone/20230314013539275.jpg",
+        "original": "",
+        "regdate": "2023-03-14",
+        "prod_type": "interior_stone",
+        "ord": 0,
+        "rn": 7,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "47453481",
+        "colorList": [],
+        "patternList": [],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "b2e5601434629e1c5ee1609fc6454fc7b6bc03bb3bcc8006f20b7dcb3423d7cc",
+      "imageBytes": 242726,
+      "thumbnailFallback": false,
+      "id": "hanstone-k4504",
+      "image": "/material-products/hanstone-k4504.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=47453481",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_stone/20230314013539275.jpg",
+      "imagePixels": [
+        815,
+        360
+      ]
+    },
+    {
+      "group": "hanstone",
+      "sourceRecordId": 3401,
+      "sourceRecord": {
+        "pattern_name": "크레모사",
+        "product_info": "12T, 20T/  3,300(W) x 1,650(L)mm",
+        "specificity": "",
+        "bright": 50,
+        "idx": 3401,
+        "prod_idx": 0,
+        "mng_cd": "47453481",
+        "code": "K4510",
+        "color_cd": 4,
+        "pattern_cd": 3,
+        "material_cd": 0,
+        "color_rgb": "#FDE9D9",
+        "pattern_style": "흐름무늬",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "new",
+        "thumbnail": "/uploads/interior_stone/20250320014957621.jpg",
+        "original": "",
+        "regdate": "2025-03-20",
+        "prod_type": "interior_stone",
+        "ord": 0,
+        "rn": 6,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "47453481",
+        "colorList": [],
+        "patternList": [],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "109a26bdfdb8b47a76fd49a85c09760a99086945c8a1f3b968c36982cf0ce3c4",
+      "imageBytes": 321287,
+      "thumbnailFallback": false,
+      "id": "hanstone-k4510",
+      "image": "/material-products/hanstone-k4510.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=47453481",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_stone/20250320014957621.jpg",
+      "imagePixels": [
+        1100,
+        500
+      ]
+    },
+    {
+      "group": "hanstone",
+      "sourceRecordId": 3399,
+      "sourceRecord": {
+        "pattern_name": "에덴 그레이",
+        "product_info": "12T, 20T/  3,300(W) x 1,650(L)mm",
+        "specificity": "",
+        "bright": 50,
+        "idx": 3399,
+        "prod_idx": 0,
+        "mng_cd": "47453481",
+        "code": "K4512",
+        "color_cd": 2,
+        "pattern_cd": 3,
+        "material_cd": 0,
+        "color_rgb": "#808080",
+        "pattern_style": "흐름무늬",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "new",
+        "thumbnail": "/uploads/interior_stone/20250320014901849.jpg",
+        "original": "",
+        "regdate": "2025-03-20",
+        "prod_type": "interior_stone",
+        "ord": 0,
+        "rn": 5,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "47453481",
+        "colorList": [],
+        "patternList": [],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "d6b72021bfa555854990d619907205ee8b3d4399611a4b16434dd38275ee7052",
+      "imageBytes": 280800,
+      "thumbnailFallback": false,
+      "id": "hanstone-k4512",
+      "image": "/material-products/hanstone-k4512.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=47453481",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_stone/20250320014901849.jpg",
+      "imagePixels": [
+        1100,
+        500
+      ]
+    },
+    {
+      "group": "hanstone",
+      "sourceRecordId": 3012,
+      "sourceRecord": {
+        "pattern_name": "타히티안 크림",
+        "product_info": "3,300(W) x 1,650(L)mm",
+        "specificity": "",
+        "bright": 70,
+        "idx": 3012,
+        "prod_idx": 0,
+        "mng_cd": "47453481",
+        "code": "K5407",
+        "color_cd": 4,
+        "pattern_cd": 3,
+        "material_cd": 0,
+        "color_rgb": "#FDE9D9",
+        "pattern_style": "흐름무늬",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "new",
+        "thumbnail": "/uploads/interior_stone/20240322043537451.jpg",
+        "original": "",
+        "regdate": "2024-03-22",
+        "prod_type": "interior_stone",
+        "ord": 0,
+        "rn": 4,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "47453481",
+        "colorList": [],
+        "patternList": [],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "09391f9bef09a905df94ad1da6570d18d8dc75c0e2b48e15f6155dc1f8e708e4",
+      "imageBytes": 374897,
+      "thumbnailFallback": false,
+      "id": "hanstone-k5407",
+      "image": "/material-products/hanstone-k5407.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=47453481",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_stone/20240322043537451.jpg",
+      "imagePixels": [
+        1100,
+        500
+      ]
+    },
+    {
+      "group": "hanstone",
+      "sourceRecordId": 3013,
+      "sourceRecord": {
+        "pattern_name": "보아비스타",
+        "product_info": "3,300(W) x 1,650(L)mm",
+        "specificity": "",
+        "bright": 70,
+        "idx": 3013,
+        "prod_idx": 0,
+        "mng_cd": "47453481",
+        "code": "K5408",
+        "color_cd": 4,
+        "pattern_cd": 3,
+        "material_cd": 0,
+        "color_rgb": "#FDE9D9",
+        "pattern_style": "흐름무늬",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "new",
+        "thumbnail": "/uploads/interior_stone/20240322043553555.jpg",
+        "original": "",
+        "regdate": "2024-03-22",
+        "prod_type": "interior_stone",
+        "ord": 0,
+        "rn": 3,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "47453481",
+        "colorList": [],
+        "patternList": [],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "da2594132de0ccf0ab5a8855604967533d6e3a20c0ca8cfae6817eba1c019569",
+      "imageBytes": 384004,
+      "thumbnailFallback": false,
+      "id": "hanstone-k5408",
+      "image": "/material-products/hanstone-k5408.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=47453481",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_stone/20240322043553555.jpg",
+      "imagePixels": [
+        1100,
+        500
+      ]
+    },
+    {
+      "group": "hanstone",
+      "sourceRecordId": 3397,
+      "sourceRecord": {
+        "pattern_name": "에스틴 그레이",
+        "product_info": "12T, 20T/  3,050(W) x 1,400(L)mm",
+        "specificity": "",
+        "bright": 80,
+        "idx": 3397,
+        "prod_idx": 0,
+        "mng_cd": "47453481",
+        "code": "RU567",
+        "color_cd": 2,
+        "pattern_cd": 2,
+        "material_cd": 0,
+        "color_rgb": "#808080",
+        "pattern_style": "칩무늬",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "new",
+        "thumbnail": "/uploads/interior_stone/20250320014802433.jpg",
+        "original": "",
+        "regdate": "2025-03-20",
+        "prod_type": "interior_stone",
+        "ord": 0,
+        "rn": 2,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "47453481",
+        "colorList": [],
+        "patternList": [],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "8e8560ec8949ebd1626132b6c938f17beaa1e4f2853b95de57891296fa033305",
+      "imageBytes": 365266,
+      "thumbnailFallback": false,
+      "id": "hanstone-ru567",
+      "image": "/material-products/hanstone-ru567.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=47453481",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_stone/20250320014802433.jpg",
+      "imagePixels": [
+        1100,
+        500
+      ]
+    },
+    {
+      "group": "hanstone",
+      "sourceRecordId": 3398,
+      "sourceRecord": {
+        "pattern_name": "그레이 차콜",
+        "product_info": "12T, 20T/  3,050(W) x 1,400(L)mm",
+        "specificity": "",
+        "bright": 80,
+        "idx": 3398,
+        "prod_idx": 0,
+        "mng_cd": "47453481",
+        "code": "WI759",
+        "color_cd": 2,
+        "pattern_cd": 3,
+        "material_cd": 0,
+        "color_rgb": "#808080",
+        "pattern_style": "흐름무늬",
+        "material_style": "",
+        "view_yn": "Y",
+        "icon_gb": "new",
+        "thumbnail": "/uploads/interior_stone/20250320014825343.jpg",
+        "original": "",
+        "regdate": "2025-03-20",
+        "prod_type": "interior_stone",
+        "ord": 0,
+        "rn": 1,
+        "caption": "",
+        "base64": "",
+        "attachfiles": [],
+        "attachfileMap": {}
+      },
+      "sourceRequest": {
+        "pageIndex": 1,
+        "pageSize": 20,
+        "sort": "code",
+        "searchKeyword": "",
+        "mng_cd": "47453481",
+        "colorList": [],
+        "patternList": [],
+        "materialList": [],
+        "categorys": []
+      },
+      "imageSha256": "d673a8050c0f8bddd5b5be9e94772367393b0ab0bb1a19b136014365c49b84c5",
+      "imageBytes": 524979,
+      "thumbnailFallback": false,
+      "id": "hanstone-wi759",
+      "image": "/material-products/hanstone-wi759.jpg",
+      "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=47453481",
+      "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_stone/20250320014825343.jpg",
+      "imagePixels": [
+        1100,
+        500
+      ]
+    },
+    {
+      "group": "lvt",
+      "detailSha256": "9bf929e51e99722b66f9baa8cf6afcf625fdb0d358d03bd2c0ba7eb65d132ea1",
+      "imageSha256": "1caa01256c73cde5e0ff7c5d26cdb6f11f1ab2546c89f71205d30c085f0cf97a",
+      "imageBytes": 747593,
+      "sourceCategorySha256": "8cdb00fdb4f73b1971e7161aa13e2f8c05f607e2d393ef367c955cd60568a471",
+      "thumbnailFallback": false,
+      "id": "lx-100329",
+      "image": "/material-products/lx-100329.png",
+      "sourceUrl": "https://www.lxzin.com/zin/product/100329",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/img01/202504/23/343c36c3-c6ea-4246-9433-4f19052405ed.png",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "wallpaper",
+      "detailSha256": "f554d2cf3cce2a979d366ae3d64fc76631da425841e0151dbcac1d1f1b9fd72a",
+      "imageSha256": "17387379ab1d940a1429bc0bdf06b8cc2fded0c7ce1097b1b5be7b6c55930d8b",
+      "imageBytes": 124586,
+      "sourceCategorySha256": "11bfa8667203dde16308237832e3af5a96666177a31f31e394751d357308b44c",
+      "thumbnailFallback": false,
+      "id": "lx-100690",
+      "image": "/material-products/lx-100690.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/100690",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/expandFileSeq/202303/30/58f01ccc-4b9b-4ad9-86ff-4d5519b667ae.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "wallpaper",
+      "detailSha256": "4bfda73124341684ab28cd708645d12a6d7038621a9165a5c0af9b9d95ea2551",
+      "imageSha256": "3dfebd5b5cf863fc92b33ec2dd405de4dfd776e6ef3d5b55e4c515472d5effd3",
+      "imageBytes": 154752,
+      "sourceCategorySha256": "11bfa8667203dde16308237832e3af5a96666177a31f31e394751d357308b44c",
+      "thumbnailFallback": false,
+      "id": "lx-100691",
+      "image": "/material-products/lx-100691.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/100691",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/expandFileSeq/202303/30/779b9fe1-cb9c-4114-bb6a-3253cf034236.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "wallpaper",
+      "detailSha256": "46f6f320b67299af1047836fa8fb8f55cdc30ce469041158c7ec72669d2268c2",
+      "imageSha256": "860b11b760a1df1316935c2152ef42133ad6bf7f698be9bc482ec531730ecafb",
+      "imageBytes": 150622,
+      "sourceCategorySha256": "11bfa8667203dde16308237832e3af5a96666177a31f31e394751d357308b44c",
+      "thumbnailFallback": false,
+      "id": "lx-100708",
+      "image": "/material-products/lx-100708.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/100708",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/expandFileSeq/202303/30/ae0d2080-97bf-402a-907f-0d3807aabbd6.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "wallpaper",
+      "detailSha256": "7be220088690961b20b53c7f43766f338edf0fe6968190504e77d852f84fa1c7",
+      "imageSha256": "b262360ed58015607dc41202f6467ac4869140259eb482e78d0f6a10de85817c",
+      "imageBytes": 18011,
+      "sourceCategorySha256": "11bfa8667203dde16308237832e3af5a96666177a31f31e394751d357308b44c",
+      "thumbnailFallback": true,
+      "id": "lx-100709",
+      "image": "/material-products/lx-100709.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/100709",
+      "sourceImageUrl": "https://m2img.lxzin.com/zinPrd/thumFileSeq/202303/30/e1da263b-e246-424f-86eb-cf901a800642.jpg/dims/resize/240x240",
+      "imagePixels": [
+        240,
+        240
+      ]
+    },
+    {
+      "group": "film-metal",
+      "detailSha256": "51cc56ff16b298a93c2fecdf4df9141371184daa46df39300c5f2655c2d959c1",
+      "imageSha256": "08ca778e3b4d9a2a030642676ed3ce6ab27f0b56f595fa15f11a3a0e6aa99a97",
+      "imageBytes": 137289,
+      "sourceCategorySha256": "b1ae6176b0f102cdd02d578ab89c881a2c4ce3dc6a1d528a1d61ce9631887eef",
+      "thumbnailFallback": false,
+      "id": "lx-100882",
+      "image": "/material-products/lx-100882.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/100882",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/expandFileSeq/202305/25/9b639e23-6dfd-458d-a935-162ea312513a.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "film-metal",
+      "detailSha256": "1aa3b7c45f9e7fe12af6620e239b65968ab007a5c1acb47aa5c2f64ca4d070fb",
+      "imageSha256": "d93f62edb9e1acfb01252e5c3371ef1caced4f5e08057e756f3b2dfa7b686199",
+      "imageBytes": 134590,
+      "sourceCategorySha256": "b1ae6176b0f102cdd02d578ab89c881a2c4ce3dc6a1d528a1d61ce9631887eef",
+      "thumbnailFallback": false,
+      "id": "lx-100884",
+      "image": "/material-products/lx-100884.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/100884",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/expandFileSeq/202305/25/9f1e4097-b07e-46aa-9206-8251d6e5e38a.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "film-metal",
+      "detailSha256": "b0f5954a6f00e485bf32cd97f0a931f1ba29499d381972e0fe065155d316de43",
+      "imageSha256": "bc31f153f8bdddb47c9c04fd3fbd8763c8207c8417fe678ad741fa7a34d94ac1",
+      "imageBytes": 107538,
+      "sourceCategorySha256": "b1ae6176b0f102cdd02d578ab89c881a2c4ce3dc6a1d528a1d61ce9631887eef",
+      "thumbnailFallback": false,
+      "id": "lx-100885",
+      "image": "/material-products/lx-100885.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/100885",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/expandFileSeq/202305/25/45e2aaf5-10d8-4730-b21d-2bdbe06a77d0.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "film-textile",
+      "detailSha256": "2390302bbafc887ef882e89347c7c21023283648a7340026925c37c6efb3a44d",
+      "imageSha256": "3522a1389875e6a75e82587784d187d22dcbf93099aecbc7eb912a52a7d28359",
+      "imageBytes": 184336,
+      "sourceCategorySha256": "a9f4776f26d3df5d7f60c85135c372526ec87dbc4f2b5c26ceb82a46fc562cbe",
+      "thumbnailFallback": false,
+      "id": "lx-100908",
+      "image": "/material-products/lx-100908.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/100908",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/expandFileSeq/202305/25/89ac88ae-bf4f-41d4-b71a-33964cab823c.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "film-textile",
+      "detailSha256": "82eb3c03a6247b929efc71abe965754bcb604a330220cca19adf1372e8ad570d",
+      "imageSha256": "4cf1fd7bbf3e16821eed0b51ea865d5bd288e87af6d710b01551e3565b0ba76d",
+      "imageBytes": 169359,
+      "sourceCategorySha256": "a9f4776f26d3df5d7f60c85135c372526ec87dbc4f2b5c26ceb82a46fc562cbe",
+      "thumbnailFallback": false,
+      "id": "lx-100910",
+      "image": "/material-products/lx-100910.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/100910",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/expandFileSeq/202305/25/87227af1-5e02-415f-9b99-a40d1247b5f9.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "himacs",
+      "detailSha256": "5b5aeb10c363b0d8f10c4d6128ae3eed3cf4b09bb8ad3d9aee25304a18927dd1",
+      "imageSha256": "8dee73491588b3c68ea5a028dabc966103cfc36bb24cfabab192281737e06c34",
+      "imageBytes": 124214,
+      "sourceCategorySha256": "0850201bd4e6fa4de09f1f9c151584ad808a349d2b1d1c1b6e6c9eaac42270cf",
+      "thumbnailFallback": false,
+      "id": "lx-101424",
+      "image": "/material-products/lx-101424.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/101424",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/imgFileSeq/202401/22/760dcf12-2707-459a-a694-2ffbd77914dc.jpg",
+      "imagePixels": [
+        585,
+        440
+      ]
+    },
+    {
+      "group": "board",
+      "detailSha256": "31ad76edac4c2dcf8043f9a2930240cbb33c5027888a10f80f63bf87cae5561b",
+      "imageSha256": "a803d16173f96f89c5b5be0436feeca40a3e88dbbe1da1c7cbf926f1507ec9fa",
+      "imageBytes": 152343,
+      "sourceCategorySha256": "01aa7028877c0b205f605a4838d9890268b1af7929da3de8dd89aecedc6627a3",
+      "thumbnailFallback": false,
+      "id": "lx-101444",
+      "image": "/material-products/lx-101444.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/101444",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/imgFileSeq/202402/02/f9dd10f2-28bf-4a2c-8d43-1a3cddb6b6a1.jpg",
+      "imagePixels": [
+        585,
+        440
+      ]
+    },
+    {
+      "group": "board",
+      "detailSha256": "5ab0ef04f9c3f40e7eaaa75e14486533b17fda9b59bd5cf0597aa2f10338cdcf",
+      "imageSha256": "91af3d06fc2c22dc9fc6bd54d5dbba62da4db39682fc40069174f11dab674310",
+      "imageBytes": 131525,
+      "sourceCategorySha256": "01aa7028877c0b205f605a4838d9890268b1af7929da3de8dd89aecedc6627a3",
+      "thumbnailFallback": false,
+      "id": "lx-101445",
+      "image": "/material-products/lx-101445.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/101445",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/imgFileSeq/202401/23/4cb669fc-b20a-49a1-b8ed-48a0f58779e1.jpg",
+      "imagePixels": [
+        585,
+        440
+      ]
+    },
+    {
+      "group": "board",
+      "detailSha256": "9f85abc7d161d8551eb5be49e1b081aaec8f3eeb33fa8e0f1a02e64e6e0f5acc",
+      "imageSha256": "5e91410126fb482308c776ae49702901ddcbffef704f5e31d9738ed18a58e100",
+      "imageBytes": 131079,
+      "sourceCategorySha256": "01aa7028877c0b205f605a4838d9890268b1af7929da3de8dd89aecedc6627a3",
+      "thumbnailFallback": false,
+      "id": "lx-101446",
+      "image": "/material-products/lx-101446.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/101446",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/imgFileSeq/202401/23/baab02f6-f993-4b31-b0ad-f969ca3994f6.jpg",
+      "imagePixels": [
+        585,
+        440
+      ]
+    },
+    {
+      "group": "board",
+      "detailSha256": "f42f8ee30c28d16d2eacfe104a4db175913acbc21b537afd4f0ff3f088d53b9e",
+      "imageSha256": "19af1356cac882b1f601d9614d5c035de4f7c201a6d88b1fbcff4dfa024347d6",
+      "imageBytes": 159706,
+      "sourceCategorySha256": "01aa7028877c0b205f605a4838d9890268b1af7929da3de8dd89aecedc6627a3",
+      "thumbnailFallback": false,
+      "id": "lx-101447",
+      "image": "/material-products/lx-101447.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/101447",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/imgFileSeq/202401/23/19b76f6f-3136-4464-9df7-1c5798c6195e.jpg",
+      "imagePixels": [
+        585,
+        440
+      ]
+    },
+    {
+      "group": "board",
+      "detailSha256": "89e6339108627dba0d29c768c7fb7d3baa745e3db568010cbdbe5af7d8943166",
+      "imageSha256": "ea0914b9455b759eeea777fff044efc66b1dc6f2accad21483ae8bdd727df072",
+      "imageBytes": 169748,
+      "sourceCategorySha256": "01aa7028877c0b205f605a4838d9890268b1af7929da3de8dd89aecedc6627a3",
+      "thumbnailFallback": false,
+      "id": "lx-101448",
+      "image": "/material-products/lx-101448.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/101448",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/imgFileSeq/202401/23/ac560fea-2ae7-4ac1-b24b-80be806c37de.jpg",
+      "imagePixels": [
+        585,
+        440
+      ]
+    },
+    {
+      "group": "board",
+      "detailSha256": "a4d7e38fc6c882d9f2ba7c1caa8ad31bc0f2d3a1e738f467640264095ec759e9",
+      "imageSha256": "b028afc2f00f6b3ef0537017b37f26509993e219cadfd619be3e1ef87d9b2418",
+      "imageBytes": 177762,
+      "sourceCategorySha256": "01aa7028877c0b205f605a4838d9890268b1af7929da3de8dd89aecedc6627a3",
+      "thumbnailFallback": false,
+      "id": "lx-101449",
+      "image": "/material-products/lx-101449.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/101449",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/imgFileSeq/202401/23/d0f14900-3ed4-4146-bde8-839bcd550fd9.jpg",
+      "imagePixels": [
+        585,
+        440
+      ]
+    },
+    {
+      "group": "board",
+      "detailSha256": "2243612210ef7440a11c969ee118895a977edc59cdc6c1241a3baf4dde682407",
+      "imageSha256": "a8f7b0eaaa9c1931f154301ec7c534befba90eee73689d61a6840ea60c684d93",
+      "imageBytes": 93264,
+      "sourceCategorySha256": "01aa7028877c0b205f605a4838d9890268b1af7929da3de8dd89aecedc6627a3",
+      "thumbnailFallback": false,
+      "id": "lx-101457",
+      "image": "/material-products/lx-101457.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/101457",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/imgFileSeq/202401/23/af98a51b-d154-4f17-b0d1-df7a06359b37.jpg",
+      "imagePixels": [
+        585,
+        440
+      ]
+    },
+    {
+      "group": "board",
+      "detailSha256": "4f0de6d2add914843c965057dd161b092e9fcf6b235a32ce1343f05f9b296632",
+      "imageSha256": "25d57799da9c1f45883269780f1c31520001ba94701211d130b4db7f848050f5",
+      "imageBytes": 106356,
+      "sourceCategorySha256": "01aa7028877c0b205f605a4838d9890268b1af7929da3de8dd89aecedc6627a3",
+      "thumbnailFallback": false,
+      "id": "lx-101458",
+      "image": "/material-products/lx-101458.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/101458",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/imgFileSeq/202401/23/e7b6546b-6acf-4499-9cc8-f70f348dd4ea.jpg",
+      "imagePixels": [
+        585,
+        440
+      ]
+    },
+    {
+      "group": "board",
+      "detailSha256": "8bafc12730493461e1585474caf623b521d3adf647ec709fc0af5a96fa1310d3",
+      "imageSha256": "a537d933b459cbf36b8428602e50aac916c2aa2526f08d5226264ce775bf8d65",
+      "imageBytes": 115209,
+      "sourceCategorySha256": "01aa7028877c0b205f605a4838d9890268b1af7929da3de8dd89aecedc6627a3",
+      "thumbnailFallback": false,
+      "id": "lx-101459",
+      "image": "/material-products/lx-101459.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/101459",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/imgFileSeq/202401/23/490bcd01-0198-4c39-959a-e2ea284b6b56.jpg",
+      "imagePixels": [
+        585,
+        440
+      ]
+    },
+    {
+      "group": "board",
+      "detailSha256": "28575767588b9b88ce2e02750cd7420f7975ecb79828ab9e3b13c37ee06a9c92",
+      "imageSha256": "7ab939b0359550578d7fd2818524fd4d09c4c77ae05e61000006148db9cdbf90",
+      "imageBytes": 9500,
+      "sourceCategorySha256": "01aa7028877c0b205f605a4838d9890268b1af7929da3de8dd89aecedc6627a3",
+      "thumbnailFallback": false,
+      "id": "lx-101460",
+      "image": "/material-products/lx-101460.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/101460",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/imgFileSeq/202401/23/67817854-69bd-47c2-b959-98a599585762.jpg",
+      "imagePixels": [
+        585,
+        440
+      ]
+    },
+    {
+      "group": "board",
+      "detailSha256": "e61d79d68092521f22b778e972484d435feb291452e12265495a93d764190652",
+      "imageSha256": "8eae80e631fa5af084abb89adef812b3b7e7c67f9e426d1a7fe0a3ed8e43fa0a",
+      "imageBytes": 10487,
+      "sourceCategorySha256": "01aa7028877c0b205f605a4838d9890268b1af7929da3de8dd89aecedc6627a3",
+      "thumbnailFallback": false,
+      "id": "lx-101461",
+      "image": "/material-products/lx-101461.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/101461",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/imgFileSeq/202401/23/df63a28e-6976-4917-8fe7-eafb2a494a32.jpg",
+      "imagePixels": [
+        585,
+        440
+      ]
+    },
+    {
+      "group": "board",
+      "detailSha256": "399a0743d3cb738727a953a01ba83d83cabbc94482a73c6821647fdc050d85ca",
+      "imageSha256": "4a10cefe375d4148dfc5c48fb1ea5047fe67e65da2a9b98316573aa892645305",
+      "imageBytes": 8917,
+      "sourceCategorySha256": "01aa7028877c0b205f605a4838d9890268b1af7929da3de8dd89aecedc6627a3",
+      "thumbnailFallback": false,
+      "id": "lx-101462",
+      "image": "/material-products/lx-101462.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/101462",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/imgFileSeq/202401/23/ed92579d-2db3-4cf2-8cb8-55877e52fca5.jpg",
+      "imagePixels": [
+        585,
+        440
+      ]
+    },
+    {
+      "group": "board",
+      "detailSha256": "dfec038ae37302a3eff29d14d8ea8d7d89d0ab6b9a0013d31dc42c8e2738b0de",
+      "imageSha256": "9522adbd78d1de7f79619016ab91b66da6cc809ea6643908c3deebbc154938ef",
+      "imageBytes": 8805,
+      "sourceCategorySha256": "01aa7028877c0b205f605a4838d9890268b1af7929da3de8dd89aecedc6627a3",
+      "thumbnailFallback": false,
+      "id": "lx-101463",
+      "image": "/material-products/lx-101463.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/101463",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/imgFileSeq/202401/23/e9faceda-ac30-45d3-8a2b-665f8a438dd2.jpg",
+      "imagePixels": [
+        585,
+        440
+      ]
+    },
+    {
+      "group": "board",
+      "detailSha256": "bf5c42d96852c5a0dc097b92be9e6e3420fbab9857b42c90131aa1f217e247c9",
+      "imageSha256": "29d61673f50c3e9a82f21718452fcb6809dec8bce86cf43c6f5a8bcb5327ce75",
+      "imageBytes": 12237,
+      "sourceCategorySha256": "01aa7028877c0b205f605a4838d9890268b1af7929da3de8dd89aecedc6627a3",
+      "thumbnailFallback": false,
+      "id": "lx-101464",
+      "image": "/material-products/lx-101464.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/101464",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/imgFileSeq/202401/23/55d59b83-086a-40de-b71a-5a7bba833dd3.jpg",
+      "imagePixels": [
+        585,
+        440
+      ]
+    },
+    {
+      "group": "porcelain",
+      "detailSha256": "7bc3ff3fcf45df9776aecf4bca3b301c590da3eb0a5462add7c05fe0a6eead9d",
+      "imageSha256": "cc2d3cbe928e40b9abedff3790058b467c710114dd426d1ff72c44619b12de46",
+      "imageBytes": 198797,
+      "sourceCategorySha256": "0249fe519a137595f3b372d5f366b88a1396e0889caecf1b710377974efb7d93",
+      "thumbnailFallback": false,
+      "id": "lx-101507",
+      "image": "/material-products/lx-101507.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/101507",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/img01/202603/17/352a6fb3-0d93-438e-842e-6ee09cb36708.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "lvt",
+      "detailSha256": "ef50fa90734fedd3b98ab4fbe4f2a97c30ff13b1ab66af8415b5335644f38dda",
+      "imageSha256": "d8a4326d96b4baeaf3a1cae65ef17fb65bae5ca4ee3861fdeb2ebcb1843d58fd",
+      "imageBytes": 108738,
+      "sourceCategorySha256": "8cdb00fdb4f73b1971e7161aa13e2f8c05f607e2d393ef367c955cd60568a471",
+      "thumbnailFallback": false,
+      "id": "lx-101748",
+      "image": "/material-products/lx-101748.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/101748",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/imgFileSeq/202406/11/95d050b4-ca63-41fd-bee0-7d72e1751598.jpg",
+      "imagePixels": [
+        585,
+        440
+      ]
+    },
+    {
+      "group": "lvt",
+      "detailSha256": "b5b527d8be30905e9ce8a96db65be2a1c1b7c9af8dff91881fc90f50fb447986",
+      "imageSha256": "90cd7dd0acf662c5ff26ef20da62e4210d0c7ec552f03c7664d262e532d0c58d",
+      "imageBytes": 210178,
+      "sourceCategorySha256": "8cdb00fdb4f73b1971e7161aa13e2f8c05f607e2d393ef367c955cd60568a471",
+      "thumbnailFallback": false,
+      "id": "lx-101749",
+      "image": "/material-products/lx-101749.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/101749",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/imgFileSeq/202406/11/54d01b44-a502-4103-ad97-1aaad690c5df.jpg",
+      "imagePixels": [
+        585,
+        440
+      ]
+    },
+    {
+      "group": "lvt",
+      "detailSha256": "e4a819ee258a7110e23bb3b310df2eeb2538a0a7b918ad3bd8cd28fbfb5c1cde",
+      "imageSha256": "99204b8186da0370fb93c75b472770e84a154af35df83f6c5420ebc3dfb4d8a5",
+      "imageBytes": 206601,
+      "sourceCategorySha256": "8cdb00fdb4f73b1971e7161aa13e2f8c05f607e2d393ef367c955cd60568a471",
+      "thumbnailFallback": false,
+      "id": "lx-101750",
+      "image": "/material-products/lx-101750.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/101750",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/imgFileSeq/202406/11/8d775387-c5e9-47c7-8751-64f64a2d56a8.jpg",
+      "imagePixels": [
+        585,
+        440
+      ]
+    },
+    {
+      "group": "lvt",
+      "detailSha256": "df616347abe43c0d7921dd7695b470bde116f2e1049d197e34fc89f49e64ebb4",
+      "imageSha256": "2f7076e7b092a2c275eed6a54f45c0b8cd01b6f47d3e5052eff15e4d711dfd3b",
+      "imageBytes": 207279,
+      "sourceCategorySha256": "8cdb00fdb4f73b1971e7161aa13e2f8c05f607e2d393ef367c955cd60568a471",
+      "thumbnailFallback": false,
+      "id": "lx-101751",
+      "image": "/material-products/lx-101751.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/101751",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/imgFileSeq/202406/11/1bb82742-d957-45ec-821b-a1da854bdd9f.jpg",
+      "imagePixels": [
+        585,
+        440
+      ]
+    },
+    {
+      "group": "porcelain",
+      "detailSha256": "aff9c9fdcce373131356a79ccee63be76f44d4f07cdf4e86b9014e378467b073",
+      "imageSha256": "f91ca002f7f064e7194b2c7fc21a11a6d7b9ac9e364ac3f199855514f5413606",
+      "imageBytes": 114045,
+      "sourceCategorySha256": "0249fe519a137595f3b372d5f366b88a1396e0889caecf1b710377974efb7d93",
+      "thumbnailFallback": false,
+      "id": "lx-102303",
+      "image": "/material-products/lx-102303.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/102303",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/expandFileSeq/202501/20/3b545dbf-b6cc-4e97-a4e3-7ffd007c015e.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "porcelain",
+      "detailSha256": "4ffb1f5d2c69eff8bc76f57d463835e5695cf0a12c217830e798f7e1db67ffc7",
+      "imageSha256": "43817f95619ea81d088fdf803d4b9ca8967b0c47637b3f1caae8325c7f5e9b7d",
+      "imageBytes": 192351,
+      "sourceCategorySha256": "0249fe519a137595f3b372d5f366b88a1396e0889caecf1b710377974efb7d93",
+      "thumbnailFallback": false,
+      "id": "lx-102320",
+      "image": "/material-products/lx-102320.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/102320",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/expandFileSeq/202501/31/d8e45c09-8cad-4788-9f3a-8032fec4b961.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "porcelain",
+      "detailSha256": "9270bef798dd97c6443a3fcc2feecb1c84dea60ed3509509dfcda98f9d945c36",
+      "imageSha256": "5550985b6e8ac2a0fcf5cf961a97604d707f118b026c586ec0d728f817c0817d",
+      "imageBytes": 313285,
+      "sourceCategorySha256": "0249fe519a137595f3b372d5f366b88a1396e0889caecf1b710377974efb7d93",
+      "thumbnailFallback": false,
+      "id": "lx-102324",
+      "image": "/material-products/lx-102324.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/102324",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/expandFileSeq/202501/31/87b3628f-2be0-491e-9ad8-3e0fd34af494.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "porcelain",
+      "detailSha256": "ebef72dd6cef411b452e233acc7af856867c20182fb68c90dc94d29ad4a7b040",
+      "imageSha256": "bdd95e83995d226046f408dcc420496ec3b743a387b84332a662ac3c65eda8b8",
+      "imageBytes": 254488,
+      "sourceCategorySha256": "0249fe519a137595f3b372d5f366b88a1396e0889caecf1b710377974efb7d93",
+      "thumbnailFallback": false,
+      "id": "lx-102331",
+      "image": "/material-products/lx-102331.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/102331",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/expandFileSeq/202501/31/76650200-2391-409a-a7d4-9eb2ac4f2afa.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "porcelain",
+      "detailSha256": "f7593e74dd832d9e9e2a51c099ec818495e9ac46b4c224d3499adc4c46a3b952",
+      "imageSha256": "58a59936cd270b62eea3f7bed6430ef3bc095978eafe400e2fae3a15a2c431f7",
+      "imageBytes": 103596,
+      "sourceCategorySha256": "0249fe519a137595f3b372d5f366b88a1396e0889caecf1b710377974efb7d93",
+      "thumbnailFallback": false,
+      "id": "lx-102332",
+      "image": "/material-products/lx-102332.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/102332",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/expandFileSeq/202501/31/789556a4-9058-4504-8915-0337d72291a7.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "porcelain",
+      "detailSha256": "0469901cf9f32722e5c44d99ea2902c9d50c5ba72df569be176a62b1eb7fdf91",
+      "imageSha256": "338dee1ab02cccd7773a54efc7f7714f49a42028cd1843d73e91063ae0f74bda",
+      "imageBytes": 223154,
+      "sourceCategorySha256": "0249fe519a137595f3b372d5f366b88a1396e0889caecf1b710377974efb7d93",
+      "thumbnailFallback": false,
+      "id": "lx-102333",
+      "image": "/material-products/lx-102333.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/102333",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/expandFileSeq/202501/31/cff88f25-fc88-4281-a588-03f1e4a9d0a9.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "porcelain",
+      "detailSha256": "79d810698914e01fd3cd93fcbc3622bee341d12dc9eeab477d2cc5a89ab5d115",
+      "imageSha256": "cf2c8bbfacffbcdcf972333b675f6bac00ea311bc589aa9ddc5794f603d73175",
+      "imageBytes": 211412,
+      "sourceCategorySha256": "0249fe519a137595f3b372d5f366b88a1396e0889caecf1b710377974efb7d93",
+      "thumbnailFallback": false,
+      "id": "lx-102335",
+      "image": "/material-products/lx-102335.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/102335",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/expandFileSeq/202501/31/48b26da7-1548-4bbf-842f-6dc078a5be08.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "wallpaper",
+      "detailSha256": "e14d94bb9403f9739630eabd85583dd45c7007d2554fa70793c8824d32639624",
+      "imageSha256": "ca234364f776fd1b5d8843fcd39934ea65d4306eb230bfdc30cbee5eb478db35",
+      "imageBytes": 348971,
+      "sourceCategorySha256": "11bfa8667203dde16308237832e3af5a96666177a31f31e394751d357308b44c",
+      "thumbnailFallback": false,
+      "id": "lx-102540",
+      "image": "/material-products/lx-102540.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/102540",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/expandFileSeq/202503/24/bb8768a0-738b-4ff6-83a3-02bffea88819.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "lvt",
+      "detailSha256": "b7ab418fbdcf8c88e3971d91cd19e7ba4a78b5ca1e368d56b23d5526ec91e4d3",
+      "imageSha256": "fba77b6175cd303cd0643617562fd5474cfe0b8fccf183ebef837c4fe3c82c8a",
+      "imageBytes": 554952,
+      "sourceCategorySha256": "8cdb00fdb4f73b1971e7161aa13e2f8c05f607e2d393ef367c955cd60568a471",
+      "thumbnailFallback": false,
+      "id": "lx-102633",
+      "image": "/material-products/lx-102633.png",
+      "sourceUrl": "https://www.lxzin.com/zin/product/102633",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/img01/202504/22/807b09b4-274b-48da-8538-a13969c1c41f.png",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "porcelain",
+      "detailSha256": "503b0be03f6bcefd5d0ce63e5924ea296aae4f9cfc0e064a47b14c0445dcce9f",
+      "imageSha256": "f114f9d22c61a8d54f93c3437e72251c01c97ed64344ca2b9ad9332c8e66a391",
+      "imageBytes": 98576,
+      "sourceCategorySha256": "0249fe519a137595f3b372d5f366b88a1396e0889caecf1b710377974efb7d93",
+      "thumbnailFallback": false,
+      "id": "lx-103380",
+      "image": "/material-products/lx-103380.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/103380",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/img01/202606/12/5b63ceb2-ea34-4ce7-a1f4-cf1f905c2641.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "porcelain",
+      "detailSha256": "92eef06bfd7888671f861b1bc86d66af37af014d2052879fac04fd0accc0d7ca",
+      "imageSha256": "0ecf64f3407c8c057f97b5e7ead8bc6fb70925c20085a69dae56941dc71e8edb",
+      "imageBytes": 106754,
+      "sourceCategorySha256": "0249fe519a137595f3b372d5f366b88a1396e0889caecf1b710377974efb7d93",
+      "thumbnailFallback": false,
+      "id": "lx-103381",
+      "image": "/material-products/lx-103381.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/103381",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/img01/202606/12/8caee815-2174-4eb7-b466-c3e110069823.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "porcelain",
+      "detailSha256": "fbdb27a88aaf47ee27a14c19eb7fb6e7a1d2a5e49cfc2566a2165e30fd9985f8",
+      "imageSha256": "8b47b44189c9415c0a2da2b2560133ab48333cd1405e6dcc1ce7ead230a89bca",
+      "imageBytes": 7475,
+      "sourceCategorySha256": "0249fe519a137595f3b372d5f366b88a1396e0889caecf1b710377974efb7d93",
+      "thumbnailFallback": false,
+      "id": "lx-103382",
+      "image": "/material-products/lx-103382.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/103382",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/img01/202606/12/7c11696f-7e9d-4063-8ce8-fbea07bee886.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "porcelain",
+      "detailSha256": "790b41d6d06d22a16a2af5799cc603efd59d41aad957f97eb324e0a2142631c7",
+      "imageSha256": "6f32370bb8eb6ef9aa2a4d1688410be5cf7dec9eef4202ca408f2daeb987dcba",
+      "imageBytes": 148198,
+      "sourceCategorySha256": "0249fe519a137595f3b372d5f366b88a1396e0889caecf1b710377974efb7d93",
+      "thumbnailFallback": false,
+      "id": "lx-103383",
+      "image": "/material-products/lx-103383.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/103383",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/img01/202606/12/500d6b3e-392c-4064-9f82-ad92522b5982.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "porcelain",
+      "detailSha256": "8447dcf0f21f1a558e0924686d22466aad794871c82609d533710801c5f08171",
+      "imageSha256": "67a188de39fea35ca6ac1b609ad8deb1c9a5b1aa2402013ed9c0d9e91e8626ab",
+      "imageBytes": 123639,
+      "sourceCategorySha256": "0249fe519a137595f3b372d5f366b88a1396e0889caecf1b710377974efb7d93",
+      "thumbnailFallback": false,
+      "id": "lx-103384",
+      "image": "/material-products/lx-103384.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/103384",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/img01/202606/12/0f79e744-eaa7-405c-b207-abc6c0f2a927.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "porcelain",
+      "detailSha256": "e64ba7614cee8d3c273a02d667d3a8ccd15724d49f3c7af330a39f7bfe313b03",
+      "imageSha256": "cef2832ffffea217b59330c93ae87788728c58404fe9cdddaafa9437aaa80d90",
+      "imageBytes": 88767,
+      "sourceCategorySha256": "0249fe519a137595f3b372d5f366b88a1396e0889caecf1b710377974efb7d93",
+      "thumbnailFallback": false,
+      "id": "lx-103387",
+      "image": "/material-products/lx-103387.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/103387",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/img01/202606/12/41877336-757b-4856-9eed-306e61591889.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "porcelain",
+      "detailSha256": "1f683002121c8e3cec4252cf42c1f5bd8028a3b9d43afaa993f2b995da529560",
+      "imageSha256": "a2da9f79a4a680e41201d691eaafbc414b0fa18ab5b1780e2e683cdeb64cc2ff",
+      "imageBytes": 139364,
+      "sourceCategorySha256": "0249fe519a137595f3b372d5f366b88a1396e0889caecf1b710377974efb7d93",
+      "thumbnailFallback": false,
+      "id": "lx-103388",
+      "image": "/material-products/lx-103388.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/103388",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/img01/202606/12/026de263-7354-465a-bc77-c2a487eac535.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "porcelain",
+      "detailSha256": "063381e97a7821488f3f9cdf162261bb48b7c606fb65933fffd30e0f91421a67",
+      "imageSha256": "1d529698c86b11dbdf1f9d7685c31f372b670cf326236c7ddc3b78665ac70a0b",
+      "imageBytes": 88099,
+      "sourceCategorySha256": "0249fe519a137595f3b372d5f366b88a1396e0889caecf1b710377974efb7d93",
+      "thumbnailFallback": false,
+      "id": "lx-103389",
+      "image": "/material-products/lx-103389.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/103389",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/img01/202606/12/dc7910c5-4cc1-4f6f-be18-baa461986ee9.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "porcelain",
+      "detailSha256": "35107f59b3a8abf6c2cebe13632f07461f9e4a5bae461c1de5996885ed7cae4b",
+      "imageSha256": "e58c19c856eaaef94f9722b3ee01c457b38eabdcee19e56ca508865d17ab076b",
+      "imageBytes": 53740,
+      "sourceCategorySha256": "0249fe519a137595f3b372d5f366b88a1396e0889caecf1b710377974efb7d93",
+      "thumbnailFallback": false,
+      "id": "lx-103390",
+      "image": "/material-products/lx-103390.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/103390",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/img01/202606/12/a0eca893-1bf1-4361-b300-7d24ee3bf403.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "porcelain",
+      "detailSha256": "28eba7591d133091ec33dabb6d6b1aff804b8c08748b16332e29b57f14b91dea",
+      "imageSha256": "9cbe72359c548aa3c9b762d348b9b61222a03bd0ac983db6c624665ce4edc6c3",
+      "imageBytes": 41060,
+      "sourceCategorySha256": "0249fe519a137595f3b372d5f366b88a1396e0889caecf1b710377974efb7d93",
+      "thumbnailFallback": false,
+      "id": "lx-103391",
+      "image": "/material-products/lx-103391.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/103391",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/img01/202606/12/4dce78e6-c471-49c7-909f-657039d00e41.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "porcelain",
+      "detailSha256": "8bd652c5bc824e95dc773797c2d2716f07f6c6869f778b9e91146776ae98fc77",
+      "imageSha256": "ea840358f5a445b14b49708e8758b3ce180d221840f4f41692ae29f3feccf3a3",
+      "imageBytes": 93033,
+      "sourceCategorySha256": "0249fe519a137595f3b372d5f366b88a1396e0889caecf1b710377974efb7d93",
+      "thumbnailFallback": false,
+      "id": "lx-103393",
+      "image": "/material-products/lx-103393.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/103393",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/img01/202606/12/23f18b25-e57c-4393-8efe-fdc59b68ce0b.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "porcelain",
+      "detailSha256": "a97772a032efdbaed6a7d7f985fb4b4e8371dd9824aa1f67fc3019753bd9ff40",
+      "imageSha256": "17323d5d1d60c57c5813cc0eb0820283f64aef8df66348bb57543ea4bb8d8421",
+      "imageBytes": 114008,
+      "sourceCategorySha256": "0249fe519a137595f3b372d5f366b88a1396e0889caecf1b710377974efb7d93",
+      "thumbnailFallback": false,
+      "id": "lx-103394",
+      "image": "/material-products/lx-103394.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/103394",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/img01/202606/12/2fc6c672-d512-4822-b56d-cff55992a4b1.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "wallpaper",
+      "detailSha256": "ebdefb41fcc467183f0f19906ec6892273eafbeb1cacbffed713ae009dd64b77",
+      "imageSha256": "929051df3b7ba8d604ac6571ec05a74f23e6a81f2b249428e5dcb621e24590a4",
+      "imageBytes": 56437,
+      "sourceCategorySha256": "11bfa8667203dde16308237832e3af5a96666177a31f31e394751d357308b44c",
+      "thumbnailFallback": false,
+      "id": "lx-11441",
+      "image": "/material-products/lx-11441.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/11441",
+      "sourceImageUrl": "https://octapi.lxzin.com/upload/product/202107/20210713/C20E58CB-BF59-71F1-B256-43732F107AB2_thumb_l.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "lvt",
+      "detailSha256": "3ff677d446081ba7c3c320aeccfe599dff2325fbea1571547cf3f88010620a56",
+      "imageSha256": "f990fa3ddcb38ab964398ce5c2e694e57041fa630262a0eb64d81cbfcf9bcf46",
+      "imageBytes": 46210,
+      "sourceCategorySha256": "8cdb00fdb4f73b1971e7161aa13e2f8c05f607e2d393ef367c955cd60568a471",
+      "thumbnailFallback": false,
+      "id": "lx-11977",
+      "image": "/material-products/lx-11977.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/11977",
+      "sourceImageUrl": "https://octapi.lxzin.com/upload/product/201901/20190129/F3AC9472-0175-8DDD-45FF-E6300EABD855_thumb_l.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "lvt",
+      "detailSha256": "fb81a4cb6f12e0e66c78fd4421fc0f07e21cba4a3a1b085f485807228dd00ec8",
+      "imageSha256": "e08b2a8fbc278f67536ef9eab42ac67f517f2c265c99532a07760354396b4124",
+      "imageBytes": 35926,
+      "sourceCategorySha256": "8cdb00fdb4f73b1971e7161aa13e2f8c05f607e2d393ef367c955cd60568a471",
+      "thumbnailFallback": false,
+      "id": "lx-11979",
+      "image": "/material-products/lx-11979.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/11979",
+      "sourceImageUrl": "https://octapi.lxzin.com/upload/product/201901/20190129/84F93795-C355-7A5C-DB50-6EA72C5743C9_thumb_l.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "lvt",
+      "detailSha256": "ff0c488b688b5eb358e29e6fb9899af853046727b64d014198587400f18c095f",
+      "imageSha256": "98d3e6a01e8a78be2c922770f574ab0b4af9dde095b563f5a9363c2c95987fbb",
+      "imageBytes": 27879,
+      "sourceCategorySha256": "8cdb00fdb4f73b1971e7161aa13e2f8c05f607e2d393ef367c955cd60568a471",
+      "thumbnailFallback": false,
+      "id": "lx-12001",
+      "image": "/material-products/lx-12001.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/12001",
+      "sourceImageUrl": "https://octapi.lxzin.com/upload/product/201901/20190129/F9A4E2F9-5BA2-D2A1-140A-2DBAAF2DCE2C_thumb_l.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "lvt",
+      "detailSha256": "b7ec5ee19e40aef97fbfbf1782a0165fb35c0ee08959ce57d43b8fd8ea1d42bc",
+      "imageSha256": "fbd4b1212c8af837ba75cb58fe837c3c677f35eac5a9fbaeceaf3337a89bb290",
+      "imageBytes": 34191,
+      "sourceCategorySha256": "8cdb00fdb4f73b1971e7161aa13e2f8c05f607e2d393ef367c955cd60568a471",
+      "thumbnailFallback": false,
+      "id": "lx-12003",
+      "image": "/material-products/lx-12003.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/12003",
+      "sourceImageUrl": "https://octapi.lxzin.com/upload/product/201901/20190129/BB46009A-4B5A-AB36-2279-1B3693D316D1_thumb_l.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "lvt",
+      "detailSha256": "17113109c7e95afd66192e949e240ee70ebd9979a3e3af08f7428b46361d230b",
+      "imageSha256": "4afcad274b680935d31fc01862aa016c13617a48da3dbdd250c250d232bc1a15",
+      "imageBytes": 59751,
+      "sourceCategorySha256": "8cdb00fdb4f73b1971e7161aa13e2f8c05f607e2d393ef367c955cd60568a471",
+      "thumbnailFallback": false,
+      "id": "lx-12004",
+      "image": "/material-products/lx-12004.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/12004",
+      "sourceImageUrl": "https://octapi.lxzin.com/upload/product/201901/20190129/FB4F5392-ADC1-8025-DF6A-67F238EC87D6_thumb_l.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "lvt",
+      "detailSha256": "58e01d5af5acea736f2623294f204e0d00de6b5b08c01a420c0372ecc9edf5dc",
+      "imageSha256": "e053af8f70746b1f004e017c3af207531d9912aa26f3b8f1a0d5f8a0c35ec20c",
+      "imageBytes": 20803,
+      "sourceCategorySha256": "8cdb00fdb4f73b1971e7161aa13e2f8c05f607e2d393ef367c955cd60568a471",
+      "thumbnailFallback": false,
+      "id": "lx-12008",
+      "image": "/material-products/lx-12008.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/12008",
+      "sourceImageUrl": "https://octapi.lxzin.com/upload/product/201901/20190129/B68B3C6D-08D9-B2E3-7C55-F9ABE9D0B93F_thumb_l.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "himacs",
+      "detailSha256": "e91d295171a180bd2d6162fe1f3042b70cf3b5fa404f0da7bf67b86b02016e64",
+      "imageSha256": "3280a3e912c3600cf7e9026eb7dcb9643370a1e794bf785b331a68b3beb406fe",
+      "imageBytes": 34080,
+      "sourceCategorySha256": "0850201bd4e6fa4de09f1f9c151584ad808a349d2b1d1c1b6e6c9eaac42270cf",
+      "thumbnailFallback": false,
+      "id": "lx-12126",
+      "image": "/material-products/lx-12126.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/12126",
+      "sourceImageUrl": "https://octapi.lxzin.com/upload/product/201906/20190605/8CF48545-529F-8A91-FA5C-40A93065A69C_thumb_l.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "himacs",
+      "detailSha256": "6b8290ceb85ecb4dbcc10c9d84a35b6785ac5d7ffb1fd555b3be8416849ca9a4",
+      "imageSha256": "0391d73da3a00c177bbc8c228a5b8f1f2814adbf3595a7e2d2563a199983c94a",
+      "imageBytes": 29130,
+      "sourceCategorySha256": "0850201bd4e6fa4de09f1f9c151584ad808a349d2b1d1c1b6e6c9eaac42270cf",
+      "thumbnailFallback": false,
+      "id": "lx-12316",
+      "image": "/material-products/lx-12316.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/12316",
+      "sourceImageUrl": "https://octapi.lxzin.com/upload/product/202001/20200104/E3AA607A-5050-5F15-8FC6-BB4BA6C96538_thumb_l.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "himacs",
+      "detailSha256": "ed55cbde3069ce780b413ff25a479dd8d21baf67530a2532896687f916048398",
+      "imageSha256": "d84abf6bf6e175957644a2baeec3e64a7098a3d955f1c91153b742f8fae0022a",
+      "imageBytes": 15656,
+      "sourceCategorySha256": "0850201bd4e6fa4de09f1f9c151584ad808a349d2b1d1c1b6e6c9eaac42270cf",
+      "thumbnailFallback": false,
+      "id": "lx-12321",
+      "image": "/material-products/lx-12321.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/12321",
+      "sourceImageUrl": "https://octapi.lxzin.com/upload/product/202001/20200104/C026F900-54F4-C269-40D9-016553E92DA2_thumb_l.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "lvt",
+      "detailSha256": "b962ce8a0b06536c47a5858896acfe3a66a9294336f6fe61405c88d8cfe21afe",
+      "imageSha256": "efa93e6a1e2527fb4ee7d2e50a66a870e93e3a798c625de7254916488584210b",
+      "imageBytes": 970883,
+      "sourceCategorySha256": "8cdb00fdb4f73b1971e7161aa13e2f8c05f607e2d393ef367c955cd60568a471",
+      "thumbnailFallback": false,
+      "id": "lx-12865",
+      "image": "/material-products/lx-12865.png",
+      "sourceUrl": "https://www.lxzin.com/zin/product/12865",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/img01/202504/23/82fcab31-ed1a-40dc-aa90-49e1a97fcd86.png",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "lvt",
+      "detailSha256": "cb391a46c2d27944babda8739459f96eba8faa2201d03369f4e5ed82655df88a",
+      "imageSha256": "0fa3d354a6e4e8456ba196bcb950574a0e2245e39b7a9ba7c321e138e82c190e",
+      "imageBytes": 714616,
+      "sourceCategorySha256": "8cdb00fdb4f73b1971e7161aa13e2f8c05f607e2d393ef367c955cd60568a471",
+      "thumbnailFallback": false,
+      "id": "lx-12870",
+      "image": "/material-products/lx-12870.png",
+      "sourceUrl": "https://www.lxzin.com/zin/product/12870",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/img01/202504/23/94b75327-7ce2-46d4-b752-3af30f25292a.png",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "lvt",
+      "detailSha256": "ec59cc4c80a89cbbb26515bcde44bba2bb4b282741cc801f7937bc76f38d4ffe",
+      "imageSha256": "57a3b643c07f182e8b1829e6e29a039138d12b54b47800c4f6be40b1e6d6adc6",
+      "imageBytes": 566761,
+      "sourceCategorySha256": "8cdb00fdb4f73b1971e7161aa13e2f8c05f607e2d393ef367c955cd60568a471",
+      "thumbnailFallback": false,
+      "id": "lx-12874",
+      "image": "/material-products/lx-12874.png",
+      "sourceUrl": "https://www.lxzin.com/zin/product/12874",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/img01/202504/23/d689f510-84d5-4e9a-b6fa-53c6ca805dcc.png",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "lvt",
+      "detailSha256": "c6bbe94f65276ef3e0568d57cb89ad258cbdc750313388842a053f67a4bc008d",
+      "imageSha256": "3929d259b4a0ff28d4b3df1958be1f78f3225f4b6c9ac374abac5bdeeb3693fd",
+      "imageBytes": 678627,
+      "sourceCategorySha256": "8cdb00fdb4f73b1971e7161aa13e2f8c05f607e2d393ef367c955cd60568a471",
+      "thumbnailFallback": false,
+      "id": "lx-12875",
+      "image": "/material-products/lx-12875.png",
+      "sourceUrl": "https://www.lxzin.com/zin/product/12875",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/img01/202504/23/b4e813c0-e598-4cdf-9c8b-7ec7e5166b0a.png",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "lvt",
+      "detailSha256": "88e82f2ccb250d03ce0d9280637133195a0bf1ec21e6bdc7f2af3dac1a2ca36c",
+      "imageSha256": "cd869f13a8195d0be1dcaf7c79d6e600ee601fbf2c78c6790b85d52b08d7df39",
+      "imageBytes": 682937,
+      "sourceCategorySha256": "8cdb00fdb4f73b1971e7161aa13e2f8c05f607e2d393ef367c955cd60568a471",
+      "thumbnailFallback": false,
+      "id": "lx-12876",
+      "image": "/material-products/lx-12876.png",
+      "sourceUrl": "https://www.lxzin.com/zin/product/12876",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/img01/202504/23/7c45a402-77e8-420a-8026-3ba551e8a55c.png",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "lvt",
+      "detailSha256": "7e1f72ef1ae257c841639e9086594071982acaefb25d59efd0e8c320d5ff3011",
+      "imageSha256": "1e51df8c619050e4420c8282942ca9e0599df572a71962b9525b9984efcddf2b",
+      "imageBytes": 624911,
+      "sourceCategorySha256": "8cdb00fdb4f73b1971e7161aa13e2f8c05f607e2d393ef367c955cd60568a471",
+      "thumbnailFallback": false,
+      "id": "lx-12877",
+      "image": "/material-products/lx-12877.png",
+      "sourceUrl": "https://www.lxzin.com/zin/product/12877",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/img01/202504/23/24c4734c-68ab-4a50-a309-07ef24d858ec.png",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "lvt",
+      "detailSha256": "92fa77b793d7c7c75e752fbe0a9b2a2c864d95b794dd68cf302bf86cb107db6d",
+      "imageSha256": "796a3f8abebd7e0a53b6dbe37c83224bdd9a83d4b70255d272ea19d90d661f5a",
+      "imageBytes": 562432,
+      "sourceCategorySha256": "8cdb00fdb4f73b1971e7161aa13e2f8c05f607e2d393ef367c955cd60568a471",
+      "thumbnailFallback": false,
+      "id": "lx-12879",
+      "image": "/material-products/lx-12879.png",
+      "sourceUrl": "https://www.lxzin.com/zin/product/12879",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/img01/202504/23/7af8eb2e-f02c-48b8-9203-e147628b1492.png",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "lvt",
+      "detailSha256": "3442ebe64d10053c4c843dacc14aedff3448cc8352b35a773b291bb2238e129f",
+      "imageSha256": "0fa89998410ff1e325938a0017d7cb367f7fa8ee8f14ccfc1e6f65acf1e745eb",
+      "imageBytes": 652331,
+      "sourceCategorySha256": "8cdb00fdb4f73b1971e7161aa13e2f8c05f607e2d393ef367c955cd60568a471",
+      "thumbnailFallback": false,
+      "id": "lx-12886",
+      "image": "/material-products/lx-12886.png",
+      "sourceUrl": "https://www.lxzin.com/zin/product/12886",
+      "sourceImageUrl": "https://octapi.lxzin.com/zinPrd/img01/202504/23/8919f267-93f5-42a4-9204-15608db18cd7.png",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "lvt",
+      "detailSha256": "ad9fa063b5a00ec7853b332bf3e0e99cb5fd76492f3ea9e67aab450d6d373d3c",
+      "imageSha256": "22f3e744ba670686aa87d42fedbd835071a30bdaf716c1fb2ddfa0557db61227",
+      "imageBytes": 49753,
+      "sourceCategorySha256": "8cdb00fdb4f73b1971e7161aa13e2f8c05f607e2d393ef367c955cd60568a471",
+      "thumbnailFallback": false,
+      "id": "lx-13059",
+      "image": "/material-products/lx-13059.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/13059",
+      "sourceImageUrl": "https://octapi.lxzin.com/upload/product/202011/20201122/09765BD5-C812-8F6D-C530-54D7F66DB05F_thumb_l.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "lvt",
+      "detailSha256": "b72605db64ef655568118d57d376c9e339e800c354730545962dea1fed258c0c",
+      "imageSha256": "275b4552c8f667fa8ff34220799772a06e6973fcd567e6adc03d9600927d7a86",
+      "imageBytes": 54464,
+      "sourceCategorySha256": "8cdb00fdb4f73b1971e7161aa13e2f8c05f607e2d393ef367c955cd60568a471",
+      "thumbnailFallback": false,
+      "id": "lx-13068",
+      "image": "/material-products/lx-13068.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/13068",
+      "sourceImageUrl": "https://octapi.lxzin.com/upload/product/202011/20201122/0B8303C8-9336-F0C2-13AD-5934B35A6BFC_thumb_l.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "lvt",
+      "detailSha256": "7328d371558b471bea7339af66a5dc617ad6e601c11d4a1207322ab303413c77",
+      "imageSha256": "9841038affe548fb81e27892e17ad9bdda43110be122e4b46e4990bd9dfca672",
+      "imageBytes": 37132,
+      "sourceCategorySha256": "8cdb00fdb4f73b1971e7161aa13e2f8c05f607e2d393ef367c955cd60568a471",
+      "thumbnailFallback": false,
+      "id": "lx-13070",
+      "image": "/material-products/lx-13070.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/13070",
+      "sourceImageUrl": "https://octapi.lxzin.com/upload/product/202011/20201122/39AEA538-6F3A-973F-5A25-938010E353E4_thumb_l.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "lvt",
+      "detailSha256": "26d1b331bcfedea1be6a940ea38c44a404d055f01b6005d2dfac15d1fad5635c",
+      "imageSha256": "4d94bf8c892b2aafc0b4b1fc1786247c3c4dfbd7e592b220c7eb7519a2a03f43",
+      "imageBytes": 36546,
+      "sourceCategorySha256": "8cdb00fdb4f73b1971e7161aa13e2f8c05f607e2d393ef367c955cd60568a471",
+      "thumbnailFallback": false,
+      "id": "lx-13072",
+      "image": "/material-products/lx-13072.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/13072",
+      "sourceImageUrl": "https://octapi.lxzin.com/upload/product/202011/20201122/5295A6A5-2B1E-ADB8-D5BB-496DFB54237C_thumb_l.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "himacs",
+      "detailSha256": "cdf527d20ad5a4fb571c18643382a13eb7f8808beaec1fc645845a701bcecc73",
+      "imageSha256": "a643b7277a09cd3287f237664d99badcd49f31eeafe58ca87c0acc1f2c244388",
+      "imageBytes": 19229,
+      "sourceCategorySha256": "0850201bd4e6fa4de09f1f9c151584ad808a349d2b1d1c1b6e6c9eaac42270cf",
+      "thumbnailFallback": false,
+      "id": "lx-13090",
+      "image": "/material-products/lx-13090.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/13090",
+      "sourceImageUrl": "https://octapi.lxzin.com/upload/product/202101/20210112/BF7AACDE-E6B2-CA32-D702-4BEA408B4F73_thumb_l.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "wallpaper",
+      "detailSha256": "81e4512e17adc4ec108fb601668762d76110e9e5f46ee478136ac10cb95e6e5b",
+      "imageSha256": "f0402cf4fbd74a3244dcfa8dfb2abd3102c74e898376e18a4c49e6f4ab6efb11",
+      "imageBytes": 5184,
+      "sourceCategorySha256": "11bfa8667203dde16308237832e3af5a96666177a31f31e394751d357308b44c",
+      "thumbnailFallback": true,
+      "id": "lx-13396",
+      "image": "/material-products/lx-13396.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/13396",
+      "sourceImageUrl": "https://m2img.lxzin.com/upload/product/202107/20210713/EF832F65-A84B-8133-81AD-90A864115959_thumb_l.jpg/dims/resize/240x240",
+      "imagePixels": [
+        240,
+        240
+      ]
+    },
+    {
+      "group": "carpet",
+      "detailSha256": "8113c425b7648ac057da7914cac057bbb8c3c7d4e3fbdf9cd3e2994ccbbf6516",
+      "imageSha256": "2341e706012aaf453843ab9dc2f753352a966520c626ca766b3475eb76210141",
+      "imageBytes": 17913,
+      "sourceCategorySha256": "6cb91fe28a537febd448a01c31d6aea30469c01b6f21419330c46ce3bb8382b8",
+      "thumbnailFallback": true,
+      "id": "lx-13401",
+      "image": "/material-products/lx-13401.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/13401",
+      "sourceImageUrl": "https://m2img.lxzin.com/upload/product/202108/20210812/51757EF6-30D1-217B-E392-64400C1C8DE5_thumb_l.jpg/dims/resize/240x240",
+      "imagePixels": [
+        240,
+        240
+      ]
+    },
+    {
+      "group": "carpet",
+      "detailSha256": "fe27469d4a2d84844af5e0399d8c32a7578ccf5b13201549cc91f6d04433ee2a",
+      "imageSha256": "6560e4827f6785da05db6c648eb9137615aeeb5094ee3d606d94d3d6e8341da9",
+      "imageBytes": 16074,
+      "sourceCategorySha256": "6cb91fe28a537febd448a01c31d6aea30469c01b6f21419330c46ce3bb8382b8",
+      "thumbnailFallback": true,
+      "id": "lx-13402",
+      "image": "/material-products/lx-13402.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/13402",
+      "sourceImageUrl": "https://m2img.lxzin.com/upload/product/202108/20210812/AEA8533D-6A2B-9C47-C83E-2789EC391812_thumb_l.jpg/dims/resize/240x240",
+      "imagePixels": [
+        240,
+        240
+      ]
+    },
+    {
+      "group": "carpet",
+      "detailSha256": "e93365d7aa6b7012d56429ef10b5d53da3449a569c3ad875498a09e17813cf24",
+      "imageSha256": "e6ee838bb2405de1aacd7ff60b8b86623a021344a270b960680fb9ecdd50739f",
+      "imageBytes": 145307,
+      "sourceCategorySha256": "6cb91fe28a537febd448a01c31d6aea30469c01b6f21419330c46ce3bb8382b8",
+      "thumbnailFallback": false,
+      "id": "lx-13403",
+      "image": "/material-products/lx-13403.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/13403",
+      "sourceImageUrl": "https://octapi.lxzin.com/upload/product/202108/20210812/760054B2-1AA6-4DBB-D5DC-461B0BCF0BF0_thumb_l.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "carpet",
+      "detailSha256": "6ab572c4ede4a4bf587a1308029ce9fa81ec5fc839337cfe088b902cb94d4a88",
+      "imageSha256": "368926e6e8804d1d3bd5d52181adafbceed37e15c111c2d5c48142b7d9303e67",
+      "imageBytes": 136891,
+      "sourceCategorySha256": "6cb91fe28a537febd448a01c31d6aea30469c01b6f21419330c46ce3bb8382b8",
+      "thumbnailFallback": false,
+      "id": "lx-13404",
+      "image": "/material-products/lx-13404.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/13404",
+      "sourceImageUrl": "https://octapi.lxzin.com/upload/product/202108/20210812/7845E2B5-8C5E-FA70-4402-297462229738_thumb_l.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "carpet",
+      "detailSha256": "6a3dbcbaa099b2e223c5c68ace3d803c4b2d85f5b1dc5d1e59b43c2fdc574ac8",
+      "imageSha256": "91402cca25e896a27b5dee5a4c0fe257304ba7e17e14e0358fd4196e8fcfc1d4",
+      "imageBytes": 20007,
+      "sourceCategorySha256": "6cb91fe28a537febd448a01c31d6aea30469c01b6f21419330c46ce3bb8382b8",
+      "thumbnailFallback": true,
+      "id": "lx-13406",
+      "image": "/material-products/lx-13406.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/13406",
+      "sourceImageUrl": "https://m2img.lxzin.com/upload/product/202108/20210812/546F5A07-CC8A-871C-8B58-B732457C7C5B_thumb_l.jpg/dims/resize/240x240",
+      "imagePixels": [
+        240,
+        240
+      ]
+    },
+    {
+      "group": "film-textile",
+      "detailSha256": "1a1d7d0a37cd180899e1c558fceadf39a3e16026fa4692c5bfe298bc0fddbbbf",
+      "imageSha256": "be1f566d7fd308709b119cac8446142a79767feb488fce495583e99fef7645ac",
+      "imageBytes": 30591,
+      "sourceCategorySha256": "a9f4776f26d3df5d7f60c85135c372526ec87dbc4f2b5c26ceb82a46fc562cbe",
+      "thumbnailFallback": false,
+      "id": "lx-13449",
+      "image": "/material-products/lx-13449.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/13449",
+      "sourceImageUrl": "https://octapi.lxzin.com/upload/product/202108/20210827/B55D99F4-0D21-3A3F-7694-682965283F4E_thumb_l.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "film-textile",
+      "detailSha256": "1c68fc775671423addb6dbff8ab05080bcf9746a45a02ddd4e17d6a7a51cbe35",
+      "imageSha256": "1b447ebecbf234052058cb264abbef932e19e00403a537f37329e0d391cd0194",
+      "imageBytes": 71763,
+      "sourceCategorySha256": "a9f4776f26d3df5d7f60c85135c372526ec87dbc4f2b5c26ceb82a46fc562cbe",
+      "thumbnailFallback": false,
+      "id": "lx-13658",
+      "image": "/material-products/lx-13658.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/13658",
+      "sourceImageUrl": "https://octapi.lxzin.com/upload/product/202108/20210825/326B7EC4-751E-754A-5F45-8D87336B7AC5_thumb_l.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "carpet",
+      "detailSha256": "9d56aded862e89e70db2c93f0078affb7192ccb41fecf4e82bb6224f12ef78eb",
+      "imageSha256": "62ce935d746022130a45818514c503ff608b871c25196cccc621274f4086631d",
+      "imageBytes": 138325,
+      "sourceCategorySha256": "6cb91fe28a537febd448a01c31d6aea30469c01b6f21419330c46ce3bb8382b8",
+      "thumbnailFallback": false,
+      "id": "lx-4654",
+      "image": "/material-products/lx-4654.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/4654",
+      "sourceImageUrl": "https://octapi.lxzin.com/upload/product/202108/20210812/D2D7D5E7-A2F2-56BF-A69B-845A26D59798_thumb_l.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "carpet",
+      "detailSha256": "1c0bc4a854d0b1b12fd8c0e8d391d3eed8fd38c145e13ee27c0016a636c1bac9",
+      "imageSha256": "3c06454507a86b6f84ee1df9388828af671809ab29e4fecb7d2e4e6839adf082",
+      "imageBytes": 141521,
+      "sourceCategorySha256": "6cb91fe28a537febd448a01c31d6aea30469c01b6f21419330c46ce3bb8382b8",
+      "thumbnailFallback": false,
+      "id": "lx-4655",
+      "image": "/material-products/lx-4655.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/4655",
+      "sourceImageUrl": "https://octapi.lxzin.com/upload/product/202108/20210812/2A5FC6CC-1DD6-C813-11F4-8212B3DD94BC_thumb_l.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "carpet",
+      "detailSha256": "300638a13131ce87e6950bb62db4183894cfe070c7f0730558b3e11a7be17357",
+      "imageSha256": "cce26bd902b7f53c9c4545ba21145c5b33aea151dac4eaf5f2414286441ed7b5",
+      "imageBytes": 122064,
+      "sourceCategorySha256": "6cb91fe28a537febd448a01c31d6aea30469c01b6f21419330c46ce3bb8382b8",
+      "thumbnailFallback": false,
+      "id": "lx-4659",
+      "image": "/material-products/lx-4659.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/4659",
+      "sourceImageUrl": "https://octapi.lxzin.com/upload/product/202108/20210812/6251709B-1528-A447-4AC9-FF5C25B6C322_thumb_l.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "film-metal",
+      "detailSha256": "3d1e8b876f61be2ef632a424a4e72da8698b4b02de1e743e83b9f60eacddd5c4",
+      "imageSha256": "4d3b7a87d260b8cf9530d1a60f6b86b9ace717791a393d19bf0bcee5f6899d08",
+      "imageBytes": 20981,
+      "sourceCategorySha256": "b1ae6176b0f102cdd02d578ab89c881a2c4ce3dc6a1d528a1d61ce9631887eef",
+      "thumbnailFallback": false,
+      "id": "lx-5732",
+      "image": "/material-products/lx-5732.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/5732",
+      "sourceImageUrl": "https://octapi.lxzin.com/upload/product/202108/20210825/30B78BFC-43C6-282D-762A-F884A2D42968_thumb_l.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "film-metal",
+      "detailSha256": "c08f0533e0cbaf7873d0775d8bd0f65b146c51ab0fbbf92f3700158ae961c52f",
+      "imageSha256": "0a3a7bfaeb4e1c78ba2fafb513235759a2fb56e336c92d3a722ca445064ad04d",
+      "imageBytes": 48201,
+      "sourceCategorySha256": "b1ae6176b0f102cdd02d578ab89c881a2c4ce3dc6a1d528a1d61ce9631887eef",
+      "thumbnailFallback": false,
+      "id": "lx-6483",
+      "image": "/material-products/lx-6483.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/6483",
+      "sourceImageUrl": "https://octapi.lxzin.com/upload/product/202108/20210825/E6DCC324-923D-C98B-8E8F-4B2BD34F1CD6_thumb_l.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "film-metal",
+      "detailSha256": "7c84347e3d9d64c8b39606911087d468efcc3600b161dbd746500b9e28ddff49",
+      "imageSha256": "60ee5df7f1d9ed2a590b8e3de80c23311923b1e1a6cd05eb64058bdfbf79e9a9",
+      "imageBytes": 45098,
+      "sourceCategorySha256": "b1ae6176b0f102cdd02d578ab89c881a2c4ce3dc6a1d528a1d61ce9631887eef",
+      "thumbnailFallback": false,
+      "id": "lx-9100",
+      "image": "/material-products/lx-9100.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/9100",
+      "sourceImageUrl": "https://octapi.lxzin.com/upload/product/202108/20210825/5F63E75F-7B9F-4AFA-F8A3-3F039D379295_thumb_l.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "film-metal",
+      "detailSha256": "363d91100a8fecf9e663090e3acc2adb04618617c4caee13e3be583cf41f92c4",
+      "imageSha256": "2819e882c000770db3c529062438fe8ba07438063c91c1e5209274df0141ae37",
+      "imageBytes": 35868,
+      "sourceCategorySha256": "b1ae6176b0f102cdd02d578ab89c881a2c4ce3dc6a1d528a1d61ce9631887eef",
+      "thumbnailFallback": false,
+      "id": "lx-9101",
+      "image": "/material-products/lx-9101.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/9101",
+      "sourceImageUrl": "https://octapi.lxzin.com/upload/product/202108/20210825/4E5056FA-75FF-CE7E-A39E-5053F93D7A15_thumb_l.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "film-textile",
+      "detailSha256": "17b8eb530ced1db6375751cee751d01e96ec65077227409e7fc1e66d0dc7c49f",
+      "imageSha256": "e1b89798b4b0b4c0e88d2ca8ac46c846e9974ecdaa7d7ea6a68ba174be7b4470",
+      "imageBytes": 67205,
+      "sourceCategorySha256": "a9f4776f26d3df5d7f60c85135c372526ec87dbc4f2b5c26ceb82a46fc562cbe",
+      "thumbnailFallback": false,
+      "id": "lx-9847",
+      "image": "/material-products/lx-9847.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/9847",
+      "sourceImageUrl": "https://octapi.lxzin.com/upload/product/202108/20210825/FB6BE2BE-BE17-D572-96A1-4CB7883EB8D7_thumb_l.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    },
+    {
+      "group": "film-metal",
+      "detailSha256": "920b090e6228dda0589833203473b5f5a7b6fbd57c6364235d7a5771e8f44084",
+      "imageSha256": "7048b4b881a4ddfbcb4c18416792ca6dd14ace50313a56b68effc68336cc3842",
+      "imageBytes": 60094,
+      "sourceCategorySha256": "b1ae6176b0f102cdd02d578ab89c881a2c4ce3dc6a1d528a1d61ce9631887eef",
+      "thumbnailFallback": false,
+      "id": "lx-9852",
+      "image": "/material-products/lx-9852.jpg",
+      "sourceUrl": "https://www.lxzin.com/zin/product/9852",
+      "sourceImageUrl": "https://octapi.lxzin.com/upload/product/202108/20210825/F5644C04-7240-E234-C487-38381D999067_thumb_l.jpg",
+      "imagePixels": [
+        550,
+        550
+      ]
+    }
+  ],
+  "excludedRuntimeValidation": [
+    {
+      "id": "lx-100161",
+      "reason": "Official image failed existing strict static JPEG validation; omitted without altering bytes."
+    },
+    {
+      "id": "lx-100169",
+      "reason": "Official image failed existing strict static JPEG validation; omitted without altering bytes."
+    }
+  ],
+  "deduplicated": [
+    {
+      "sourceId": "hanex-cs-501",
+      "retainedId": "hanex-cs501",
+      "code": "CS-501",
+      "reason": "Existing catalog product preserved for project compatibility."
+    }
+  ],
+  "categorySources": [
+    {
+      "name": "porcelain",
+      "url": "https://www.lxzin.com/zin/category/a220000?mcate=a220500",
+      "status": "200",
+      "exit": 0,
+      "bytes": 638532
+    },
+    {
+      "name": "board",
+      "url": "https://www.lxzin.com/zin/category/a170000?mcate=a170100",
+      "status": "200",
+      "exit": 0,
+      "bytes": 662205
+    },
+    {
+      "name": "film-metal",
+      "url": "https://www.lxzin.com/zin/category/a120000?mcate=a120600",
+      "status": "200",
+      "exit": 0,
+      "bytes": 722569
+    },
+    {
+      "name": "film-wood",
+      "url": "https://www.lxzin.com/zin/category/a120000?mcate=a121000",
+      "status": "200",
+      "exit": 0,
+      "bytes": 724385
+    },
+    {
+      "name": "film-textile",
+      "url": "https://www.lxzin.com/zin/category/a120000?mcate=a120800",
+      "status": "200",
+      "exit": 0,
+      "bytes": 709031
+    },
+    {
+      "name": "himacs",
+      "url": "https://www.lxzin.com/zin/category/a210000?mcate=a211200",
+      "status": "200",
+      "exit": 0,
+      "bytes": 654864
+    },
+    {
+      "name": "carpet",
+      "url": "https://www.lxzin.com/zin/category/a130000?mcate=a130500",
+      "status": "200",
+      "exit": 0,
+      "bytes": 696997
+    },
+    {
+      "name": "wallpaper",
+      "url": "https://www.lxzin.com/zin/category/a070000?mcate=a070100",
+      "status": "200",
+      "exit": 0,
+      "bytes": 724276
+    },
+    {
+      "name": "lvt",
+      "url": "https://www.lxzin.com/zin/category/a130000?mcate=a130100",
+      "status": "200"
+    }
+  ]
+}
