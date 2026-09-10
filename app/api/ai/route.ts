@@ -1,3 +1,4 @@
+import {sceneForDesignAi} from '@/lib/ai-context';
 import { env } from 'cloudflare:workers';
 import { owner, fail, HttpError, sameOrigin, jsonBody } from '@/lib/server';
 import { validateScene, commandSchema, applyCommands, materials, kinds } from '@/lib/scene-model';
@@ -18,7 +19,7 @@ export async function POST(req: Request) { try {
         text?: string;
         image_url?: string;
         detail?: string;
-    }[] = [{ type: 'input_text', text: JSON.stringify({ request: b.prompt, selected: b.selection ?? null, scene:{...scene,variants:undefined} }) }];
+    }[] = [{ type: 'input_text', text: JSON.stringify({ request: b.prompt, selected: b.selection ?? null, scene:sceneForDesignAi(scene) }) }];
     if (b.image) {
         if (typeof b.image !== 'string' || !/^data:image\/(jpeg|png|webp);base64,/.test(b.image) || b.image.length > 1500000)
             throw new HttpError(400, '사진 크기를 줄여 다시 시도하세요.');

@@ -9,7 +9,7 @@ export type AssemblySummary={id:string;name:string;note:string;category:Assembly
 export type AssemblyPlacement={x:number;y:number;z:number;rotation:number};
 const yaw=(v:number)=>((v+180)%360+360)%360-180;
 
-export function detachedAssemblyNode(node:SceneNode){const copy=cloneUngroupedNode(node);delete copy.layerId;return copy;}
+export function detachedAssemblyNode(node:SceneNode){const copy=cloneUngroupedNode(node);delete copy.layerId;delete copy.estimate;return copy;}
 export function validateAssembly(input:unknown):Assembly {
     const a=assemblySchema.parse(input);a.nodes=a.nodes.map(detachedAssemblyNode);
     if(a.nodes.some(n=>n.host||n.kind==='door'||n.kind==='window'))throw new Error('문·창문은 벽에 연결되어 있어 가구 세트에 포함할 수 없습니다.');

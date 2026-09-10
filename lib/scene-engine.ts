@@ -379,7 +379,7 @@ export class SceneEngine {
     setScene(data: SceneData) {
         this.cancelTransform();
         const roomResized = this.data?.room.width !== data.room.width || this.data?.room.depth !== data.room.depth;
-        const key = JSON.stringify({ room: data.room, nodes: data.nodes, facade:data.facade });
+        const key = JSON.stringify({ room: data.room, nodes: data.nodes.map(({estimate,...node})=>node), facade:data.facade });
         if(key!==this.geometryKey&&this.measureStart)this.cancelMeasurement();
         this.data = data;
         this.updateInteriorCeiling();
