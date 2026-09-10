@@ -1,3 +1,4 @@
+import {measurementSchema} from './measurement-schema';
 import { z } from 'zod';
 export const materialIds = ['plaster', 'oak', 'walnut', 'concrete', 'terrazzo', 'steel', 'charcoal', 'sage', 'clay', 'linen', 'white-tile', 'glass'] as const;
 export const kinds = ['table', 'round-table', 'chair', 'bench', 'counter', 'shelf', 'plant', 'pendant', 'box', 'cylinder', 'partition', 'door', 'window'] as const;
@@ -44,8 +45,8 @@ export const nodeSchema = z.object({ id: z.string().min(1).max(80), kind: z.enum
 export type SceneNode = z.infer<typeof nodeSchema>;
 export function cloneUngroupedNode(node:SceneNode){const copy=structuredClone(node);delete copy.group;return copy;}
 const surface = z.object({ material: z.enum(materialIds), color: hex.optional(), finish: finishSchema.optional() });
-export const coreSceneSchema = z.object({ version: z.literal(1), name: z.string().min(1).max(100), room: z.object({ width: z.number().min(2400).max(20000), depth: z.number().min(2400).max(20000), height: z.number().min(2200).max(6000), source: z.enum(['example', 'entered', 'measured']), surfaces: z.object({ floor: surface, back: surface, left: surface, right: surface, front: surface }) }), nodes: z.array(nodeSchema).max(300), facade: facadeSchema.optional(), lighting: z.object({ intensity: z.number().min(.2).max(2), warmth: z.number().min(2700).max(6500) }), photoId: z.string().max(80).optional(), renders: z.array(z.object({ id: z.string().uuid(), name: z.string().max(100), createdAt: z.string().datetime(), prompt: z.string().max(2000) })).max(20).optional(), palette: z.array(hex).max(8).optional(), draft: z.object({ method: z.enum(['photo-ai', 'template']), summary: z.string().max(1000), notes: z.array(z.string().max(500)).max(30) }).optional(), cameras: z.array(z.object({ id: z.string().max(80), name: z.string().max(80), view: z.enum(['perspective', 'top', 'front', 'interior']).optional(), zoom: z.number().min(.01).max(100).optional(), position: z.tuple([z.number().finite().min(-200).max(200), z.number().finite().min(-200).max(200), z.number().finite().min(-200).max(200)]), target: z.tuple([z.number().finite().min(-200).max(200), z.number().finite().min(-200).max(200), z.number().finite().min(-200).max(200)]) })).max(10).default([]) });
-export const designSchema=coreSceneSchema.pick({room:true,nodes:true,lighting:true,photoId:true,palette:true,draft:true,facade:true});
+export const coreSceneSchema = z.object({ version: z.literal(1), name: z.string().min(1).max(100), room: z.object({ width: z.number().min(2400).max(20000), depth: z.number().min(2400).max(20000), height: z.number().min(2200).max(6000), source: z.enum(['example', 'entered', 'measured']), surfaces: z.object({ floor: surface, back: surface, left: surface, right: surface, front: surface }) }), nodes: z.array(nodeSchema).max(300), measurements:z.array(measurementSchema).max(30).optional(), facade: facadeSchema.optional(), lighting: z.object({ intensity: z.number().min(.2).max(2), warmth: z.number().min(2700).max(6500) }), photoId: z.string().max(80).optional(), renders: z.array(z.object({ id: z.string().uuid(), name: z.string().max(100), createdAt: z.string().datetime(), prompt: z.string().max(2000) })).max(20).optional(), palette: z.array(hex).max(8).optional(), draft: z.object({ method: z.enum(['photo-ai', 'template']), summary: z.string().max(1000), notes: z.array(z.string().max(500)).max(30) }).optional(), cameras: z.array(z.object({ id: z.string().max(80), name: z.string().max(80), view: z.enum(['perspective', 'top', 'front', 'interior']).optional(), zoom: z.number().min(.01).max(100).optional(), position: z.tuple([z.number().finite().min(-200).max(200), z.number().finite().min(-200).max(200), z.number().finite().min(-200).max(200)]), target: z.tuple([z.number().finite().min(-200).max(200), z.number().finite().min(-200).max(200), z.number().finite().min(-200).max(200)]) })).max(10).default([]) });
+export const designSchema=coreSceneSchema.pick({room:true,nodes:true,lighting:true,photoId:true,palette:true,draft:true,facade:true,measurements:true});
 export const variantSchema=z.object({id:z.string().uuid(),name:z.string().min(1).max(60),note:z.string().max(400),createdAt:z.string().datetime(),design:designSchema});
 export const sceneSchema=coreSceneSchema.extend({variants:z.array(variantSchema).max(6).optional()});
 export type DesignVariant=z.infer<typeof variantSchema>;
@@ -81,7 +82,8 @@ export function validateScene(input: unknown): SceneData {
 
     return s;
 }
-function validateLayout(s:Pick<SceneData,'room'|'nodes'|'facade'>){
+function validateLayout(s:Pick<SceneData,'room'|'nodes'|'facade'|'measurements'>){
+    const measurementIds=new Set<string>();for(const m of s.measurements??[]){if(measurementIds.has(m.id))throw new Error('치수 ID가 중복되었습니다.');measurementIds.add(m.id);for(const a of [m.start,m.end])if(a.kind==='room'&&(a.surface==='floor'?a.offset>0:a.offset< -60))throw new Error('벽·바닥 측정점의 표면 위치를 확인하세요.');}
     if(imageReferences(s).length>8)throw new Error('한 디자인에 이미지 8개까지 사용할 수 있습니다. 사용하지 않는 소재·로고 이미지를 제거하세요.');
     validateFacade(s.room,s.facade);
     if (s.nodes.filter(n => n.kind === 'model').length > 20)

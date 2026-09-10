@@ -2,9 +2,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { LoaderCircle, MonitorX } from 'lucide-react';
 import type { SceneData, SceneNode, Selection } from '@/lib/scene-model';
+import type {MeasurementAnchor} from '@/lib/measurements';
 import type {GroupDelta} from '@/lib/selection';
 import type { SceneEngine, ToolMode, ViewMode } from '@/lib/scene-engine';
-export default function SceneCanvas({ scene, selection, tool, view, faceMode, snap, cutaway, onSelect, onTransform, onDraw, onReady, restoreCamera, multiSelect, onTransformGroup }: {
+export default function SceneCanvas({ scene, selection, tool, view, faceMode, snap, cutaway, onSelect, onTransform, onDraw, onReady, restoreCamera, multiSelect, onTransformGroup,onMeasure,onMeasureStatus,measurementsVisible }: {
+    onMeasure?:(start:MeasurementAnchor,end:MeasurementAnchor)=>boolean;
+    onMeasureStatus?:(started:boolean,error?:string)=>void;
+    measurementsVisible?:boolean;
     multiSelect?:boolean;
     onTransformGroup?:(ids:string[],delta:GroupDelta,pivot:{x:number;y:number;z:number})=>void;
     restoreCamera?: SceneData['cameras'][number] | null;
@@ -26,10 +30,10 @@ export default function SceneCanvas({ scene, selection, tool, view, faceMode, sn
     onReady: (e: SceneEngine | null) => void;
 }) {
     const host = useRef<HTMLDivElement>(null), engine = useRef<SceneEngine | null>(null);
-    const callbacks = useRef({ onSelect, onTransform, onDraw, onReady, onTransformGroup });
-    callbacks.current = { onSelect, onTransform, onDraw, onReady, onTransformGroup };
-    const current = useRef({ scene, selection, tool, view, faceMode, snap, cutaway,multiSelect,restoreCamera });
-    current.current = { scene, selection, tool, view, faceMode, snap, cutaway,multiSelect,restoreCamera };
+    const callbacks = useRef({ onSelect, onTransform, onDraw, onReady, onTransformGroup,onMeasure,onMeasureStatus });
+    callbacks.current = { onSelect, onTransform, onDraw, onReady, onTransformGroup,onMeasure,onMeasureStatus };
+    const current = useRef({ scene, selection, tool, view, faceMode, snap, cutaway,multiSelect,restoreCamera,measurementsVisible });
+    current.current = { scene, selection, tool, view, faceMode, snap, cutaway,multiSelect,restoreCamera,measurementsVisible };
     const [modelStatus, setModelStatus] = useState<{
         loading: number;
         errors: string[];
@@ -44,6 +48,7 @@ export default function SceneCanvas({ scene, selection, tool, view, faceMode, sn
                 const e = new SceneEngine(host.current, { onDraw: p => callbacks.current.onDraw(p), onSelect: (s,additive) => callbacks.current.onSelect(s,additive), onTransform: (id, p) => callbacks.current.onTransform(id, p) });
                 engine.current = e;
                 e.onTransformGroup=(ids,delta,pivot)=>callbacks.current.onTransformGroup?.(ids,delta,pivot);e.multiSelect=!!current.current.multiSelect;
+                e.onMeasure=(start,end)=>callbacks.current.onMeasure?.(start,end)??false;e.onMeasureStatus=(started,error)=>callbacks.current.onMeasureStatus?.(started,error);e.measurementOverlay.group.visible=current.current.measurementsVisible!==false;
                 e.onModelStatus = status => { if (!cancelled)
                     setModelStatus(status); };
                 e.setScene(current.current.scene);
@@ -66,6 +71,7 @@ export default function SceneCanvas({ scene, selection, tool, view, faceMode, sn
     useEffect(() => { engine.current?.setScene(scene); }, [scene]);
     useEffect(() => { engine.current?.setSelection(selection); }, [selection]);
     useEffect(() => { engine.current?.setMode(tool); }, [tool]);
+    useEffect(()=>{if(engine.current)engine.current.measurementOverlay.group.visible=measurementsVisible!==false;},[measurementsVisible]);
     useEffect(() => { engine.current?.setView(view); }, [view]);
     useEffect(() => { engine.current?.setSelectionMode(faceMode); }, [faceMode]);
     useEffect(() => { engine.current?.setSnap(snap); }, [snap]);

@@ -1,3 +1,6 @@
+import {MeasurementOverlay} from './measurement-overlay';
+import {pickMeasurementAnchor} from './measurement-picking';
+import {readMeasurement,type MeasurementAnchor} from './measurements';
 import {groupExportNodes} from './group-export';
 import * as T from 'three';
 import {buildFacade} from './facade-mesh';
@@ -10,7 +13,7 @@ import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
 import { parseModel, cloneModel, disposeModel } from './model-loader';
 import {selectionIds,groupBounds,groupPoses,type GroupDelta} from './selection';
 import { imageReferences, materials, nodeAppearance, type MaterialFinish, type MaterialId, type SceneData, type SceneNode, type Selection } from './scene-model';
-export type ToolMode = 'select' | 'translate' | 'rotate' | 'draw';
+export type ToolMode = 'select' | 'translate' | 'rotate' | 'draw' | 'measure';
 export type ViewMode = 'perspective' | 'top' | 'front' | 'interior';
 export class SceneEngine {
     renderer: T.WebGLRenderer;
@@ -54,6 +57,10 @@ export class SceneEngine {
     grid: T.GridHelper;
     cutaway = true;
     dimensions = false;
+    measurementOverlay=new MeasurementOverlay();
+    measureStart:MeasurementAnchor|null=null;
+    onMeasure?:(start:MeasurementAnchor,end:MeasurementAnchor)=>boolean;
+    onMeasureStatus?:(started:boolean,error?:string)=>void;
     light: T.DirectionalLight;
     ambient: T.HemisphereLight;
     environment: T.WebGLRenderTarget;
@@ -111,6 +118,7 @@ export class SceneEngine {
         this.orbit.maxDistance = 70;
         this.scene.add(this.root, this.helpers,this.pivot);this.pivot.name='SELECTION_PIVOT';
         this.root.name = 'SPATIAL_PROJECT';
+        this.scene.add(this.measurementOverlay.group);
         const pmrem = new T.PMREMGenerator(this.renderer);
         const room = new RoomEnvironment();
         this.environment = pmrem.fromScene(room, .04);
@@ -164,6 +172,7 @@ export class SceneEngine {
             const r = this.renderer.domElement.getBoundingClientRect();
             const ray = new T.Raycaster();
             ray.setFromCamera(new T.Vector2((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1), this.camera);
+            if(this.mode==='measure'){if(e.button===0&&e.isPrimary!==false)this.measureAt(ray);return;}
             if (this.mode === 'draw') {
                 const point = new T.Vector3();
                 if (!ray.ray.intersectPlane(new T.Plane(new T.Vector3(0, 1, 0), 0), point))
@@ -365,7 +374,9 @@ export class SceneEngine {
         this.cancelTransform();
         const roomResized = this.data?.room.width !== data.room.width || this.data?.room.depth !== data.room.depth;
         const key = JSON.stringify({ room: data.room, nodes: data.nodes, facade:data.facade });
+        if(key!==this.geometryKey&&this.measureStart)this.cancelMeasurement();
         this.data = data;
+        this.measurementOverlay?.update(data,this.measureStart);
         const used = new Set(data.nodes.filter(n => n.kind === 'model').map(n => n.assetId));
         for (const [id, entry] of this.modelCache)
             if (!used.has(id)) {
@@ -616,7 +627,7 @@ export class SceneEngine {
         disposeModel(root);
         throw new Error('다른 장면으로 이동했습니다.');
     } record.root = root; return root; })().catch(e => { record.error = e instanceof Error ? e.message : '3D 모델 읽기 실패'; throw e; }).finally(() => this.publishModelStatus()); this.publishModelStatus(); return record.promise; }
-    private buildModel(g: T.Group, n: SceneNode) { const placeholder = new T.Mesh(new T.BoxGeometry(n.width / 1000, n.height / 1000, n.depth / 1000), new T.MeshBasicMaterial({ color: 0x948cb0, wireframe: true })); placeholder.position.y = n.height / 2000; placeholder.userData = { nodeId: n.id }; g.add(placeholder); const epoch=this.assetEpoch??0;const job=this.modelAsset(n.assetId!).then(source => { if (this.disposed || !this.root.children.includes(g))
+    private buildModel(g: T.Group, n: SceneNode) { const placeholder = new T.Mesh(new T.BoxGeometry(n.width / 1000, n.height / 1000, n.depth / 1000), new T.MeshBasicMaterial({ color: 0x948cb0, wireframe: true })); placeholder.position.y = n.height / 2000; placeholder.userData = { nodeId: n.id,unmeasurable:true }; g.add(placeholder); const epoch=this.assetEpoch??0;const job=this.modelAsset(n.assetId!).then(source => { if (this.disposed || !this.root.children.includes(g))
         return; source.traverse(o=>{if(o instanceof T.Mesh&&!o.geometry.getAttribute('uv')){const list=Array.isArray(o.material)?o.material:[o.material];if(list.some((_,i)=>nodeAppearance(n,`${o.userData.part}:${i}`).finish.textureId))throw new Error('이 모델에는 UV 좌표가 없어 이미지를 적용할 수 없습니다. 원본 소재를 복원하거나 UV가 있는 GLB를 선택하세요.');}}); this.clearGroup(g); const model = cloneModel(source); model.scale.multiply(new T.Vector3(n.width / 1000, n.height / 1000, n.depth / 1000)); model.traverse(o => { if (!(o instanceof T.Mesh))
         return; o.userData.nodeId = n.id; const part = o.userData.part; const wasArray = Array.isArray(o.material); const list = wasArray ? o.material as T.Material[] : [o.material as T.Material]; const mapped = list.map((native, i) => { const key = `${part}:${i}`, appearance = nodeAppearance(n, key); if (!appearance.original) {
         this.disposeMaterial(native);
@@ -722,7 +733,16 @@ export class SceneEngine {
         }
     }
     cancelTransform(){if(!this.dragActive&&!this.groupDrag)return;this.groupDrag=undefined;this.dragActive=false;this.transform.dragging=false;this.transform.axis=null;this.orbit.enabled=this.mode!=='draw';for(const n of this.data?.nodes??[]){if(n.host)continue;const obj=this.root.children.find(o=>o.userData.nodeId===n.id);if(obj){obj.position.set(n.x/1000,n.y/1000,n.z/1000);obj.rotation.set(0,n.rotation*Math.PI/180,0)}}const ids=selectionIds(this.selection),nodes=this.data?.nodes.filter(n=>ids.includes(n.id))??[];if(nodes.length){const c=groupBounds(nodes).center;this.pivot.position.set(c.x/1000,c.y/1000,c.z/1000);this.pivot.rotation.set(0,0,0)}this.suppress=true;}
-    setMode(mode: ToolMode) { this.cancelTransform();this.mode = mode; this.drawStart = null; this.orbit.enabled = mode !== 'draw'; this.host.style.cursor = mode === 'draw' ? 'crosshair' : 'default'; this.setSelection(this.selection); }
+    measureAt(ray:T.Raycaster){
+        if(!this.data)return;this.root.updateMatrixWorld(true);
+        try{const anchor=pickMeasurementAnchor(this.data,ray.intersectObjects(this.root.children,true));
+            if(!this.measureStart){this.measureStart=anchor;this.measurementOverlay?.update(this.data,anchor);this.onMeasureStatus?.(true);return;}
+            if(this.onMeasure?.(this.measureStart,anchor))this.cancelMeasurement();
+        }catch(e){this.onMeasureStatus?.(!!this.measureStart,e instanceof Error&&e.name!=='ZodError'?e.message:'이 위치는 측정할 수 없습니다. 다른 표면을 선택하세요.');}
+    }
+    cancelMeasurement(){this.measureStart=null;if(this.data)this.measurementOverlay?.update(this.data,null);this.onMeasureStatus?.(false);}
+    focusMeasurement(id:string){const m=this.data?.measurements?.find(m=>m.id===id),v=m&&this.data?readMeasurement(this.data,m):null;if(!v)return;const target=new T.Vector3((v.start.x+v.end.x)/2000,(v.start.y+v.end.y)/2000,(v.start.z+v.end.z)/2000);this.camera.position.add(target.clone().sub(this.orbit.target));this.orbit.target.copy(target);this.orbit.update();}
+    setMode(mode: ToolMode) { this.cancelTransform();if(mode!==this.mode)this.cancelMeasurement();this.mode = mode; this.drawStart = null; this.orbit.enabled = mode !== 'draw'; this.host.style.cursor = mode === 'draw'||mode==='measure' ? 'crosshair' : 'default'; this.setSelection(this.selection); }
     setSelectionMode(mode: 'face' | 'object') { this.selectionMode = mode; }
     setSnap(value: boolean) { this.transform.setTranslationSnap(value ? .05 : null); this.transform.setRotationSnap(value ? Math.PI / 12 : null); }
     private fitPlan(aspect: number) { const w = (this.data?.room.width ?? 7200) / 1000, d = ((this.data?.room.depth ?? 6400)+(this.data?facadeProjection(this.data)*2:0)) / 1000; const half = Math.max(d * 1.25 / 2, w * 1.25 / (2 * aspect)); this.planCamera.left = -half * aspect; this.planCamera.right = half * aspect; this.planCamera.top = half; this.planCamera.bottom = -half; this.planCamera.updateProjectionMatrix(); }
@@ -814,12 +834,14 @@ export class SceneEngine {
         });
         try{groupExportNodes(clone,this.data?.nodes??[]);bakeImageTransforms(clone);return await new GLTFExporter().parseAsync(clone, { binary: true, onlyVisible: true, maxTextureSize: 1024 }) as ArrayBuffer;}finally{this.clearGroup(clone);}
     }
-    async screenshot(width = 2048, requestedAspect?: number) {
+    async screenshot(width = 2048, requestedAspect?: number,includeMeasurements=false) {
         await this.modelsReady();
         const oldSize = new T.Vector2();
         this.renderer.getSize(oldSize);
         const oldRatio = this.renderer.getPixelRatio();
         const oldAspect = oldSize.x / oldSize.y;
+        const measureVis=this.measurementOverlay?.group.visible;
+        if(this.measurementOverlay)this.measurementOverlay.group.visible=includeMeasurements;
         const helperVis = this.helpers.visible;
         const gizmoVis = this.transform.getHelper().visible;
         this.helpers.visible = false;
@@ -843,6 +865,7 @@ export class SceneEngine {
                 this.camera.aspect = oldAspect;
             this.camera.updateProjectionMatrix();
             this.helpers.visible = helperVis;
+            if(this.measurementOverlay)this.measurementOverlay.group.visible=measureVis??true;
             this.transform.getHelper().visible = gizmoVis;
         }
     }
@@ -880,6 +903,7 @@ export class SceneEngine {
         this.orbit.dispose();
         this.transform.dispose();
         this.clearGroup(this.root);
+        this.measurementOverlay?.dispose();
         this.grid.geometry.dispose();
         (this.grid.material as T.Material).dispose();
         if (this.outline) {
