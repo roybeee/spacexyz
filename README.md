@@ -52,17 +52,21 @@
 - `lib/glb.ts`, `lib/model-loader.ts`: GLB 구조·리소스 제한 검사, 원본 정규화, 독립적인 복제 리소스 관리.
 - `app/api/render`, `lib/render-contract.ts`: 이미지 편집 API, 입력/출력 제한, 원본과 생성 이미지 보관. 실제 이미지 파일은 R2에 저장하며 키는 서버가 구성합니다.
 - `lib/photo-draft.ts`: 사진 분석 결과 계약, 치수 보정·검증, 브랜드 기본 배치.
-- `app/api/photo-draft`: 사진 입력과 엄격한 JSON Schema를 사용하는 OpenAI Responses API, 완료·거절·치수 검증 처리.
-- `app/api/ai`: 서버에서 OpenAI Responses API 호출. 임의 코드를 실행하지 않습니다.
+- `app/api/photo-draft`: 사진 입력과 엄격한 JSON 검증을 사용하는 Hermes / OpenAI 분석, 완료·거절·치수 검증 처리.
+- `app/api/ai`: 서버에서 Hermes 또는 OpenAI로 편집 제안 요청. 검증한 명령만 장면에 적용합니다.
 - `db/schema.ts`, `drizzle/`: 저장 스키마와 배포 마이그레이션.
 
 ## AI 연결
 
-호스팅의 `OPENAI_API_KEY`를 설정하면 모든 AI 기능이 서버 키를 사용합니다. `OPENAI_MODEL`은 사진 분석·편집 명령용이며 기본값은 `gpt-4.1-mini`입니다. 이미지 시안용 `OPENAI_IMAGE_MODEL`의 기본값은 `gpt-image-2.5-sunburst-2026-09-08`이며 계정의 해당 모델 접근 권한이 필요합니다. 서버 키가 없으면 화면 설정에서 현재 세션에만 키를 입력할 수 있습니다. 키는 프로젝트, 데이터베이스, 로컬 저장소에 넣지 않습니다. 첫 실제 요청에서 유효성을 확인합니다. 요청 시 사진/장면 정보를 OpenAI로 전송하고 해당 계정에 사용료가 부과됩니다.
+상단 **AI 연결 설정 → Hermes**에서 Orbit에 사용하는 HTTPS 기본 주소(프로필 경로 포함)와 `API_SERVER_KEY`를 등록합니다. SPATIAL은 Hermes의 기존 모델·공급자 인증을 사용하므로 별도 OpenAI 키 없이 문장 편집, 매장 사진 초안, 물체 사진 분석을 요청할 수 있습니다. 사진에는 이미지 입력을 지원하는 Hermes 버전과 모델이 필요합니다.
 
-배포 시 서버 API 키가 제공되지 않았으므로 실제 모델을 호출하는 통합 검증은 수행하지 않았습니다. 키 없이 가능한 색상 추출·기본 명령은 AI 분석으로 표시하지 않습니다.
+연결 확인은 인증된 `/v1/capabilities`와 `/v1/models`, 비인증 접근 차단을 검사합니다. 모델 생성 성공이나 사진 품질을 검사하는 버튼은 아닙니다. 사용자별 연결 암호는 서버 `SPATIAL_CONNECTION_KEY`(32바이트 base64)를 이용해 AES-GCM으로 암호화하며 API로 다시 반환하지 않습니다. 키를 임의 교체하면 기존 암호를 읽지 못하므로 백업·이관 없이 교체하지 마세요.
 
-공식 API 근거: [사진 분석](https://developers.openai.com/api/docs/guides/images-vision), [구조화된 출력](https://developers.openai.com/api/docs/guides/structured-outputs), [이미지 편집 API](https://developers.openai.com/api/reference/resources/images/methods/edit), [이미지 모델](https://developers.openai.com/api/docs/models/gpt-image-2.5-sunburst). 2026-09-09 공식 문서를 확인했습니다.
+Hermes 요청은 `/v1/runs`와 고유 세션·중복 방지 키를 사용하고, D1에 접수 번호와 결과를 보관합니다. 통신 실패 후 같은 입력으로 다시 요청하면 같은 실행을 확인합니다. 연결 화면의 **최근 Hermes 요청**에서 상태 확인·중지를 할 수 있습니다. 본문이 달라지면 새 요청입니다. 새로고침 후 원래 입력이 복구되지 않으면 이전 결과를 편집 화면에 자동 적용하지 않습니다. 사진·장면은 등록한 Hermes 및 그 모델 제공자에게 전송되며, 사용량은 해당 Hermes 설정을 따릅니다.
+
+완성 이미지 시안 생성은 별도 OpenAI 경로입니다. `OPENAI_API_KEY` 또는 설정의 접힌 **이미지 시안 생성 · OpenAI 연결**에 입력한 세션 키를 사용합니다. `OPENAI_MODEL` 기본값은 `gpt-4.1-mini`, 이미지 생성 모델 기본값은 기존 `gpt-image-2.5-sunburst-2026-09-08`이며 실제 계정의 접근 권한이 필요합니다. Hermes가 없을 때는 OpenAI로 분석·문장 편집도 가능합니다. 세션 OpenAI 키는 페이지 메모리에만 남습니다.
+
+Hermes 연동 구현과 모의 게이트웨이 검증은 완료했습니다. 실제 사용자의 Hermes 주소·연결 암호는 전달되지 않아 등록 및 실제 모델 응답 검증은 완료하지 않았습니다. 자세한 사용법과 범위는 [HERMES-SETUP-KO.md](HERMES-SETUP-KO.md)를 참고하세요.
 
 ## 현재 범위와 한계
 

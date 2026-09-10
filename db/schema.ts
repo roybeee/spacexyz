@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, real, index } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, real, index, primaryKey } from 'drizzle-orm/sqlite-core';
 export const projects = sqliteTable('projects', { id: text('id').primaryKey(), owner: text('owner').notNull(), name: text('name').notNull(), scene: text('scene').notNull(), revision: integer('revision').notNull().default(1), updatedAt: text('updated_at').notNull() }, t => [index('projects_owner_updated').on(t.owner, t.updatedAt)]);
 export const photos = sqliteTable('photos', { id: text('id').primaryKey(), owner: text('owner').notNull(), objectKey: text('object_key').notNull(), mime: text('mime').notNull(), name: text('name').notNull(), createdAt: text('created_at').notNull() }, t => [index('photos_owner').on(t.owner)]);
 export const assets = sqliteTable('assets', { id: text('id').primaryKey(), owner: text('owner').notNull(), kind: text('kind').notNull(), objectKey: text('object_key').notNull(), mime: text('mime').notNull(), name: text('name').notNull(), metadata: text('metadata').notNull(), createdAt: text('created_at').notNull() }, t => [index('assets_owner_kind_created').on(t.owner, t.kind, t.createdAt)]);
@@ -8,3 +8,6 @@ export const assemblies = sqliteTable('assemblies', { id:text('id').primaryKey()
 export const materialPresets = sqliteTable('material_presets', {id:text('id').primaryKey(),owner:text('owner').notNull(),name:text('name').notNull(),content:text('content').notNull(),createdAt:text('created_at').notNull()}, t=>[index('material_presets_owner_created').on(t.owner,t.createdAt)]);
 
 export const renderRequests = sqliteTable('render_requests', {id:text('id').primaryKey(),owner:text('owner').notNull(),fingerprint:text('fingerprint').notNull(),status:text('status').notNull().default('pending'),createdAt:text('created_at').notNull()});
+
+export const hermesConnections=sqliteTable('hermes_connections',{owner:text('owner').primaryKey(),secret:text('secret').notNull()});
+export const hermesJobs=sqliteTable('hermes_jobs',{id:text('id').notNull(),owner:text('owner').notNull(),connectionId:text('connection_id').notNull(),fingerprint:text('fingerprint').notNull(),runId:text('run_id'),status:text('status').notNull(),output:text('output'),createdAt:integer('created_at').notNull(),deadline:integer('deadline').notNull(),purpose:text('purpose').notNull(),cancelRequested:integer('cancel_requested').notNull().default(0)},t=>[primaryKey({columns:[t.owner,t.id]}),index('hermes_jobs_owner_created').on(t.owner,t.createdAt)]);

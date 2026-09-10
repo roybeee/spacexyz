@@ -1,4 +1,5 @@
 'use client';
+import {aiFetch} from '@/lib/ai-client';
 import { useEffect, useRef, useState } from 'react';
 import { Box, Sparkles, Ruler, LoaderCircle, LayoutTemplate } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -33,7 +34,7 @@ export default function PhotoDraftDialog({ open, onClose, photoUrl, scene, apiKe
         if (ai) {
             const p = await photoData(photoUrl);
             if (!alive.current) return;
-            const r = await fetch('/api/photo-draft', { method: 'POST', signal: controller.current.signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ input, image: p.image, apiKey: apiKey || undefined }) });
+            const r = await aiFetch('/api/photo-draft', { method: 'POST', signal: controller.current.signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ input, image: p.image, apiKey: apiKey || undefined }) });
             const result = await r.json() as {
                 error?: string;
                 scene: unknown;

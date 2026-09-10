@@ -21,7 +21,7 @@ export class HttpError extends Error {
 }
 export function fail(e: unknown) {
     if (e instanceof HttpError)
-        return Response.json({ error: e.message }, { status: e.status });
+        return Response.json({ error: e.message, ...(e.status===202?{pending:true}:{}) }, { status: e.status, headers:{'Cache-Control':'no-store'} });
     if (e instanceof Error && e.name === 'ZodError')
         return Response.json({ error: '입력값 형식을 확인해 주세요.' }, { status: 400 });
     console.error('request_failed', e instanceof Error ? e.name : 'unknown');
