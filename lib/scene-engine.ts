@@ -1,4 +1,5 @@
 import {MeasurementOverlay} from './measurement-overlay';
+import {renderedMaterialSlots} from './material-catalog';
 import {pickMeasurementAnchor} from './measurement-picking';
 import {readMeasurement,type MeasurementAnchor} from './measurements';
 import {groupExportNodes} from './group-export';
@@ -657,6 +658,7 @@ export class SceneEngine {
         const errors=[...(this.assetErrors??[]),...[...this.modelCache.values(),...(this.imageCache?.values()??[])].flatMap(e=>e.error?[e.error]:[])];
         if(errors.length)throw new Error(errors[0]);
     }
+    materialCatalog(expected?:SceneData){if(expected&&JSON.stringify(expected)!==JSON.stringify(this.data))throw new Error('3D 화면이 갱신 중입니다. 소재 관리를 다시 여세요.');return renderedMaterialSlots(this.root,this.data?.nodes??[]);}
     retryModels() {
         for(const [id,entry] of this.modelCache)if(entry.error)this.modelCache.delete(id);
         for(const [id,entry] of this.imageCache??[])if(entry.error){entry.controller.abort();entry.texture?.dispose();this.imageCache.delete(id);}
