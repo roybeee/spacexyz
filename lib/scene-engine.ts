@@ -1,4 +1,6 @@
 import * as T from 'three';
+import {buildFacade} from './facade-mesh';
+import {facadeProjection} from './facade';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
@@ -96,6 +98,7 @@ export class SceneEngine {
         this.orbit = new OrbitControls(this.camera, this.renderer.domElement);
         this.orbit.enableDamping = true;
         this.orbit.dampingFactor = .12;
+        this.orbit.maxDistance=70;
         this.orbit.target.set(0, .55, 0);
         this.orbit.maxPolarAngle = Math.PI * .49;
         this.orbit.minDistance = 1;
@@ -351,7 +354,7 @@ export class SceneEngine {
     setScene(data: SceneData) {
         this.cancelTransform();
         const roomResized = this.data?.room.width !== data.room.width || this.data?.room.depth !== data.room.depth;
-        const key = JSON.stringify({ room: data.room, nodes: data.nodes });
+        const key = JSON.stringify({ room: data.room, nodes: data.nodes, facade:data.facade });
         this.data = data;
         const used = new Set(data.nodes.filter(n => n.kind === 'model').map(n => n.assetId));
         for (const [id, entry] of this.modelCache)
@@ -420,9 +423,10 @@ export class SceneEngine {
         }
         for (const node of data.nodes)
             this.buildNode(node);
+        if(data.facade)this.root.add(buildFacade(data,(id,color,repeat)=>this.material(id,color,repeat)));
         this.setLighting(data.lighting);
-        if (roomResized && this.view === 'top')
-            this.setView('top');
+        if (roomResized && (this.view === 'top'||this.view==='front'))
+            this.setView(this.view);
         this.setSelection(this.selection);
         this.updateCutaway();
     }
@@ -584,13 +588,14 @@ export class SceneEngine {
         const p = this.camera.position;
         const d = this.data.room.depth / 1000, w = this.data.room.width / 1000;
         for (const item of this.root.children) {
+            if(item.userData.facade){item.visible=!(this.cutaway&&this.view!=='front'&&this.view!=='top'&&p.z>d/2);continue;}
             const wall = item.userData.wall ?? item.userData.host;
             if (!wall)
                 continue;
             const n = this.data.nodes.find(n => n.id === item.userData.nodeId);
             const hidden = n?.hidden ?? false;
             const front = wall === 'front' && p.z > d / 2, back = wall === 'back' && p.z < -d / 2, left = wall === 'left' && p.x < -w / 2, right = wall === 'right' && p.x > w / 2;
-            item.visible = !hidden && !(this.cutaway && (this.view === 'top' || front || back || left || right));
+            item.visible = !hidden && !(this.cutaway && this.view!=='front' && (this.view === 'top' || front || back || left || right));
         }
     }
     setSelection(selection: Selection) {
@@ -657,7 +662,7 @@ export class SceneEngine {
     setMode(mode: ToolMode) { this.cancelTransform();this.mode = mode; this.drawStart = null; this.orbit.enabled = mode !== 'draw'; this.host.style.cursor = mode === 'draw' ? 'crosshair' : 'default'; this.setSelection(this.selection); }
     setSelectionMode(mode: 'face' | 'object') { this.selectionMode = mode; }
     setSnap(value: boolean) { this.transform.setTranslationSnap(value ? .05 : null); this.transform.setRotationSnap(value ? Math.PI / 12 : null); }
-    private fitPlan(aspect: number) { const w = (this.data?.room.width ?? 7200) / 1000, d = (this.data?.room.depth ?? 6400) / 1000; const half = Math.max(d * 1.25 / 2, w * 1.25 / (2 * aspect)); this.planCamera.left = -half * aspect; this.planCamera.right = half * aspect; this.planCamera.top = half; this.planCamera.bottom = -half; this.planCamera.updateProjectionMatrix(); }
+    private fitPlan(aspect: number) { const w = (this.data?.room.width ?? 7200) / 1000, d = ((this.data?.room.depth ?? 6400)+(this.data?facadeProjection(this.data)*2:0)) / 1000; const half = Math.max(d * 1.25 / 2, w * 1.25 / (2 * aspect)); this.planCamera.left = -half * aspect; this.planCamera.right = half * aspect; this.planCamera.top = half; this.planCamera.bottom = -half; this.planCamera.updateProjectionMatrix(); }
     setView(view: ViewMode) {
         this.cancelTransform();this.view = view;
         this.planCamera.up.set(0, 0, -1);
@@ -674,6 +679,7 @@ export class SceneEngine {
         }
         this.transform.camera = this.camera;
         const width = (this.data?.room.width ?? 7200) / 1000, depth = (this.data?.room.depth ?? 6400) / 1000, size = Math.max(width, depth);
+        this.orbit.maxDistance=70;
         this.orbit.target.set(0, .55, 0);
         this.orbit.enableRotate = view !== 'top';
         this.orbit.maxPolarAngle = view === 'top' ? Math.PI : view === 'interior' ? Math.PI * .58 : Math.PI * .49;
@@ -687,8 +693,13 @@ export class SceneEngine {
         }
         else
             this.camera.up.set(0, 1, 0);
-        if (view === 'front')
-            this.camera.position.set(0, 2.9, size * 1.6);
+        if (view === 'front') {
+            const height=(this.data?.room.height??2900)/1000,projection=this.data?facadeProjection(this.data)/1000:0,aspect=Math.max(.25,this.host.clientWidth/Math.max(1,this.host.clientHeight)),fov=this.perspective.fov*Math.PI/180;
+            const distance=Math.max(height/(2*Math.tan(fov/2)),width/(2*Math.tan(fov/2)*aspect))*1.2;
+            this.orbit.maxDistance=Math.max(70,distance+projection+5);
+            this.orbit.target.set(0,height/2,depth/2+projection/2);
+            this.camera.position.set(0,height/2+.2,depth/2+projection+distance);
+        }
         if (view === 'interior') {
             this.camera.position.set(-width * .25, 1.65, depth * .4);
             this.orbit.target.set(0, 1.35, -depth * .4);
@@ -735,7 +746,7 @@ export class SceneEngine {
         await this.modelsReady();
         const clone = this.root.clone(true);
         clone.traverse(o => {
-            if (o.userData.wall || o.userData.host)
+            if (o.userData.wall || o.userData.host || o.userData.facade)
                 o.visible = !this.data?.nodes.find(n => n.id === o.userData.nodeId)?.hidden;
         });
         return await new GLTFExporter().parseAsync(clone, { binary: true, onlyVisible: true, maxTextureSize: 1024 }) as ArrayBuffer;

@@ -26,13 +26,25 @@ export const materials: {
     { id: 'glass', name: '클리어 글라스', group: '유리', color: '#c8e1e5', roughness: .08, metalness: .05, pattern: 'plain' }
 ];
 const hex = z.string().regex(/^#[a-fA-F0-9]{6}$/);
+export const facadeSchema = z.object({
+    sign: z.object({enabled:z.boolean(),text:z.string().min(1).max(60).regex(/^[^\n\r\t]+$/),font:z.enum(['sans','serif','condensed']),width:z.number().finite().min(600).max(19800),height:z.number().finite().min(100).max(1400),x:z.number().finite().min(-10000).max(10000),bottom:z.number().finite().min(0).max(5900),depth:z.number().finite().min(40).max(400),material:z.enum(materialIds),color:hex,textColor:hex,illuminated:z.boolean()}),
+    awning: z.object({enabled:z.boolean(),width:z.number().finite().min(600).max(19800),x:z.number().finite().min(-10000).max(10000),mount:z.number().finite().min(1000).max(6000),projection:z.number().finite().min(200).max(2400),drop:z.number().finite().min(0).max(1200),valance:z.number().finite().min(0).max(400),color:hex,stripeColor:hex,striped:z.boolean(),stripeWidth:z.number().finite().min(80).max(500)})
+});
+export type FacadeData=z.infer<typeof facadeSchema>;
+export function validateFacade(room:{width:number;height:number},facade?:FacadeData){
+    if(!facade)return;
+    const {sign,awning}=facade;
+    for(const [name,part] of [['간판',sign],['어닝',awning]] as const){if(part.enabled&&Math.abs(part.x)+part.width/2>room.width/2-100)throw new Error(`${name}이 전면 폭을 벗어납니다. 양끝 100mm 여유를 확보하세요.`)}
+    if(sign.enabled&&sign.bottom+sign.height>room.height)throw new Error('간판 상단이 매장 높이를 벗어납니다.');
+    if(awning.enabled){if(awning.mount>room.height||awning.mount+20>room.height)throw new Error('어닝 설치 높이가 매장 높이를 벗어납니다.');if(awning.mount-awning.drop-awning.valance<1000)throw new Error('어닝 하단 높이가 1,000mm 미만입니다. 설치 높이와 경사를 조정하세요.');if(awning.drop>awning.projection)throw new Error('어닝의 내려가는 높이는 돌출 길이 이내로 입력하세요.');if(sign.enabled&&Math.abs(sign.x-awning.x)<(sign.width+awning.width)/2&&awning.mount+20>sign.bottom&&awning.mount-awning.drop-awning.valance<sign.bottom+sign.height)throw new Error('간판과 어닝이 겹칩니다. 어닝을 간판 아래로 조정하세요.');}
+}
 export const finishSchema = z.object({ color: hex.optional(), roughness: z.number().min(0).max(1).optional(), metalness: z.number().min(0).max(1).optional(), scale: z.number().min(50).max(5000).optional(), rotation: z.number().min(-180).max(180).optional() });
 export type MaterialFinish = z.infer<typeof finishSchema>;
 export const nodeSchema = z.object({ id: z.string().min(1).max(80), kind: z.enum([...kinds, 'model']), assetId: z.string().uuid().optional(), name: z.string().max(80), x: z.number().finite().min(-30000).max(30000), y: z.number().finite().min(0).max(12000), z: z.number().finite().min(-30000).max(30000), width: z.number().finite().min(20).max(20000), height: z.number().finite().min(20).max(12000), depth: z.number().finite().min(20).max(20000), rotation: z.number().finite().min(-3600).max(3600), material: z.enum(materialIds), faces: z.record(z.enum(materialIds)).default({}), color: hex.optional(), finish: finishSchema.optional(), faceFinishes: z.record(z.string().max(60), finishSchema).optional(), uniformMaterial: z.boolean().optional(), estimated: z.boolean().optional(), locked: z.boolean().default(false), hidden: z.boolean().default(false), host: z.enum(['back', 'left', 'right', 'front']).optional() });
 export type SceneNode = z.infer<typeof nodeSchema>;
 const surface = z.object({ material: z.enum(materialIds), color: hex.optional(), finish: finishSchema.optional() });
-export const coreSceneSchema = z.object({ version: z.literal(1), name: z.string().min(1).max(100), room: z.object({ width: z.number().min(2400).max(20000), depth: z.number().min(2400).max(20000), height: z.number().min(2200).max(6000), source: z.enum(['example', 'entered', 'measured']), surfaces: z.object({ floor: surface, back: surface, left: surface, right: surface, front: surface }) }), nodes: z.array(nodeSchema).max(300), lighting: z.object({ intensity: z.number().min(.2).max(2), warmth: z.number().min(2700).max(6500) }), photoId: z.string().max(80).optional(), renders: z.array(z.object({ id: z.string().uuid(), name: z.string().max(100), createdAt: z.string().datetime(), prompt: z.string().max(2000) })).max(20).optional(), palette: z.array(hex).max(8).optional(), draft: z.object({ method: z.enum(['photo-ai', 'template']), summary: z.string().max(1000), notes: z.array(z.string().max(500)).max(30) }).optional(), cameras: z.array(z.object({ id: z.string().max(80), name: z.string().max(80), view: z.enum(['perspective', 'top', 'front', 'interior']).optional(), zoom: z.number().min(.01).max(100).optional(), position: z.tuple([z.number().finite().min(-100).max(100), z.number().finite().min(-100).max(100), z.number().finite().min(-100).max(100)]), target: z.tuple([z.number().finite().min(-100).max(100), z.number().finite().min(-100).max(100), z.number().finite().min(-100).max(100)]) })).max(10).default([]) });
-export const designSchema=coreSceneSchema.pick({room:true,nodes:true,lighting:true,photoId:true,palette:true,draft:true});
+export const coreSceneSchema = z.object({ version: z.literal(1), name: z.string().min(1).max(100), room: z.object({ width: z.number().min(2400).max(20000), depth: z.number().min(2400).max(20000), height: z.number().min(2200).max(6000), source: z.enum(['example', 'entered', 'measured']), surfaces: z.object({ floor: surface, back: surface, left: surface, right: surface, front: surface }) }), nodes: z.array(nodeSchema).max(300), facade: facadeSchema.optional(), lighting: z.object({ intensity: z.number().min(.2).max(2), warmth: z.number().min(2700).max(6500) }), photoId: z.string().max(80).optional(), renders: z.array(z.object({ id: z.string().uuid(), name: z.string().max(100), createdAt: z.string().datetime(), prompt: z.string().max(2000) })).max(20).optional(), palette: z.array(hex).max(8).optional(), draft: z.object({ method: z.enum(['photo-ai', 'template']), summary: z.string().max(1000), notes: z.array(z.string().max(500)).max(30) }).optional(), cameras: z.array(z.object({ id: z.string().max(80), name: z.string().max(80), view: z.enum(['perspective', 'top', 'front', 'interior']).optional(), zoom: z.number().min(.01).max(100).optional(), position: z.tuple([z.number().finite().min(-200).max(200), z.number().finite().min(-200).max(200), z.number().finite().min(-200).max(200)]), target: z.tuple([z.number().finite().min(-200).max(200), z.number().finite().min(-200).max(200), z.number().finite().min(-200).max(200)]) })).max(10).default([]) });
+export const designSchema=coreSceneSchema.pick({room:true,nodes:true,lighting:true,photoId:true,palette:true,draft:true,facade:true});
 export const variantSchema=z.object({id:z.string().uuid(),name:z.string().min(1).max(60),note:z.string().max(400),createdAt:z.string().datetime(),design:designSchema});
 export const sceneSchema=coreSceneSchema.extend({variants:z.array(variantSchema).max(6).optional()});
 export type DesignVariant=z.infer<typeof variantSchema>;
@@ -67,12 +79,15 @@ export function validateScene(input: unknown): SceneData {
 
     return s;
 }
-function validateLayout(s:Pick<SceneData,'room'|'nodes'>){
+function validateLayout(s:Pick<SceneData,'room'|'nodes'|'facade'>){
+    validateFacade(s.room,s.facade);
     if (s.nodes.filter(n => n.kind === 'model').length > 20)
         throw new Error('외부 모델은 장면당 20개까지 배치할 수 있습니다.');
+    const sign=s.facade?.sign;
+    if(sign?.enabled&&s.nodes.some(n=>n.host==='front'&&!n.hidden&&Math.abs(n.x-sign.x)<(n.width+sign.width)/2&&n.y<sign.bottom+sign.height&&n.y+n.height>sign.bottom))throw new Error('간판이 전면 문·창문을 가립니다. 간판 높이를 올리거나 유리 전면을 새로 구성하세요.');
     const ids = new Set<string>();
     for (const n of s.nodes) {
-        if (ids.has(n.id) || Object.hasOwn(surfaceNames, n.id))
+        if (ids.has(n.id) || Object.hasOwn(surfaceNames, n.id) || n.id==='facade-sign' || n.id==='facade-awning')
             throw new Error('요소 ID가 중복되었습니다.');
         ids.add(n.id);
         if (n.kind === 'model' && !n.assetId)

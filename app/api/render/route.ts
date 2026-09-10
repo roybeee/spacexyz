@@ -25,7 +25,7 @@ export async function POST(req: Request) {
         if (prior)
             return Response.json({ result: { id: prior.id, name: prior.name, createdAt: prior.created_at, prompt: JSON.parse(prior.metadata as string).prompt } }, { headers: { 'Cache-Control': 'no-store' } });
         const model = env.OPENAI_IMAGE_MODEL || IMAGE_MODEL;
-        const response = await fetch('https://api.openai.com/v1/images/edits', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` }, signal: AbortSignal.timeout(180000), body: JSON.stringify({ model, images: [{ image_url: b.image }, ...(b.reference ? [{ image_url: b.reference }] : [])], prompt: renderPrompt(b.prompt, !!b.reference), n: 1, size: '1536x1024', quality: b.quality, output_format: 'jpeg', output_compression: 90, background: 'opaque' }) });
+        const response = await fetch('https://api.openai.com/v1/images/edits', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` }, signal: AbortSignal.timeout(180000), body: JSON.stringify({ model, images: [{ image_url: b.image }, ...(b.reference ? [{ image_url: b.reference }] : [])], prompt: renderPrompt(b.prompt, !!b.reference,b.view,b.signText), n: 1, size: '1536x1024', quality: b.quality, output_format: 'jpeg', output_compression: 90, background: 'opaque' }) });
         if (!response.ok) {
             let code = '';
             try {

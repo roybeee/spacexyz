@@ -28,8 +28,8 @@ export default function SceneCanvas({ scene, selection, tool, view, faceMode, sn
     const host = useRef<HTMLDivElement>(null), engine = useRef<SceneEngine | null>(null);
     const callbacks = useRef({ onSelect, onTransform, onDraw, onReady, onTransformGroup });
     callbacks.current = { onSelect, onTransform, onDraw, onReady, onTransformGroup };
-    const current = useRef({ scene, selection, tool, view, faceMode, snap, cutaway,multiSelect });
-    current.current = { scene, selection, tool, view, faceMode, snap, cutaway,multiSelect };
+    const current = useRef({ scene, selection, tool, view, faceMode, snap, cutaway,multiSelect,restoreCamera });
+    current.current = { scene, selection, tool, view, faceMode, snap, cutaway,multiSelect,restoreCamera };
     const [modelStatus, setModelStatus] = useState<{
         loading: number;
         errors: string[];
@@ -48,6 +48,7 @@ export default function SceneCanvas({ scene, selection, tool, view, faceMode, sn
                     setModelStatus(status); };
                 e.setScene(current.current.scene);
                 e.setView(current.current.view);
+                if(current.current.restoreCamera)e.restoreCamera(current.current.restoreCamera);
                 e.setSelection(current.current.selection);
                 e.setSelectionMode(current.current.faceMode);
                 e.setMode(current.current.tool);
