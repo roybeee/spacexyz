@@ -1,3 +1,4 @@
+import {partitionCells} from './partition-openings-schema';
 import type {SceneData,SceneNode} from './scene-model';
 
 export type WalkPoint={x:number;z:number};
@@ -23,6 +24,13 @@ function envelope(n:SceneNode){
 export function walkWorld(scene:Pick<SceneData,'room'|'nodes'>,eyeHeight:number):WalkWorld{
  if(!Number.isFinite(eyeHeight)||eyeHeight<1200||eyeHeight>1900)throw new Error('눈높이는 1,200~1,900mm로 설정하세요.');
  const obstacles=scene.nodes.filter(n=>!n.hidden).flatMap(n=>{
+  if(n.kind==='partition'&&n.openings?.length){
+   const yaw=n.rotation*Math.PI/180,c=Math.cos(yaw),s=Math.sin(yaw);
+   const cells=partitionCells(n).map(p=>({x:p.x,bottom:p.y-p.height/2,width:p.width,height:p.height}));
+   // Panels are closed. Empty passages retain the head and side clearance of the wall cells.
+   cells.push(...n.openings.filter(o=>o.kind!=='passage').map(o=>({x:o.x,bottom:o.bottom,width:o.width,height:o.height})));
+   return cells.filter(p=>n.y+p.bottom<eyeHeight+150&&n.y+p.bottom+p.height>0).map(p=>({id:n.id,name:n.name,x:n.x+c*p.x,z:n.z-s*p.x,halfX:p.width/2+walkRadius,halfZ:n.depth/2+walkRadius,yaw}));
+  }
   const e=envelope(n);if(n.y>=eyeHeight+150||n.y+e.height<=0)return [];
   const x=n.host==='left'?-scene.room.width/2:n.host==='right'?scene.room.width/2:n.x,z=n.host==='back'?-scene.room.depth/2:n.host==='front'?scene.room.depth/2:n.z,yaw=n.host==='left'||n.host==='right'?Math.PI/2:n.rotation*Math.PI/180;
   return [{id:n.id,name:n.name,x,z,halfX:e.width/2+walkRadius,halfZ:e.depth/2+walkRadius,yaw}];

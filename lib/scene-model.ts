@@ -1,3 +1,4 @@
+import {partitionOpeningSchema,validatePartitionOpenings} from './partition-openings-schema';
 import {underlaySchema,validateUnderlay} from './underlay-schema';
 import {sectionSchema} from './section-view';
 import {estimateSchema,budgetSchema} from './budget-schema';
@@ -47,7 +48,7 @@ export type MaterialFinish = z.infer<typeof finishSchema>;
 export const layerSchema=z.object({id:z.string().uuid(),name:z.string().trim().min(1).max(50),color:hex});
 export type SceneLayer=z.infer<typeof layerSchema>;
 export const layerNameKey=(name:string)=>name.normalize('NFKC').trim().toLowerCase();
-export const nodeSchema = z.object({ estimate:estimateSchema.optional(), layerId:z.string().uuid().optional(), id: z.string().min(1).max(80), kind: z.enum([...kinds, 'model']), assetId: z.string().uuid().optional(), group: z.object({id:z.string().uuid(),name:z.string().trim().min(1).max(80)}).optional(), name: z.string().max(80), x: z.number().finite().min(-30000).max(30000), y: z.number().finite().min(0).max(12000), z: z.number().finite().min(-30000).max(30000), width: z.number().finite().min(20).max(20000), height: z.number().finite().min(20).max(12000), depth: z.number().finite().min(20).max(20000), rotation: z.number().finite().min(-3600).max(3600), material: z.enum(materialIds), faces: z.record(z.enum(materialIds)).default({}), color: hex.optional(), finish: finishSchema.optional(), faceFinishes: z.record(z.string().max(60), finishSchema).optional(), uniformMaterial: z.boolean().optional(), estimated: z.boolean().optional(), locked: z.boolean().default(false), hidden: z.boolean().default(false), host: z.enum(['back', 'left', 'right', 'front']).optional() });
+export const nodeSchema = z.object({ openings:z.array(partitionOpeningSchema).max(8).optional(), estimate:estimateSchema.optional(), layerId:z.string().uuid().optional(), id: z.string().min(1).max(80), kind: z.enum([...kinds, 'model']), assetId: z.string().uuid().optional(), group: z.object({id:z.string().uuid(),name:z.string().trim().min(1).max(80)}).optional(), name: z.string().max(80), x: z.number().finite().min(-30000).max(30000), y: z.number().finite().min(0).max(12000), z: z.number().finite().min(-30000).max(30000), width: z.number().finite().min(20).max(20000), height: z.number().finite().min(20).max(12000), depth: z.number().finite().min(20).max(20000), rotation: z.number().finite().min(-3600).max(3600), material: z.enum(materialIds), faces: z.record(z.enum(materialIds)).default({}), color: hex.optional(), finish: finishSchema.optional(), faceFinishes: z.record(z.string().max(60), finishSchema).optional(), uniformMaterial: z.boolean().optional(), estimated: z.boolean().optional(), locked: z.boolean().default(false), hidden: z.boolean().default(false), host: z.enum(['back', 'left', 'right', 'front']).optional() });
 export type SceneNode = z.infer<typeof nodeSchema>;
 export function cloneUngroupedNode(node:SceneNode){const copy=structuredClone(node);delete copy.group;return copy;}
 const surface = z.object({ material: z.enum(materialIds), color: hex.optional(), finish: finishSchema.optional() });
@@ -90,6 +91,7 @@ export function validateScene(input: unknown): SceneData {
 }
 function validateLayout(s:Pick<SceneData,'room'|'nodes'|'facade'|'measurements'|'layers'|'budget'|'underlay'>){
     if(s.underlay)validateUnderlay(s.underlay);
+    if(s.nodes.reduce((sum,n)=>sum+(n.openings?.length??0),0)>100)throw new Error('한 디자인에는 파티션 개구부 100개까지 만들 수 있습니다.');
     const layerIds=new Set<string>(),layerNames=new Set<string>();for(const layer of s.layers??[]){if(layerIds.has(layer.id))throw new Error('레이어 ID가 중복되었습니다.');const name=layerNameKey(layer.name);if(name==='미분류'||layerNames.has(name))throw new Error('서로 다른 레이어 이름을 입력하세요. 미분류는 기본 분류입니다.');layerIds.add(layer.id);layerNames.add(name);}
     const extraIds=new Set<string>();for(const e of s.budget?.extras??[]){if(extraIds.has(e.id))throw new Error('별도 비용 ID가 중복되었습니다.');extraIds.add(e.id);}
     const groupLayers=new Map<string,string|undefined>();
@@ -102,6 +104,7 @@ function validateLayout(s:Pick<SceneData,'room'|'nodes'|'facade'|'measurements'|
     if(sign?.enabled&&s.nodes.some(n=>n.host==='front'&&!n.hidden&&Math.abs(n.x-sign.x)<(n.width+sign.width)/2&&n.y<sign.bottom+sign.height&&n.y+n.height>sign.bottom))throw new Error('간판이 전면 문·창문을 가립니다. 간판 높이를 올리거나 유리 전면을 새로 구성하세요.');
     const ids = new Set<string>(),groups=new Map<string,string>();
     for (const n of s.nodes) {
+        validatePartitionOpenings(n);
         if (ids.has(n.id) || Object.hasOwn(surfaceNames, n.id) || n.id==='facade-sign' || n.id==='facade-awning')
             throw new Error('요소 ID가 중복되었습니다.');
         ids.add(n.id);
@@ -235,6 +238,7 @@ export function quickCommands(text: string, selection: Selection): SceneCommand[
 export function partDefaultMaterial(node: SceneNode, part: string): MaterialId {
     if (node.uniformMaterial)
         return node.material;
+    if(node.kind==='partition'&&part.startsWith('op-')){const o=node.openings?.find(o=>part.startsWith(`op-${o.id}-`));if(o){if(part.endsWith('-panel'))return o.kind==='window'?'glass':'oak';if(part.endsWith('-handle'))return 'steel';return 'charcoal';}}
     if ((node.kind === 'table' || node.kind === 'round-table') && (part === 'stem' || part === 'base'))
         return 'charcoal';
     if (node.kind === 'chair' && part.startsWith('leg'))

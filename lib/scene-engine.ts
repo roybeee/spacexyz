@@ -1,3 +1,4 @@
+import {partitionWallGeometry} from './partition-geometry';
 import {MeasurementOverlay} from './measurement-overlay';
 import {UnderlayRenderer,type UnderlayStatus} from './underlay-renderer';
 import {SectionClipper,clearExportClipping} from './section-clipper';
@@ -565,6 +566,24 @@ export class SceneEngine {
                 const light = new T.PointLight('#ffe3b1', 4, 4, 2);
                 light.position.y = -.08;
                 g.add(light);
+                break;
+            }
+            case 'partition': {
+                if(!n.openings?.length){box(w,h,d,0,h/2,0,'body');break;}
+                const sizes:[number,number][]=[[d,h],[d,h],[w,d],[w,d],[w,h],[w,h]],mesh=new T.Mesh(partitionWallGeometry(n),sizes.map((size,i)=>this.nodeMaterial(n,`body:${i}`,size)));
+                mesh.userData={nodeId:n.id,part:'body'};mesh.castShadow=true;mesh.receiveShadow=true;g.add(mesh);
+                g.userData.partitionOpenings=structuredClone(n.openings);
+                for(const o of n.openings){
+                    if(o.kind==='passage')continue;
+                    const ow=o.width/1000,oh=o.height/1000,ox=o.x/1000,oy=o.bottom/1000,f=.03,prefix=`op-${o.id}-`;
+                    box(f,oh,d,ox-ow/2+f/2,oy+oh/2,0,prefix+'frameL');
+                    box(f,oh,d,ox+ow/2-f/2,oy+oh/2,0,prefix+'frameR');
+                    box(ow-2*f,f,d,ox,oy+oh-f/2,0,prefix+'frameTop');
+                    const sill=o.kind==='window'?f:0;
+                    if(sill)box(ow-2*f,f,d,ox,oy+f/2,0,prefix+'frameBottom');
+                    box(ow-2*f,oh-f-sill,Math.min(d*(o.kind==='window'?.5:.4),o.kind==='window'?.012:.025),ox,oy+sill+(oh-f-sill)/2,0,prefix+'panel');
+                    if(o.kind==='door'){const panelDepth=Math.min(d*.4,.025),handleDepth=Math.min(.02,(d-panelDepth)/2);box(.02,.12,handleDepth,ox+ow/2-.10,oy+oh*.47,panelDepth/2+handleDepth/2,prefix+'handle');}
+                }
                 break;
             }
             case 'door':

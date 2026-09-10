@@ -94,7 +94,7 @@ export default function WallDrawingDialog({scene,initial,onClose,onPreview}:{sce
  <label className="field-label">레이어<select className="text-input" value={layerId} onChange={e=>setLayerId(e.target.value)}><option value="">미분류</option>{base.layers?.map(l=><option key={l.id} value={l.id}>{l.name}</option>)}</select></label>
  <div className="wall-result" aria-live="polite"><PanelTop size={21}/><b>{segments.length?`벽 ${segments.length}구간`:'그릴 준비가 되었습니다'}</b><span>{plan?`중심선 합계 ${Math.round(plan.totalLength).toLocaleString()} mm`:points.length<2?'모서리를 두 점 이상 지정하세요.':'입력값과 경계 안내를 확인하세요.'}</span><p>두 구간 이상은 한 그룹으로 묶습니다. 적용 후 그룹 안 편집으로 구간별 길이·높이를 바꿀 수 있습니다.</p></div>
  {plan&&<div className={`wall-overlaps ${plan.overlaps.length?'has-overlaps':''}`}><b>새 외곽 겹침 {plan.overlaps.length}곳</b>{plan.overlaps.slice(0,4).map(c=><p key={`${c.a}-${c.b}`}>{c.names[0]} ↔ {c.names[1]}</p>)}{plan.overlaps.length>4&&<p>외 {plan.overlaps.length-4}곳</p>}<small>가구 외곽 기준입니다. 연결된 벽의 모서리 겹침은 이 미리보기에서 제외합니다.</small></div>}
- <p className="fineprint">각 구간은 별도 파티션입니다. 모서리 면 합치기와 문·창문 뚫기는 지원하지 않습니다. 길이는 벽 중심선 기준입니다.</p></aside></div>
+ <p className="fineprint">각 구간은 별도 파티션입니다. 모서리 면 합치기는 지원하지 않습니다. 통로·문·창문은 적용 후 파티션 속성에서 추가하세요. 길이는 벽 중심선 기준입니다.</p></aside></div>
  {(error||candidate.error||stale)&&<p className="form-error" role="alert">{stale?'장면이 변경되었습니다. 창을 닫고 다시 그리세요.':[...new Set([error,candidate.error].filter(Boolean))].join(' ')}</p>}
  <div className="wall-footer"><p><span>3</span>3D에서 확인하고 적용하세요.</p><div><button className="outline-button" onClick={onClose}>취소</button><button className="primary-button" disabled={!plan||stale} onClick={()=>plan&&!stale&&onPreview(plan)}><Eye size={16}/>3D에서 확인</button></div></div>
  </DialogContent></Dialog>;
