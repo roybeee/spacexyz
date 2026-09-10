@@ -693,12 +693,13 @@ export class SceneEngine {
         if (!selection)
             return;
         const ids=selectionIds(selection);
-        if(ids.length>1&&this.data){const nodes=this.data.nodes.filter(n=>ids.includes(n.id));for(const n of nodes){const obj=this.root.children.find(o=>o.userData.nodeId===n.id);if(!obj)continue;const outline=new T.BoxHelper(obj,0x7861f0);(outline.material as T.Material).depthTest=false;outline.renderOrder=10;this.helpers.add(outline);this.multiOutlines.push(outline)}
+        if(ids.length>1&&this.data){const nodes=this.data.nodes.filter(n=>ids.includes(n.id));for(const n of nodes){const obj=this.root.children.find(o=>o.userData.nodeId===n.id);if(!obj||n.hidden)continue;const outline=new T.BoxHelper(obj,0x7861f0);(outline.material as T.Material).depthTest=false;outline.renderOrder=10;this.helpers.add(outline);this.multiOutlines.push(outline)}
         if(nodes.length&&nodes.every(n=>!n.locked&&!n.hidden&&!n.host)&&(this.mode==='translate'||this.mode==='rotate')){const center=groupBounds(nodes).center;this.pivot.position.set(center.x/1000,center.y/1000,center.z/1000);this.pivot.rotation.set(0,0,0);this.pivot.updateMatrixWorld(true);this.transform.setMode(this.mode);this.transform.showX=this.mode==='translate';this.transform.showY=true;this.transform.showZ=this.mode==='translate';this.transform.attach(this.pivot)}return;}
         const n = this.data?.nodes.find(n => n.id === selection.id);
         const obj = this.root.children.find(o => o.userData.nodeId === selection.id);
         if (!obj)
             return;
+        if(n?.hidden)return;
         this.selectedObject = obj;
         if (selection.face && !Object.hasOwn(this.data!.room.surfaces, selection.id)) {
             const part = selection.face.split(':')[0];
@@ -849,7 +850,7 @@ export class SceneEngine {
             if (o.userData.wall || o.userData.host || o.userData.facade)
                 o.visible = !this.data?.nodes.find(n => n.id === o.userData.nodeId)?.hidden;
         });
-        try{groupExportNodes(clone,this.data?.nodes??[]);bakeImageTransforms(clone);return await new GLTFExporter().parseAsync(clone, { binary: true, onlyVisible: true, maxTextureSize: 1024 }) as ArrayBuffer;}finally{this.clearGroup(clone);}
+        try{groupExportNodes(clone,this.data?.nodes??[],this.data?.layers??[]);bakeImageTransforms(clone);return await new GLTFExporter().parseAsync(clone, { binary: true, onlyVisible: true, maxTextureSize: 1024 }) as ArrayBuffer;}finally{this.clearGroup(clone);}
     }
     async screenshot(width = 2048, requestedAspect?: number,includeMeasurements=false) {
         await this.modelsReady();

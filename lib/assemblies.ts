@@ -9,8 +9,9 @@ export type AssemblySummary={id:string;name:string;note:string;category:Assembly
 export type AssemblyPlacement={x:number;y:number;z:number;rotation:number};
 const yaw=(v:number)=>((v+180)%360+360)%360-180;
 
+export function detachedAssemblyNode(node:SceneNode){const copy=cloneUngroupedNode(node);delete copy.layerId;return copy;}
 export function validateAssembly(input:unknown):Assembly {
-    const a=assemblySchema.parse(input);
+    const a=assemblySchema.parse(input);a.nodes=a.nodes.map(detachedAssemblyNode);
     if(a.nodes.some(n=>n.host||n.kind==='door'||n.kind==='window'))throw new Error('문·창문은 벽에 연결되어 있어 가구 세트에 포함할 수 없습니다.');
     if(a.nodes.some(n=>n.hidden||n.locked))throw new Error('세트에는 표시된 편집 가능 요소만 보관할 수 있습니다.');
     const bounds=groupBounds(a.nodes);
@@ -26,7 +27,7 @@ export function captureAssembly(scene:SceneData,ids:string[],name:string,note=''
     if(selected.some(n=>n.hidden))throw new Error('숨긴 가구를 표시하거나 선택에서 제외하세요.');
     if(selected.some(n=>n.host||n.kind==='door'||n.kind==='window'))throw new Error('문·창문을 선택에서 제외한 뒤 저장하세요.');
     const bounds=groupBounds(selected);
-    return validateAssembly({version:1,name,note,category,elevation:bounds.min.y,nodes:selected.map((n,i)=>({...cloneUngroupedNode(n),id:`part-${i+1}`,x:n.x-bounds.center.x,y:n.y-bounds.min.y,z:n.z-bounds.center.z,rotation:yaw(n.rotation),locked:false,hidden:false}))});
+    return validateAssembly({version:1,name,note,category,elevation:bounds.min.y,nodes:selected.map((n,i)=>({...detachedAssemblyNode(n),id:`part-${i+1}`,x:n.x-bounds.center.x,y:n.y-bounds.min.y,z:n.z-bounds.center.z,rotation:yaw(n.rotation),locked:false,hidden:false}))});
 }
 
 export function assemblySummary(id:string,a:Assembly,created_at=''):AssemblySummary {
@@ -36,7 +37,7 @@ export function assemblySummary(id:string,a:Assembly,created_at=''):AssemblySumm
 export function placedAssembly(a:Assembly,p:AssemblyPlacement,idFactory=()=>crypto.randomUUID()):SceneNode[] {
     if(!Object.values(p).every(Number.isFinite)||p.y<0||Math.abs(p.rotation)>360)throw new Error('위치·높이·회전 값을 확인하세요.');
     const angle=yaw(p.rotation)*Math.PI/180,c=Math.cos(angle),s=Math.sin(angle);
-    return a.nodes.map(n=>({...cloneUngroupedNode(n),id:idFactory(),x:p.x+n.x*c+n.z*s,y:p.y+n.y,z:p.z-n.x*s+n.z*c,rotation:yaw(n.rotation+p.rotation),locked:false,hidden:false}));
+    return a.nodes.map(n=>({...detachedAssemblyNode(n),id:idFactory(),x:p.x+n.x*c+n.z*s,y:p.y+n.y,z:p.z-n.x*s+n.z*c,rotation:yaw(n.rotation+p.rotation),locked:false,hidden:false}));
 }
 
 export function insertAssembly(scene:SceneData,input:unknown,p:AssemblyPlacement,idFactory=()=>crypto.randomUUID()) {

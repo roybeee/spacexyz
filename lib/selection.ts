@@ -28,6 +28,7 @@ export function createGroup(scene:SceneData,ids:string[],name:string,idFactory=(
  const nodes=selectedNodes(scene,ids,'transform');
  if(nodes.length<2)throw new Error('가구를 2개 이상 선택하세요.');
  if(nodes.some(n=>n.group))throw new Error('기존 그룹을 먼저 해제한 뒤 새로 묶으세요.');
+ if(new Set(nodes.map(n=>n.layerId)).size>1)throw new Error('같은 레이어로 배정한 뒤 그룹으로 묶으세요. 속성의 레이어에서 함께 변경할 수 있습니다.');
  const group={id:idFactory(),name:name.trim()},set=new Set(ids);
  if(scene.nodes.some(n=>n.group?.id===group.id))throw new Error('그룹 ID가 중복되었습니다.');
  return validateScene({...scene,nodes:scene.nodes.map(n=>set.has(n.id)?{...n,group}:n)});
