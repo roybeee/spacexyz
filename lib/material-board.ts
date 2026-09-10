@@ -9,7 +9,7 @@ export type MaterialPlan={baseScene:string;scene:SceneData;changedRegions:number
 export function finishKey(choice:FinishChoice){
     const b=materials.find(m=>m.id===choice.material)!;const f=choice.finish;
     // Image pixels replace tint. Explicit defaults and absent defaults render identically.
-    return JSON.stringify([choice.material,finishTextureKey(f),finishTextureKey(f)?null:(f.color??b.color).toLowerCase(),f.roughness??b.roughness,f.metalness??b.metalness,f.scale??900,f.rotation??0]);
+    return JSON.stringify([choice.material,f.catalogId??null,finishTextureKey(f),finishTextureKey(f)?null:(f.color??b.color).toLowerCase(),f.roughness??b.roughness,f.metalness??b.metalness,f.scale??900,f.rotation??0]);
 }
 export function materialRows(scene:SceneData,catalog:MaterialSlot[]):MaterialRow[]{
     const rows=new Map<string,MaterialRow>(),nodes=new Map(scene.nodes.map(n=>[n.id,n])),seen=new Set<string>();

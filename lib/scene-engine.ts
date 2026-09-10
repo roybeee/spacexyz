@@ -1,4 +1,4 @@
-import {finishTextureKey,catalogTextureKeys} from './material-products';
+import {finishTextureKey,catalogTextureKeys,materialProduct} from './material-products';
 import {partitionWallGeometry} from './partition-geometry';
 import {prepareSelectionExport} from './selection-export';
 import {doorGeometry} from './door-geometry';
@@ -338,6 +338,8 @@ export class SceneEngine {
         number
     ] = [1, 1], finish: MaterialFinish = {}, flipY=true) {
         const m = materials.find(m => m.id === id)!;
+        const product=materialProduct(finish.catalogId);
+        if(product?.kind==='color'&&product.previewColor)return new T.MeshStandardMaterial({color:finish.color??product.previewColor,roughness:finish.roughness??m.roughness,metalness:finish.metalness??m.metalness,side:T.DoubleSide});
         const map = this.texture(id, finish.color ?? color).clone();
         map.needsUpdate = true;
         const scale = (finish.scale ?? 900) / 1000;

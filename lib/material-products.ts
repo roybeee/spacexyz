@@ -1,5 +1,6 @@
+import {samhwaColors} from './samhwa-colors';
 import type {MaterialFinish,MaterialId,SceneData} from './scene-model';
-export type MaterialProduct={id:string;brand:string;collection:string;code:string;name:string;category:string;appearance:string;base:MaterialId;image:string;sourceUrl:string;sourceImageUrl:string;imageWidthMm:number|null;previewColor?:string;specification:string;checkedAt:string};
+export type MaterialProduct={id:string;brand:string;collection:string;code:string;name:string;category:string;appearance:string;base:MaterialId;image:string;sourceUrl:string;sourceImageUrl:string;imageWidthMm:number|null;previewColor?:string;specification:string;checkedAt:string;kind?:'color';colorBook?:string;pageCode?:string;keywords?:string;sourceValue?:string;codeHasVariants?:boolean};
 /** Product codes and swatches are verified against the linked manufacturer pages. */
 export const materialProducts:MaterialProduct[]=[
 {previewColor:'#b4946f',id:'egger-h1180-st37',brand:'EGGER',collection:'Decorative Collection',code:'H1180 ST37',name:'Natural Halifax Oak',category:'장식용 보드·라미네이트',appearance:'우드',base:'oak',image:'/material-products/egger-h1180-st37.jpg',sourceUrl:'https://www.egger.com/en/furniture-interior-design/decors/H1180_37?country=GB',sourceImageUrl:'https://cdn.egger.com/img/pim/8854365503518/8854523150366/original.png',imageWidthMm:null,specification:'데코·표면 조합 코드. 판매 보드 규격 및 스와치 실물 축척은 별도 확인.',checkedAt:'2026-09-10'},
@@ -20,10 +21,15 @@ export const materialProducts:MaterialProduct[]=[
 {"previewColor": "#53442e", "id": "bodaq-lw122", "brand": "BODAQ 보닥", "collection": "현대L&C 롱 우드", "code": "LW122", "name": "아르덴오크 / Arden Oak", "category": "인테리어 필름", "appearance": "우드", "base": "oak", "image": "/material-products/bodaq-lw122.jpg", "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=8A14B629", "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_film/20260316011942985.jpg", "imageWidthMm": null, "specification": "0.42mm(T) × 1,220mm(W) × 50,000mm(L). 공식 페이지에서 제품 코드 검색 후 상세 확인.", "checkedAt": "2026-09-10"},
 {"previewColor": "#e2e1df", "id": "hanex-cs501", "brand": "HANEX 하넥스", "collection": "현대L&C 베나토", "code": "CS-501", "name": "칼라카타 글로리", "category": "인조대리석", "appearance": "스톤 무늬", "base": "concrete", "image": "/material-products/hanex-cs501.jpg", "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=01320B6C", "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_stone/20250319104901578.jpg", "imageWidthMm": null, "specification": "판매 규격은 공식 제품 정보에서 확인하세요. 공식 페이지에서 제품 코드로 검색.", "checkedAt": "2026-09-10"},
 {"previewColor": "#fcfcfb", "id": "hanstone-cc603", "brand": "칸스톤", "collection": "현대L&C 흐름무늬", "code": "CC603", "name": "스타투아리오 골드", "category": "강화천연석", "appearance": "스톤 무늬", "base": "concrete", "image": "/material-products/hanstone-cc603.jpg", "sourceUrl": "https://www.hyundailnc.com/product/contents?mng_cd=47453481", "sourceImageUrl": "https://www.hyundailnc.com/uploads/interior_stone/20250320015019382.jpg", "imageWidthMm": null, "specification": "13T·20T / 3,300(W) × 1,640(L)mm. 표시 이미지가 판재 전체 축척을 보장하지는 않습니다.", "checkedAt": "2026-09-10"}
-];
-export function materialProduct(id?:string|null){return materialProducts.find(p=>p.id===id);}
-export function productFinish(product:MaterialProduct):MaterialFinish{return {catalogId:product.id,textureId:null,scale:product.imageWidthMm??900,rotation:0,...(product.previewColor?{color:product.previewColor}:{})};}
-export function finishTextureKey(f:MaterialFinish){return f.catalogId?`catalog:${f.catalogId}`:f.textureId??null;}
-export function finishImageUrl(f:MaterialFinish){return f.catalogId?materialProduct(f.catalogId)?.image:f.textureId?`/api/assets?id=${f.textureId}`:undefined;}
-export function finishLabel(f:MaterialFinish,fallback:string){const p=materialProduct(f.catalogId);return p?`${p.brand} · ${p.code}`:fallback;}
-export function catalogTextureKeys(s:Pick<SceneData,'room'|'nodes'>){return [...new Set([...Object.values(s.room.surfaces).map(v=>v.finish),...s.nodes.flatMap(n=>[n.finish,...Object.values(n.faceFinishes??{})])].flatMap(f=>f?.catalogId?[`catalog:${f.catalogId}`]:[]))];}
+,...samhwaColors];
+const productsById=new Map(materialProducts.map(p=>[p.id,p]));
+export function materialProduct(id?:string|null){return id?productsById.get(id):undefined;}
+export function productFinish(product:MaterialProduct):MaterialFinish{if(product.kind==='color'&&!product.previewColor)throw new Error('공식 색상값이 없어 적용할 수 없습니다.');return {catalogId:product.id,textureId:null,scale:product.imageWidthMm??900,rotation:0,...(product.previewColor?{color:product.previewColor}:{})};}
+export function finishTextureKey(f:MaterialFinish){return f.catalogId?(materialProduct(f.catalogId)?.kind==='color'?null:`catalog:${f.catalogId}`):f.textureId??null;}
+export function finishImageUrl(f:MaterialFinish){return f.catalogId?(materialProduct(f.catalogId)?.image||undefined):f.textureId?`/api/assets?id=${f.textureId}`:undefined;}
+export function finishLabel(f:MaterialFinish,fallback:string){const p=materialProduct(f.catalogId);return p?`${p.brand} · ${p.code}${p.kind==='color'?` (${p.collection})`:''}`:fallback;}
+export function catalogTextureKeys(s:Pick<SceneData,'room'|'nodes'>){return [...new Set([...Object.values(s.room.surfaces).map(v=>v.finish),...s.nodes.flatMap(n=>[n.finish,...Object.values(n.faceFinishes??{})])].flatMap(f=>f?.catalogId&&finishTextureKey(f)?[finishTextureKey(f)!]:[]))];}
+
+export const normalizeProductQuery=(s:string)=>s.normalize('NFKC').toLowerCase().replace(/[\s-]+/g,'');
+const searchIndex=new Map(materialProducts.map(p=>[p.id,normalizeProductQuery(`${p.brand} ${p.collection} ${p.code} ${p.name} ${p.category} ${p.appearance} ${p.pageCode??''} ${p.keywords??''} ${p.previewColor??''}`)]));
+export function searchMaterialProducts({brand='전체',category='전체',book='전체',query=''}:{brand?:string;category?:string;book?:string;query?:string}){const q=normalizeProductQuery(query);return materialProducts.filter(p=>(brand==='전체'||p.brand===brand)&&(category==='전체'||p.appearance===category)&&(book==='전체'||p.colorBook===book)&&searchIndex.get(p.id)!.includes(q));}

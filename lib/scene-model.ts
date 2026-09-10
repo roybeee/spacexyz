@@ -47,7 +47,7 @@ export function validateFacade(room:{width:number;height:number},facade?:FacadeD
     if(sign.enabled&&sign.bottom+sign.height>room.height)throw new Error('간판 상단이 매장 높이를 벗어납니다.');
     if(awning.enabled){if(awning.mount>room.height||awning.mount+20>room.height)throw new Error('어닝 설치 높이가 매장 높이를 벗어납니다.');if(awning.mount-awning.drop-awning.valance<1000)throw new Error('어닝 하단 높이가 1,000mm 미만입니다. 설치 높이와 경사를 조정하세요.');if(awning.drop>awning.projection)throw new Error('어닝의 내려가는 높이는 돌출 길이 이내로 입력하세요.');if(sign.enabled&&Math.abs(sign.x-awning.x)<(sign.width+awning.width)/2&&awning.mount+20>sign.bottom&&awning.mount-awning.drop-awning.valance<sign.bottom+sign.height)throw new Error('간판과 어닝이 겹칩니다. 어닝을 간판 아래로 조정하세요.');}
 }
-export const finishSchema = z.object({ catalogId:z.string().max(80).refine(id=>!!materialProduct(id),'등록된 제조사 제품을 선택하세요.').nullable().optional(), textureId:z.string().uuid().nullable().optional(), color: hex.optional(), roughness: z.number().min(0).max(1).optional(), metalness: z.number().min(0).max(1).optional(), scale: z.number().min(50).max(5000).optional(), rotation: z.number().min(-180).max(180).optional() });
+export const finishSchema = z.object({ catalogId:z.string().max(80).refine(id=>{const p=materialProduct(id);return !!p&&(p.kind!=='color'||!!p.previewColor)},'등록된 제조사 제품을 선택하세요.').nullable().optional(), textureId:z.string().uuid().nullable().optional(), color: hex.optional(), roughness: z.number().min(0).max(1).optional(), metalness: z.number().min(0).max(1).optional(), scale: z.number().min(50).max(5000).optional(), rotation: z.number().min(-180).max(180).optional() });
 export type MaterialFinish = z.infer<typeof finishSchema>;
 export const layerSchema=z.object({id:z.string().uuid(),name:z.string().trim().min(1).max(50),color:hex});
 export type SceneLayer=z.infer<typeof layerSchema>;
@@ -293,6 +293,7 @@ export function editAppearance(scene: SceneData, selection: Selection, patch: {
     if (!selection)
         throw new Error('소재를 바꿀 요소를 선택하세요.');
     const s = structuredClone(scene);
+    const mergeFinish=(old:MaterialFinish|undefined,next:MaterialFinish,inheritedCatalogId?:string|null):MaterialFinish=>{const merged={...old,...next},p=materialProduct(merged.catalogId??inheritedCatalogId);if(p?.kind==='color'&&next.color&&next.color.toLowerCase()!==p.previewColor)merged.catalogId=null;return merged;};
     if (Object.hasOwn(s.room.surfaces, selection.id)) {
         const surface = s.room.surfaces[selection.id as keyof SceneData['room']['surfaces']];
         if (patch.material) {
@@ -301,7 +302,7 @@ export function editAppearance(scene: SceneData, selection: Selection, patch: {
             surface.finish = {};
         }
         if (patch.finish)
-            surface.finish = { ...surface.finish, ...patch.finish };
+            surface.finish = mergeFinish(surface.finish,patch.finish);
         return validateScene(s);
     }
     const n = s.nodes.find(n => n.id === selection.id);
@@ -316,7 +317,7 @@ export function editAppearance(scene: SceneData, selection: Selection, patch: {
             n.faceFinishes = { ...n.faceFinishes, [key]: {} };
         }
         if (patch.finish)
-            n.faceFinishes = { ...n.faceFinishes, [key]: { ...n.faceFinishes?.[key], ...patch.finish } };
+            n.faceFinishes = { ...n.faceFinishes, [key]: mergeFinish(n.faceFinishes?.[key],patch.finish,nodeAppearance(n,key).finish.catalogId) };
     }
     else {
         if (patch.material) {
@@ -328,9 +329,9 @@ export function editAppearance(scene: SceneData, selection: Selection, patch: {
             delete n.color;
         }
         if (patch.finish) {
-            n.finish = { ...n.finish, ...patch.finish };
+            n.finish = mergeFinish(n.finish,patch.finish);
             for (const key of new Set([...Object.keys(n.faces), ...Object.keys(n.faceFinishes ?? {})]))
-                n.faceFinishes = { ...n.faceFinishes, [key]: { ...n.faceFinishes?.[key], ...patch.finish } };
+                n.faceFinishes = { ...n.faceFinishes, [key]: mergeFinish(n.faceFinishes?.[key],patch.finish) };
         }
     }
     return validateScene(s);

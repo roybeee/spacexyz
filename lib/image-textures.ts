@@ -6,6 +6,7 @@ import {inspectImage,IMAGE_LIMIT} from './image-assets';
 export async function loadImageTexture(id:string,signal:AbortSignal):Promise<T.Texture> {
     const product=id.startsWith('catalog:')?materialProduct(id.slice(8)):undefined;
     if(id.startsWith('catalog:')&&!product)throw new Error('등록된 제조사 제품을 찾을 수 없습니다.');
+    if(product?.kind==='color')throw new Error('단색 페인트는 이미지 텍스처가 아닙니다.');
     const response=await fetch(product?.image??`/api/assets?id=${encodeURIComponent(id)}`,{signal});
     if(!response.ok)throw new Error('소재·로고 이미지를 불러오지 못했습니다. 같은 계정의 이미지인지 확인하세요.');
     if(Number(response.headers.get('Content-Length'))>IMAGE_LIMIT)throw new Error('이미지 크기가 허용 범위를 넘었습니다.');
