@@ -1,4 +1,5 @@
 'use client';
+import {randomId} from '@/lib/random-id';
 import { useEffect, useRef, useState } from 'react';
 import { Upload, Box, LoaderCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -46,7 +47,7 @@ export default function ModelImportDialog({ open, onClose, scene, onAdd, initial
     } }
     async function add() { if (!bytes || !file || inFlight.current)
         return; inFlight.current = true; setBusy(true); setError(''); try {
-        const n: SceneNode = { ...createNode('box', crypto.randomUUID()), kind: 'model', assetId: crypto.randomUUID(), name: name.trim() || '가져온 모델', ...dimensions, material: 'plaster' };
+        const n: SceneNode = { ...createNode('box', randomId()), kind: 'model', assetId: randomId(), name: name.trim() || '가져온 모델', ...dimensions, material: 'plaster' };
         validateScene({ ...scene, nodes: [...scene.nodes, n] });
         const res = await fetch(`/api/assets?name=${encodeURIComponent(n.name)}`, { method: 'POST', headers: { 'Content-Type': 'model/gltf-binary' }, body: bytes });
         const d = await res.json() as {

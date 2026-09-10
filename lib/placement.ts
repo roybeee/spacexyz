@@ -1,3 +1,4 @@
+import {randomId} from '@/lib/random-id';
 import {z} from 'zod';
 import {validateScene,cloneUngroupedNode,collisions,type SceneData,type SceneNode} from './scene-model';
 import {groupBounds,selectedNodes,sceneGroups} from './selection';
@@ -53,7 +54,7 @@ export function arrayCapacity(scene:SceneData,nodes:SceneNode[],axis:'x'|'z',dir
  const available=direction===1?edge-high:low+edge;
  return Math.max(0,Math.min(12,Math.floor((available+1e-6)/step),Math.floor((300-scene.nodes.length)/nodes.length)));
 }
-export function planPlacement(scene:SceneData,ids:string[],input:PlacementRequest,editingGroupId:string|null=null,idFactory=()=>crypto.randomUUID(),groupIdFactory=()=>crypto.randomUUID()){
+export function planPlacement(scene:SceneData,ids:string[],input:PlacementRequest,editingGroupId:string|null=null,idFactory=()=>randomId(),groupIdFactory=()=>randomId()){
  let request:PlacementRequest;
  try{request=placementSchema.parse(input)}catch{throw new Error('기준·배치 방향과 횟수 1~12회, 간격 0~5,000mm, 원형 각도 15~360°, 벽 여유 0~2,000mm를 확인하세요.');}
  const nodes=placementNodes(scene,ids,editingGroupId),sourceIds=nodes.map(n=>n.id),set=new Set(sourceIds),s=structuredClone(scene),addedIds:string[]=[],delta={x:0,z:0};

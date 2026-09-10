@@ -1,3 +1,4 @@
+import {randomId} from '@/lib/random-id';
 import {partitionOpeningSchema,validatePartitionOpenings,openingParts,openingKindNames,type PartitionOpening} from './partition-openings-schema';
 import {validateScene,type SceneData,type SceneNode} from './scene-model';
 export function partitionTarget(scene:SceneData,id:string){
@@ -5,7 +6,7 @@ export function partitionTarget(scene:SceneData,id:string){
  if(node.locked)throw new Error('파티션 잠금을 해제한 뒤 문·창문을 편집하세요.');
  if(node.hidden)throw new Error('파티션을 표시한 뒤 문·창문을 편집하세요.');return node;
 }
-export function newPartitionOpening(n:SceneNode,kind:PartitionOpening['kind'],id=crypto.randomUUID()):PartitionOpening{
+export function newPartitionOpening(n:SceneNode,kind:PartitionOpening['kind'],id=randomId()):PartitionOpening{
  const window=kind==='window',bottom=window?Math.min(900,Math.max(100,n.height-700)):0;
  const o={id,name:openingKindNames[kind],kind,x:0,bottom,width:Math.min(window?1200:900,n.width-200),height:Math.min(window?1200:2100,n.height-bottom-100),...(kind==='door'?{door:{hinge:'left' as const,side:'positive' as const,angle:0}}:{})};
  const parsed=partitionOpeningSchema.parse(o),minimum=window?200:300,lo=-n.width/2+100,hi=n.width/2-100;

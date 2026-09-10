@@ -1,3 +1,4 @@
+import {randomId} from '@/lib/random-id';
 import {validateScene,footprint,surfaceNames,type SceneData,type SceneNode,type Selection,type MaterialId} from './scene-model';
 import {physicalNodeBounds} from './door-geometry';
 export type GroupDelta={x:number;y:number;z:number;rotation:number};
@@ -25,7 +26,7 @@ export function sceneGroups(scene:SceneData){
  for(const n of scene.nodes){if(!n.group)continue;let group=groups.get(n.group.id);if(!group){group={...n.group,nodes:[]};groups.set(group.id,group)}group.nodes.push(n)}
  return [...groups.values()];
 }
-export function createGroup(scene:SceneData,ids:string[],name:string,idFactory=()=>crypto.randomUUID()):SceneData{
+export function createGroup(scene:SceneData,ids:string[],name:string,idFactory=()=>randomId()):SceneData{
  const nodes=selectedNodes(scene,ids,'transform');
  if(nodes.length<2)throw new Error('가구를 2개 이상 선택하세요.');
  if(nodes.some(n=>n.group))throw new Error('기존 그룹을 먼저 해제한 뒤 새로 묶으세요.');
@@ -49,13 +50,13 @@ export function groupPoses(nodes:SceneNode[],delta:GroupDelta,pivot=groupBounds(
 }
 export function transformGroup(scene:SceneData,ids:string[],delta:GroupDelta,pivot?:{x:number;y:number;z:number}){const nodes=selectedNodes(scene,ids,'transform'),poses=groupPoses(nodes,delta,pivot);return validateScene({...scene,nodes:scene.nodes.map(n=>{const p=poses.find(p=>p.id===n.id);return p?{...n,...p}:n})})}
 export type BatchAction={type:'material';material:MaterialId}|{type:'delete'}|{type:'duplicate';x:number;z:number}|{type:'hidden'|'locked';value:boolean}|{type:'align';axis:'x'|'z';edge:'min'|'center'|'max'};
-export function batchAction(scene:SceneData,ids:string[],action:BatchAction,idFactory=()=>crypto.randomUUID()):SceneData{const nodes=selectedNodes(scene,ids,action.type==='hidden'||action.type==='locked'?'state':action.type==='align'?'transform':'edit'),set=new Set(ids),s=structuredClone(scene);
+export function batchAction(scene:SceneData,ids:string[],action:BatchAction,idFactory=()=>randomId()):SceneData{const nodes=selectedNodes(scene,ids,action.type==='hidden'||action.type==='locked'?'state':action.type==='align'?'transform':'edit'),set=new Set(ids),s=structuredClone(scene);
  if(action.type==='delete')s.nodes=s.nodes.filter(n=>!set.has(n.id));
  if(action.type==='material')for(const n of s.nodes.filter(n=>set.has(n.id))){n.material=action.material;n.uniformMaterial=true;n.faces={};n.faceFinishes={};n.finish={};delete n.color}
  if(action.type==='hidden'||action.type==='locked')for(const n of s.nodes.filter(n=>set.has(n.id)))n[action.type]=action.value;
  if(action.type==='duplicate'){
   if(!Number.isFinite(action.x)||!Number.isFinite(action.z))throw new Error('복제 간격을 확인하세요.');if(nodes.some(n=>n.host))throw new Error('문·창문은 개별 복제하세요.');
-  const groups=new Map(sceneGroups(scene).filter(g=>g.nodes.every(n=>set.has(n.id))).map(g=>[g.id,{id:crypto.randomUUID(),name:`${g.name.slice(0,70)} 사본`}]));
+  const groups=new Map(sceneGroups(scene).filter(g=>g.nodes.every(n=>set.has(n.id))).map(g=>[g.id,{id:randomId(),name:`${g.name.slice(0,70)} 사본`}]));
   for(const n of nodes){const copy={...structuredClone(n),id:idFactory(),name:`${n.name.slice(0,70)} 사본`,x:n.x+action.x,z:n.z+action.z};delete copy.group;if(n.group&&groups.has(n.group.id))copy.group=groups.get(n.group.id);s.nodes.push(copy)}
  }
  if(action.type==='align'){if(nodes.some(n=>n.group))throw new Error('그룹 내부 간격을 보호합니다. 개별 위치는 그룹 안 편집에서 조정하세요.');const bounds=groupBounds(nodes);for(const n of s.nodes.filter(n=>set.has(n.id))){

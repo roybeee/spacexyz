@@ -7,7 +7,7 @@ export function renderedMaterialSlots(root:T.Object3D,nodes:SceneNode[]):Materia
     root.traverse(o=>{
         if(!(o instanceof T.Mesh)||!ids.has(o.userData.nodeId)||typeof o.userData.part!=='string'||o.userData.unmeasurable)return;
         const list=Array.isArray(o.material)?o.material:[o.material];
-        const used=Array.isArray(o.material)?new Set(o.geometry.groups.filter(g=>g.count>0).map(g=>g.materialIndex??0)):new Set([0]);
+        const used=Array.isArray(o.material)?new Set((o.geometry as T.BufferGeometry).groups.filter(g=>g.count>0).map(g=>g.materialIndex??0)):new Set([0]);
         for(const index of used){const mat=list[index];if(!mat)continue;
             const face=`${o.userData.part}:${index}`,key=JSON.stringify([o.userData.nodeId,face]);
             const hasUv=!!o.geometry.getAttribute('uv');

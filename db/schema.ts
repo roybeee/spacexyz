@@ -6,3 +6,5 @@ export const assets = sqliteTable('assets', { id: text('id').primaryKey(), owner
 export const assemblies = sqliteTable('assemblies', { id:text('id').primaryKey(),owner:text('owner').notNull(),name:text('name').notNull(),note:text('note').notNull(),category:text('category').notNull(),content:text('content').notNull(),count:integer('count').notNull(),width:real('width').notNull(),depth:real('depth').notNull(),height:real('height').notNull(),createdAt:text('created_at').notNull() }, t=>[index('assemblies_owner_created').on(t.owner,t.createdAt)]);
 
 export const materialPresets = sqliteTable('material_presets', {id:text('id').primaryKey(),owner:text('owner').notNull(),name:text('name').notNull(),content:text('content').notNull(),createdAt:text('created_at').notNull()}, t=>[index('material_presets_owner_created').on(t.owner,t.createdAt)]);
+
+export const renderRequests = sqliteTable('render_requests', {id:text('id').primaryKey(),owner:text('owner').notNull(),fingerprint:text('fingerprint').notNull(),status:text('status').notNull().default('pending'),createdAt:text('created_at').notNull()});

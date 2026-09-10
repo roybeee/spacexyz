@@ -1,3 +1,4 @@
+import {randomId} from '@/lib/random-id';
 import {z} from 'zod';
 import {nodeSchema,cloneUngroupedNode,initialScene,validateScene,createNode,collisions,type SceneData,type SceneNode} from './scene-model';
 import {groupBounds,selectedNodes} from './selection';
@@ -34,15 +35,15 @@ export function assemblySummary(id:string,a:Assembly,created_at=''):AssemblySumm
     const b=groupBounds(a.nodes);return {id,name:a.name,note:a.note,category:a.category,count:a.nodes.length,width:b.width,depth:b.depth,height:b.height,created_at};
 }
 
-export function placedAssembly(a:Assembly,p:AssemblyPlacement,idFactory=()=>crypto.randomUUID()):SceneNode[] {
+export function placedAssembly(a:Assembly,p:AssemblyPlacement,idFactory=()=>randomId()):SceneNode[] {
     if(!Object.values(p).every(Number.isFinite)||p.y<0||Math.abs(p.rotation)>360)throw new Error('위치·높이·회전 값을 확인하세요.');
     const angle=yaw(p.rotation)*Math.PI/180,c=Math.cos(angle),s=Math.sin(angle);
     return a.nodes.map(n=>({...detachedAssemblyNode(n),id:idFactory(),x:p.x+n.x*c+n.z*s,y:p.y+n.y,z:p.z-n.x*s+n.z*c,rotation:yaw(n.rotation+p.rotation),locked:false,hidden:false}));
 }
 
-export function insertAssembly(scene:SceneData,input:unknown,p:AssemblyPlacement,idFactory=()=>crypto.randomUUID()) {
+export function insertAssembly(scene:SceneData,input:unknown,p:AssemblyPlacement,idFactory=()=>randomId()) {
     const a=validateAssembly(input),added=placedAssembly(a,p,idFactory);
-    if(added.length>1){const group={id:crypto.randomUUID(),name:a.name};for(const n of added)n.group=group;}
+    if(added.length>1){const group={id:randomId(),name:a.name};for(const n of added)n.group=group;}
     const next=validateScene({...scene,nodes:[...scene.nodes,...added]}),ids=added.map(n=>n.id),set=new Set(ids);
     const overlaps=collisions(next).filter(c=>set.has(c.a)||set.has(c.b));
     return {scene:next,ids,overlaps};

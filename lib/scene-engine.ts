@@ -984,7 +984,7 @@ export class SceneEngine {
         const check=()=>{if(this.disposed||key!==this.geometryKey||epoch!==(this.assetEpoch??0)||JSON.stringify(this.data)!==signature||targets.some(object=>!object||!this.root.children.includes(object)))throw new Error('장면이 변경되거나 닫혔습니다. 선택 요소를 다시 내보내세요.');};
         await this.materialNodesReady(ids);check();
         const collect=()=>{const rows:{mesh:T.Mesh;materials:T.Material[]}[]=[];
-            const visit=(object:T.Object3D)=>{if(object instanceof T.Mesh){const all=Array.isArray(object.material)?object.material:[object.material],used=Array.isArray(object.material)?[...new Set(object.geometry.groups.filter(group=>group.count>0).map(group=>group.materialIndex??0))]:[0];rows.push({mesh:object,materials:used.map(index=>all[index]).filter(Boolean)});}for(const child of object.children)if(child.visible)visit(child);};
+            const visit=(object:T.Object3D)=>{if(object instanceof T.Mesh){const all=Array.isArray(object.material)?object.material:[object.material],used=Array.isArray(object.material)?[...new Set((object.geometry as T.BufferGeometry).groups.filter(group=>group.count>0).map(group=>group.materialIndex??0))]:[0];rows.push({mesh:object,materials:used.map(index=>all[index]).filter(Boolean)});}for(const child of object.children)if(child.visible)visit(child);};
             // The selected parent may be hidden only by automatic wall cutaway.
             for(const target of targets)visit(target!);return rows;
         };

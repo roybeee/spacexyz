@@ -52,9 +52,11 @@ export async function POST(req: Request) { try {
     catch {
         throw new HttpError(502, 'AI 응답을 해석할 수 없습니다.');
     }
-    if (!Array.isArray(parsed.commands) || parsed.commands.length > 12)
+    if (!parsed || !Array.isArray(parsed.commands) || parsed.commands.length > 12)
         throw new HttpError(502, 'AI 편집 명령을 확인할 수 없습니다.');
-    const commands = parsed.commands.map((c: unknown) => commandSchema.parse(c));
+    const decoded = commandSchema.array().safeParse(parsed.commands);
+    if (!decoded.success) throw new HttpError(502, 'AI가 올바르지 않은 편집 명령을 반환했습니다. 다시 요청해 주세요.');
+    const commands = decoded.data;
     try {
         applyCommands(scene, commands);
     }

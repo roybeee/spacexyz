@@ -1,3 +1,4 @@
+import {randomId} from '@/lib/random-id';
 import {z} from 'zod';
 import {collisions,createNode,materialIds,validateScene,type SceneData} from './scene-model';
 import {groupBounds} from './selection';
@@ -44,7 +45,7 @@ export function snapWallPoint(input:WallPoint,from:WallPoint|undefined,grid:bool
  if(from&&orthogonal){if(Math.abs(result.x-from.x)>=Math.abs(result.z-from.z))result.z=from.z;else result.x=from.x;}
  return result;
 }
-export function planWalls(scene:SceneData,input:WallDrawingRequest,idFactory=()=>crypto.randomUUID(),groupIdFactory=()=>crypto.randomUUID()){
+export function planWalls(scene:SceneData,input:WallDrawingRequest,idFactory=()=>randomId(),groupIdFactory=()=>randomId()){
  let request:WallDrawingRequest;
  try{request=wallDrawingSchema.parse(input);}catch{throw new Error('이름, 좌표, 두께 20~500mm, 높이 100mm 이상과 소재를 확인하세요.');}
  validateWallPath(request.points,request.closed);

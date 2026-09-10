@@ -1,4 +1,5 @@
 'use client';
+import {randomId} from '@/lib/random-id';
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {Bookmark,Save,Search,Trash2,RefreshCw,LoaderCircle,Check,ImageIcon,Palette,ArrowDownToLine} from 'lucide-react';
 import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription} from '@/components/ui/dialog';
@@ -12,7 +13,7 @@ import './material-presets.css';
 class PresetRequestError extends Error{constructor(message:string,public status?:number){super(message);}}
 async function request<T>(url:string,options?:RequestInit):Promise<T>{
  const response=await fetch(url,options),data=await response.json().catch(()=>null);
- if(!response.ok)throw new PresetRequestError(response.status===401?'로그인이 필요합니다. 앱을 새로고침한 뒤 보관함을 다시 여세요.':data?.error||'소재 보관함 요청을 처리하지 못했습니다.',response.status);
+ if(!response.ok)throw new PresetRequestError(response.status===401?'로그인이 필요합니다. 앱을 새로고침한 뒤 보관함을 다시 여세요.':(data&&typeof data==='object'&&'error' in data&&typeof data.error==='string'?data.error:'소재 보관함 요청을 처리하지 못했습니다.'),response.status);
  if(data===null&&response.status!==204)throw new PresetRequestError('서버 응답을 확인하지 못했습니다. 다시 시도하세요.');
  return data as T;
 }
@@ -45,7 +46,7 @@ export default function MaterialPresetsDialog({sample,initialSave=false,onClose,
  }
  async function save(){
   if(flight.current||!source||(!saveAttempt.current&&!captured.preset))return;
-  if(!saveAttempt.current)saveAttempt.current={id:crypto.randomUUID(),preset:structuredClone(captured.preset!)};
+  if(!saveAttempt.current)saveAttempt.current={id:randomId(),preset:structuredClone(captured.preset!)};
   const attempt=saveAttempt.current,seq=++operationSequence.current;flight.current=true;setBusy(true);setError('');setNotice('');invalidateList();operationController.current=new AbortController();
   try{const row=await request<MaterialPresetRow>('/api/material-presets',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(attempt),signal:operationController.current.signal});if(row?.id!==attempt.id||!row.preset)throw new Error('저장 결과를 확인하지 못했습니다. 같은 요청으로 다시 확인하세요.');if(alive.current&&seq===operationSequence.current)saved(row);
   }catch(e){if(alive.current&&seq===operationSequence.current){const rejected=e instanceof PresetRequestError&&e.status!==undefined&&e.status>=400&&e.status<500&&e.status!==408;if(rejected){saveAttempt.current=null;setUncertain(false);}else setUncertain(true);setError(e instanceof Error?e.message:'소재 저장에 실패했습니다.');}}

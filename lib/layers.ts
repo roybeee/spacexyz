@@ -1,3 +1,4 @@
+import {randomId} from '@/lib/random-id';
 import {layerSchema,layerNameKey,validateScene,type SceneData,type SceneNode} from './scene-model';
 import {expandGroupIds,selectedNodes} from './selection';
 
@@ -19,7 +20,7 @@ export function assignLayer(scene:SceneData,ids:string[],layerId:string|null):Sc
  if(changed.some(n=>n.locked))throw new Error('잠긴 가구가 포함되어 있습니다. 그룹 전체의 잠금을 해제한 뒤 레이어를 바꾸세요.');
  return validateScene({...scene,nodes:scene.nodes.map(n=>{if(!set.has(n.id))return n;const copy={...n};if(layerId===null)delete copy.layerId;else copy.layerId=layerId;return copy})});
 }
-export function addLayer(scene:SceneData,name:string,color:string,ids:string[]=[],idFactory=()=>crypto.randomUUID()):SceneData{
+export function addLayer(scene:SceneData,name:string,color:string,ids:string[]=[],idFactory=()=>randomId()):SceneData{
  if((scene.layers?.length??0)>=20)throw new Error('레이어는 20개까지 만들 수 있습니다.');
  const parsed=layerSchema.safeParse({id:idFactory(),name,color});if(!parsed.success)throw new Error('레이어 이름은 1~50자, 색상은 올바른 색상값으로 입력하세요.');
  const layer=parsed.data;if(scene.layers?.some(l=>l.id===layer.id))throw new Error('레이어 ID가 중복되었습니다.');

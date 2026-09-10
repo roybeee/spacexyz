@@ -1,3 +1,4 @@
+import {randomId} from '@/lib/random-id';
 import {doorGeometry,toWorldDoorBox,physicalNodeBounds,partitionObstacleBoxes,type LocalDoorBox} from './door-geometry';
 import {partitionOpeningSchema,validatePartitionOpenings} from './partition-openings-schema';
 import {underlaySchema,validateUnderlay} from './underlay-schema';
@@ -175,7 +176,7 @@ export const commandSchema = z.discriminatedUnion('type', [
     z.object({ type: z.literal('light'), value: z.number().min(2700).max(6500) })
 ]);
 export type SceneCommand = z.infer<typeof commandSchema>;
-export function applyCommands(scene: SceneData, commands: SceneCommand[], idFactory = () => crypto.randomUUID()): SceneData {
+export function applyCommands(scene: SceneData, commands: SceneCommand[], idFactory = () => randomId()): SceneData {
     const s = structuredClone(scene);
     for (const raw of commands) {
         const c = commandSchema.parse(raw);
@@ -331,7 +332,7 @@ export function editAppearance(scene: SceneData, selection: Selection, patch: {
     return validateScene(s);
 }
 export function footprint(node: SceneNode) { const r = node.rotation * Math.PI / 180; return { width: Math.abs(Math.cos(r)) * node.width + Math.abs(Math.sin(r)) * node.depth, depth: Math.abs(Math.sin(r)) * node.width + Math.abs(Math.cos(r)) * node.depth }; }
-export function arrayNode(scene: SceneData, id: string, count: number, gap: number, axis: 'x' | 'z', idFactory = () => crypto.randomUUID()): SceneData {
+export function arrayNode(scene: SceneData, id: string, count: number, gap: number, axis: 'x' | 'z', idFactory = () => randomId()): SceneData {
     if (!Number.isInteger(count) || count < 1 || count > 12 || !Number.isFinite(gap) || gap < 0 || gap > 5000)
         throw new Error('복제 수 1~12개, 간격 0~5,000mm를 입력하세요.');
     const n = scene.nodes.find(n => n.id === id);

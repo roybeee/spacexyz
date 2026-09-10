@@ -1,3 +1,4 @@
+import {randomId} from '@/lib/random-id';
 import { z } from 'zod';
 import { initialScene, createNode, validateScene, materialIds, kinds, footprint, collisions, type SceneData, type SceneNode } from './scene-model';
 export const draftInputSchema = z.object({ width: z.number().min(2400).max(20000), depth: z.number().min(2400).max(20000), height: z.number().min(2200).max(6000), brand: z.enum(['ofd', 'oda', 'cafe']), name: z.string().min(1).max(100) });
@@ -7,7 +8,7 @@ export const draftResultSchema = z.object({ summary: z.string().max(1000), notes
 const itemProperties = { kind: { type: 'string', enum: kinds }, name: { type: 'string' }, x: { type: 'number' }, y: { type: 'number' }, z: { type: 'number' }, width: { type: 'number' }, height: { type: 'number' }, depth: { type: 'number' }, rotation: { type: 'number', enum: [0, 90, 180, 270] }, material: { type: 'string', enum: materialIds }, host: { type: ['string', 'null'], enum: ['back', 'front', 'left', 'right', null] } };
 export const draftOutputJSONSchema = { type: 'object', additionalProperties: false, required: ['summary', 'notes', 'wallMaterial', 'floorMaterial', 'warmth', 'items'], properties: { summary: { type: 'string' }, notes: { type: 'array', items: { type: 'string' } }, wallMaterial: { type: 'string', enum: materialIds }, floorMaterial: { type: 'string', enum: materialIds }, warmth: { type: 'number' }, items: { type: 'array', items: { type: 'object', additionalProperties: false, required: Object.keys(itemProperties), properties: itemProperties } } } };
 function emptyDraft(input: DraftInput): SceneData { const s = initialScene(); s.name = input.name; s.nodes = []; s.room.width = input.width; s.room.depth = input.depth; s.room.height = input.height; s.room.source = 'entered'; s.cameras = []; return s; }
-export function buildPhotoDraft(input: DraftInput, result: unknown, idFactory = () => crypto.randomUUID()): SceneData {
+export function buildPhotoDraft(input: DraftInput, result: unknown, idFactory = () => randomId()): SceneData {
     const q = draftInputSchema.parse(input), r = draftResultSchema.parse(result), s = emptyDraft(q), notes = [...r.notes];
     for (const key of ['back', 'front', 'left', 'right'] as const)
         s.room.surfaces[key] = { material: r.wallMaterial };
@@ -45,7 +46,7 @@ export function buildPhotoDraft(input: DraftInput, result: unknown, idFactory = 
     s.draft = { method: 'photo-ai', summary: r.summary, notes: ['공간 크기는 입력값입니다. 사진에서 파악한 가구의 치수·위치·소재는 추정값이므로 현장에서 확인하세요.', ...notes].slice(0, 30) };
     return validateScene(s);
 }
-export function templateDraft(input: DraftInput, idFactory = () => crypto.randomUUID()): SceneData {
+export function templateDraft(input: DraftInput, idFactory = () => randomId()): SceneData {
     const q = draftInputSchema.parse(input), s = emptyDraft(q), w = q.width, d = q.depth, notes: string[] = [];
     const add = (kind: typeof kinds[number], patch: Partial<SceneNode>) => {
         const n = { ...createNode(kind, idFactory()), ...patch, estimated: true };

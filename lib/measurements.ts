@@ -1,3 +1,4 @@
+import {randomId} from '@/lib/random-id';
 import {measurementAnchorSchema,measurementSchema,type MeasurementAnchor,type Measurement} from './measurement-schema';
 import {validateScene,surfaceNames,type SceneData,type SceneNode} from './scene-model';
 export type {MeasurementAnchor,Measurement} from './measurement-schema';
@@ -32,7 +33,7 @@ export function readMeasurement(scene:MeasurementScene,m:Measurement){
  return{start,end,x,y,z,horizontal:Math.hypot(x,z),length:Math.hypot(x,y,z)};
 }
 export function measurementVisible(scene:MeasurementScene,m:Measurement){return !m.hidden&&[m.start,m.end].every(a=>a.kind==='room'||scene.nodes.some(n=>n.id===a.nodeId&&!n.hidden));}
-export function addMeasurement(scene:SceneData,start:MeasurementAnchor,end:MeasurementAnchor,name=`치수 ${(scene.measurements?.length??0)+1}`,idFactory=()=>crypto.randomUUID()){
+export function addMeasurement(scene:SceneData,start:MeasurementAnchor,end:MeasurementAnchor,name=`치수 ${(scene.measurements?.length??0)+1}`,idFactory=()=>randomId()){
  const m=measurementSchema.parse({id:idFactory(),name,start,end,hidden:false}),value=readMeasurement(scene,m);
  if(!value)throw new Error('연결할 가구를 찾을 수 없습니다. 측정을 다시 시작하세요.');
  if(value.length<1)throw new Error('시작점에서 1mm 이상 떨어진 끝점을 선택하세요.');

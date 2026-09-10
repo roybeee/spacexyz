@@ -1,3 +1,4 @@
+import {randomId} from '@/lib/random-id';
 import {createNode,facadeSchema,validateScene,type FacadeData,type SceneData,type SceneNode} from './scene-model';
 
 export function defaultFacade(scene:Pick<SceneData,'room'|'name'>):FacadeData {
@@ -15,7 +16,7 @@ export function facadeProjection(scene:Pick<SceneData,'facade'>) {
 }
 
 export type StorefrontOptions={doorPosition:'left'|'center'|'right';doorWidth:number;frameMaterial:'charcoal'|'oak'|'steel';};
-export function createGlassStorefront(scene:SceneData,options:StorefrontOptions,idFactory=()=>crypto.randomUUID()):SceneData {
+export function createGlassStorefront(scene:SceneData,options:StorefrontOptions,idFactory=()=>randomId()):SceneData {
     if(!['left','center','right'].includes(options.doorPosition)||!['charcoal','oak','steel'].includes(options.frameMaterial)||!Number.isFinite(options.doorWidth)||options.doorWidth<700||options.doorWidth>1800)throw new Error('출입문 너비는 700~1,800mm로 입력하세요.');
     const replaced=scene.nodes.filter(n=>n.host==='front');
     if(replaced.some(n=>n.locked))throw new Error('잠긴 전면 문·창문이 있습니다. 잠금을 해제한 뒤 전면을 구성하세요.');
