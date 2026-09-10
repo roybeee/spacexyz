@@ -4,8 +4,10 @@ import { LoaderCircle, MonitorX } from 'lucide-react';
 import type { SceneData, SceneNode, Selection } from '@/lib/scene-model';
 import type {MeasurementAnchor} from '@/lib/measurements';
 import type {GroupDelta} from '@/lib/selection';
+import type {SectionView} from '@/lib/section-view';
 import type { SceneEngine, ToolMode, ViewMode } from '@/lib/scene-engine';
-export default function SceneCanvas({ scene, selection, tool, view, faceMode, snap, cutaway, onSelect, onTransform, onDraw, onReady, restoreCamera, multiSelect, onTransformGroup,onMeasure,onMeasureStatus,measurementsVisible }: {
+export default function SceneCanvas({ scene, selection, tool, view, faceMode, snap, cutaway, onSelect, onTransform, onDraw, onReady, restoreCamera, multiSelect, onTransformGroup,onMeasure,onMeasureStatus,measurementsVisible,section }: {
+    section?:SectionView|null;
     onMeasure?:(start:MeasurementAnchor,end:MeasurementAnchor)=>boolean;
     onMeasureStatus?:(started:boolean,error?:string)=>void;
     measurementsVisible?:boolean;
@@ -32,8 +34,8 @@ export default function SceneCanvas({ scene, selection, tool, view, faceMode, sn
     const host = useRef<HTMLDivElement>(null), engine = useRef<SceneEngine | null>(null);
     const callbacks = useRef({ onSelect, onTransform, onDraw, onReady, onTransformGroup,onMeasure,onMeasureStatus });
     callbacks.current = { onSelect, onTransform, onDraw, onReady, onTransformGroup,onMeasure,onMeasureStatus };
-    const current = useRef({ scene, selection, tool, view, faceMode, snap, cutaway,multiSelect,restoreCamera,measurementsVisible });
-    current.current = { scene, selection, tool, view, faceMode, snap, cutaway,multiSelect,restoreCamera,measurementsVisible };
+    const current = useRef({ scene, selection, tool, view, faceMode, snap, cutaway,multiSelect,restoreCamera,measurementsVisible,section });
+    current.current = { scene, selection, tool, view, faceMode, snap, cutaway,multiSelect,restoreCamera,measurementsVisible,section };
     const [modelStatus, setModelStatus] = useState<{
         loading: number;
         errors: string[];
@@ -48,12 +50,13 @@ export default function SceneCanvas({ scene, selection, tool, view, faceMode, sn
                 const e = new SceneEngine(host.current, { onDraw: p => callbacks.current.onDraw(p), onSelect: (s,additive) => callbacks.current.onSelect(s,additive), onTransform: (id, p) => callbacks.current.onTransform(id, p) });
                 engine.current = e;
                 e.onTransformGroup=(ids,delta,pivot)=>callbacks.current.onTransformGroup?.(ids,delta,pivot);e.multiSelect=!!current.current.multiSelect;
-                e.onMeasure=(start,end)=>callbacks.current.onMeasure?.(start,end)??false;e.onMeasureStatus=(started,error)=>callbacks.current.onMeasureStatus?.(started,error);e.measurementOverlay.group.visible=current.current.measurementsVisible!==false;
+                e.onMeasure=(start,end)=>callbacks.current.onMeasure?.(start,end)??false;e.onMeasureStatus=(started,error)=>callbacks.current.onMeasureStatus?.(started,error);e.setMeasurementsVisible(current.current.measurementsVisible!==false);
                 e.onModelStatus = status => { if (!cancelled)
                     setModelStatus(status); };
                 e.setScene(current.current.scene);
                 e.setView(current.current.view);
                 if(current.current.restoreCamera)e.restoreCamera(current.current.restoreCamera);
+                e.setSection(current.current.section??null);
                 e.setSelection(current.current.selection);
                 e.setSelectionMode(current.current.faceMode);
                 e.setMode(current.current.tool);
@@ -71,7 +74,7 @@ export default function SceneCanvas({ scene, selection, tool, view, faceMode, sn
     useEffect(() => { engine.current?.setScene(scene); }, [scene]);
     useEffect(() => { engine.current?.setSelection(selection); }, [selection]);
     useEffect(() => { engine.current?.setMode(tool); }, [tool]);
-    useEffect(()=>{if(engine.current)engine.current.measurementOverlay.group.visible=measurementsVisible!==false;},[measurementsVisible]);
+    useEffect(()=>{engine.current?.setMeasurementsVisible(measurementsVisible!==false);},[measurementsVisible]);
     useEffect(() => { engine.current?.setView(view); }, [view]);
     useEffect(() => { engine.current?.setSelectionMode(faceMode); }, [faceMode]);
     useEffect(() => { engine.current?.setSnap(snap); }, [snap]);
@@ -84,5 +87,6 @@ export default function SceneCanvas({ scene, selection, tool, view, faceMode, sn
         if (restoreCamera)
             engine.current?.restoreCamera(restoreCamera);
     }, [restoreCamera]);
+    useEffect(()=>{engine.current?.setSection(section??null);},[section]);
     return <div className="canvas-host" ref={host}>{ready && (modelStatus.loading > 0 || modelStatus.errors.length > 0) && <div className="model-load-status" role="status">{modelStatus.loading > 0 ? <><LoaderCircle size={15} className="spin"/>3D 소재·모델 준비 중…</> : <>{modelStatus.errors[0]}<button onClick={() => engine.current?.retryModels()}>다시 시도</button></>}</div>}{!ready && !error && <div className="canvas-message"><LoaderCircle className="spin"/><b>3D 공간 불러오는 중</b></div>}{error && <div className="canvas-message"><MonitorX /><b>3D 화면을 사용할 수 없습니다</b><p>{error}</p></div>}</div>;
 }

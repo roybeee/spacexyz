@@ -1,4 +1,6 @@
 import {MeasurementOverlay} from './measurement-overlay';
+import {SectionClipper,clearExportClipping} from './section-clipper';
+import {sectionSchema,sectionContains,type SectionView} from './section-view';
 import {renderedMaterialSlots} from './material-catalog';
 import {pickMeasurementAnchor} from './measurement-picking';
 import {readMeasurement,type MeasurementAnchor} from './measurements';
@@ -62,6 +64,10 @@ export class SceneEngine {
     view: ViewMode = 'perspective';
     grid: T.GridHelper;
     cutaway = true;
+    section:SectionView|null=null;
+    private sectionClipper?:SectionClipper;
+    private sectionSuspended=false;
+    private measurementsVisible=true;
     dimensions = false;
     measurementOverlay=new MeasurementOverlay();
     measureStart:MeasurementAnchor|null=null;
@@ -107,6 +113,7 @@ export class SceneEngine {
         this.renderer.toneMappingExposure = 1.2;
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = T.PCFSoftShadowMap;
+        this.renderer.localClippingEnabled=true;
         this.renderer.domElement.setAttribute('aria-label', '편집 가능한 매장 3D 장면');
         this.renderer.domElement.tabIndex = 0;
         this.host.appendChild(this.renderer.domElement);
@@ -181,6 +188,7 @@ export class SceneEngine {
             ray.setFromCamera(new T.Vector2((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1), this.camera);
             if(this.mode==='measure'){if(e.button===0&&e.isPrimary!==false)this.measureAt(ray);return;}
             if (this.mode === 'draw') {
+                if(this.section)return;
                 const point = new T.Vector3();
                 if (!ray.ray.intersectPlane(new T.Plane(new T.Vector3(0, 1, 0), 0), point))
                     return;
@@ -199,6 +207,7 @@ export class SceneEngine {
                 return;
             }
             const hits = ray.intersectObjects(this.root.children, true).filter(h => {
+                if(!this.sectionPointVisible(h.point))return false;
                 let o: T.Object3D | null = h.object;
                 while (o) {
                     if (!o.visible)
@@ -407,7 +416,7 @@ export class SceneEngine {
                 }
             }
             this.setLighting(data.lighting);
-            this.setSelection(this.selection);return;
+            this.setSelection(this.selection);this.refreshSection();return;
         }
         this.geometryKey = key;
         this.assetEpoch=(this.assetEpoch??0)+1;this.assetErrors=[];
@@ -467,6 +476,7 @@ export class SceneEngine {
             this.setView(this.view);
         this.setSelection(this.selection);
         this.updateCutaway();
+        this.refreshSection();
     }
     private surfaceMaterial(id: keyof SceneData['room']['surfaces'], repeat: [
         number,
@@ -590,6 +600,7 @@ export class SceneEngine {
             default: box(w, h, d, 0, h / 2, 0, 'body');
         }
         this.root.add(g);
+        this.sectionClipper?.bind(g);
         return g;
     }
     private publishModelStatus() {
@@ -646,7 +657,7 @@ export class SceneEngine {
         if (f.metalness !== undefined)
             native.metalness = f.metalness;
     } if ('color' in native && f.color)
-        (native.color as T.Color).set(f.color); return native; }); o.material = wasArray ? mapped : mapped[0]; }); g.add(model); this.setSelection(this.selection); }).catch(e => { if (!this.disposed && this.root.children.includes(g)){
+        (native.color as T.Color).set(f.color); return native; }); o.material = wasArray ? mapped : mapped[0]; }); g.add(model); this.sectionClipper?.bind(g); this.setSelection(this.selection); }).catch(e => { if (!this.disposed && this.root.children.includes(g)){
         (placeholder.material as T.MeshBasicMaterial).color.set(0xd96357);throw e;} }); this.trackAsset(job,epoch); }
     async modelsReady() {
         const key=this.geometryKey,epoch=this.assetEpoch??0;
@@ -665,20 +676,34 @@ export class SceneEngine {
         this.geometryKey='';if(this.data)this.setScene(this.data);
     }
     setLighting(value: SceneData['lighting']) { this.renderer.toneMappingExposure = .85 + value.intensity * .35; this.ambient.intensity = 1.3 + value.intensity * .65; this.light.intensity = 2.5 * value.intensity; const t = (value.warmth - 2700) / (6500 - 2700); this.light.color.setRGB(1, .77 + t * .22, .5 + t * .5); }
+    setSection(value:SectionView|null){
+        const next=value?sectionSchema.parse(value):null;
+        if(JSON.stringify(next)===JSON.stringify(this.section??null))return;
+        this.cancelTransform();this.cancelMeasurement();this.drawStart=null;this.section=next;
+        if(next){this.setMode('select');if(!this.sectionClipper){this.sectionClipper=new SectionClipper();this.scene.add(this.sectionClipper.guide);}}
+        this.refreshSection();this.setSelection(this.selection);
+    }
+    private refreshSection(){
+        if(this.data&&this.sectionClipper)this.sectionClipper.update(this.data.room,this.sectionSuspended?null:this.section,[this.root,this.helpers,this.interiorCeiling]);
+        if(this.measurementOverlay?.group)this.measurementOverlay.group.visible=(this.measurementsVisible??true)&&!(this.section&&!this.sectionSuspended);
+        if(this.data&&this.root&&this.camera)this.updateCutaway();
+    }
+    setMeasurementsVisible(value:boolean){this.measurementsVisible=value;if(this.measurementOverlay)this.measurementOverlay.group.visible=value&&!this.section;}
+    sectionPointVisible(point:T.Vector3){return !this.data||sectionContains(this.data.room,this.sectionSuspended?null:this.section,point);}
     private updateCutaway() {
         if (!this.data)
             return;
-        const p = this.camera.position;
+        const p = this.camera.position,cutaway=this.cutaway&&!(this.section&&!this.sectionSuspended);
         const d = this.data.room.depth / 1000, w = this.data.room.width / 1000;
         for (const item of this.root.children) {
-            if(item.userData.facade){item.visible=!(this.cutaway&&this.view!=='front'&&this.view!=='top'&&p.z>d/2);continue;}
+            if(item.userData.facade){item.visible=!(cutaway&&this.view!=='front'&&this.view!=='top'&&p.z>d/2);continue;}
             const wall = item.userData.wall ?? item.userData.host;
             if (!wall)
                 continue;
             const n = this.data.nodes.find(n => n.id === item.userData.nodeId);
             const hidden = n?.hidden ?? false;
             const front = wall === 'front' && p.z > d / 2, back = wall === 'back' && p.z < -d / 2, left = wall === 'left' && p.x < -w / 2, right = wall === 'right' && p.x > w / 2;
-            item.visible = !hidden && !(this.cutaway && this.view!=='front' && (this.view === 'top' || front || back || left || right));
+            item.visible = !hidden && !(cutaway && this.view!=='front' && (this.view === 'top' || front || back || left || right));
         }
     }
     setSelection(selection: Selection) {
@@ -696,7 +721,7 @@ export class SceneEngine {
             return;
         const ids=selectionIds(selection);
         if(ids.length>1&&this.data){const nodes=this.data.nodes.filter(n=>ids.includes(n.id));for(const n of nodes){const obj=this.root.children.find(o=>o.userData.nodeId===n.id);if(!obj||n.hidden)continue;const outline=new T.BoxHelper(obj,0x7861f0);(outline.material as T.Material).depthTest=false;outline.renderOrder=10;this.helpers.add(outline);this.multiOutlines.push(outline)}
-        if(nodes.length&&nodes.every(n=>!n.locked&&!n.hidden&&!n.host)&&(this.mode==='translate'||this.mode==='rotate')){const center=groupBounds(nodes).center;this.pivot.position.set(center.x/1000,center.y/1000,center.z/1000);this.pivot.rotation.set(0,0,0);this.pivot.updateMatrixWorld(true);this.transform.setMode(this.mode);this.transform.showX=this.mode==='translate';this.transform.showY=true;this.transform.showZ=this.mode==='translate';this.transform.attach(this.pivot)}return;}
+        this.sectionClipper?.bind(this.helpers);if(!this.section&&nodes.length&&nodes.every(n=>!n.locked&&!n.hidden&&!n.host)&&(this.mode==='translate'||this.mode==='rotate')){const center=groupBounds(nodes).center;this.pivot.position.set(center.x/1000,center.y/1000,center.z/1000);this.pivot.rotation.set(0,0,0);this.pivot.updateMatrixWorld(true);this.transform.setMode(this.mode);this.transform.showX=this.mode==='translate';this.transform.showY=true;this.transform.showZ=this.mode==='translate';this.transform.attach(this.pivot)}return;}
         const n = this.data?.nodes.find(n => n.id === selection.id);
         const obj = this.root.children.find(o => o.userData.nodeId === selection.id);
         if (!obj)
@@ -717,7 +742,8 @@ export class SceneEngine {
         (this.outline.material as T.Material).depthTest = false;
         this.outline.renderOrder = 10;
         this.helpers.add(this.outline);
-        if (n && !n.locked && !n.hidden && !n.host && (this.mode === 'translate' || this.mode === 'rotate')) {
+        this.sectionClipper?.bind(this.helpers);
+        if (!this.section && n && !n.locked && !n.hidden && !n.host && (this.mode === 'translate' || this.mode === 'rotate')) {
             this.transform.setMode(this.mode);
             this.transform.showX = this.mode === 'translate';
             this.transform.showY = true;
@@ -745,14 +771,14 @@ export class SceneEngine {
     cancelTransform(){if(!this.dragActive&&!this.groupDrag)return;this.groupDrag=undefined;this.dragActive=false;this.transform.dragging=false;this.transform.axis=null;this.orbit.enabled=this.mode!=='draw';for(const n of this.data?.nodes??[]){if(n.host)continue;const obj=this.root.children.find(o=>o.userData.nodeId===n.id);if(obj){obj.position.set(n.x/1000,n.y/1000,n.z/1000);obj.rotation.set(0,n.rotation*Math.PI/180,0)}}const ids=selectionIds(this.selection),nodes=this.data?.nodes.filter(n=>ids.includes(n.id))??[];if(nodes.length){const c=groupBounds(nodes).center;this.pivot.position.set(c.x/1000,c.y/1000,c.z/1000);this.pivot.rotation.set(0,0,0)}this.suppress=true;}
     measureAt(ray:T.Raycaster){
         if(!this.data)return;this.root.updateMatrixWorld(true);
-        try{const anchor=pickMeasurementAnchor(this.data,ray.intersectObjects(this.root.children,true));
+        try{const anchor=pickMeasurementAnchor(this.data,ray.intersectObjects(this.root.children,true).filter(h=>this.sectionPointVisible(h.point)));
             if(!this.measureStart){this.measureStart=anchor;this.measurementOverlay?.update(this.data,anchor);this.onMeasureStatus?.(true);return;}
             if(this.onMeasure?.(this.measureStart,anchor))this.cancelMeasurement();
         }catch(e){this.onMeasureStatus?.(!!this.measureStart,e instanceof Error&&e.name!=='ZodError'?e.message:'이 위치는 측정할 수 없습니다. 다른 표면을 선택하세요.');}
     }
     cancelMeasurement(){this.measureStart=null;if(this.data)this.measurementOverlay?.update(this.data,null);this.onMeasureStatus?.(false);}
     focusMeasurement(id:string){const m=this.data?.measurements?.find(m=>m.id===id),v=m&&this.data?readMeasurement(this.data,m):null;if(!v)return;const target=new T.Vector3((v.start.x+v.end.x)/2000,(v.start.y+v.end.y)/2000,(v.start.z+v.end.z)/2000);this.camera.position.add(target.clone().sub(this.orbit.target));this.orbit.target.copy(target);this.orbit.update();}
-    setMode(mode: ToolMode) { this.cancelTransform();if(mode!==this.mode)this.cancelMeasurement();this.mode = mode; this.drawStart = null; this.orbit.enabled = mode !== 'draw'; this.host.style.cursor = mode === 'draw'||mode==='measure' ? 'crosshair' : 'default'; this.setSelection(this.selection); }
+    setMode(mode: ToolMode) { if(this.section&&mode!=='select')mode='select';this.cancelTransform();if(mode!==this.mode)this.cancelMeasurement();this.mode = mode; this.drawStart = null; this.orbit.enabled = mode !== 'draw'; this.host.style.cursor = mode === 'draw'||mode==='measure' ? 'crosshair' : 'default'; this.setSelection(this.selection); }
     setSelectionMode(mode: 'face' | 'object') { this.selectionMode = mode; }
     setSnap(value: boolean) { this.transform.setTranslationSnap(value ? .05 : null); this.transform.setRotationSnap(value ? Math.PI / 12 : null); }
     private fitPlan(aspect: number) { const w = (this.data?.room.width ?? 7200) / 1000, d = ((this.data?.room.depth ?? 6400)+(this.data?facadeProjection(this.data)*2:0)) / 1000; const half = Math.max(d * 1.25 / 2, w * 1.25 / (2 * aspect)); this.planCamera.left = -half * aspect; this.planCamera.right = half * aspect; this.planCamera.top = half; this.planCamera.bottom = -half; this.planCamera.updateProjectionMatrix(); }
@@ -813,7 +839,7 @@ export class SceneEngine {
         this.orbit.update();
     }
     captureCamera() {
-        return { view: this.view, zoom: this.camera.zoom, ...(this.camera instanceof T.PerspectiveCamera?{fov:this.camera.fov}:{}), position: this.camera.position.toArray() as [
+        return { view: this.view, zoom: this.camera.zoom, ...(this.section?{section:structuredClone(this.section)}:{}), ...(this.camera instanceof T.PerspectiveCamera?{fov:this.camera.fov}:{}), position: this.camera.position.toArray() as [
                 number,
                 number,
                 number
@@ -828,7 +854,7 @@ export class SceneEngine {
         const {width,depth,height}=this.data.room,key=`${width}:${depth}:${height}`;
         if(this.interiorCeiling&&key!==this.ceilingKey){this.scene.remove(this.interiorCeiling);this.interiorCeiling.geometry.dispose();this.interiorCeiling.material.dispose();this.interiorCeiling=undefined;}
         if(this.view==='interior'&&!this.interiorCeiling){const ceiling=new T.Mesh(new T.PlaneGeometry(width/1000,depth/1000),new T.MeshStandardMaterial({color:'#f2f0e8',roughness:.9,side:T.DoubleSide}));ceiling.rotation.x=Math.PI/2;ceiling.position.y=height/1000;ceiling.receiveShadow=true;ceiling.name='INTERIOR_CEILING';this.scene.add(ceiling);this.interiorCeiling=ceiling;this.ceilingKey=key;}
-        if(this.interiorCeiling)this.interiorCeiling.visible=this.view==='interior';
+        if(this.interiorCeiling){this.interiorCeiling.visible=this.view==='interior';this.sectionClipper?.bind(this.interiorCeiling);}
     }
     restoreCamera(camera: {
         position: [
@@ -844,29 +870,34 @@ export class SceneEngine {
         view?: ViewMode;
         zoom?: number;
         fov?: number;
-    }) { this.setView(camera.view ?? 'perspective'); this.camera.position.fromArray(camera.position); this.orbit.target.fromArray(camera.target); this.camera.zoom = camera.zoom ?? 1;if(this.camera instanceof T.PerspectiveCamera)this.camera.fov=camera.fov??38; this.camera.updateProjectionMatrix(); this.orbit.update(); }
+        section?:SectionView;
+    }) { this.setSection(camera.section??null);this.setView(camera.view ?? 'perspective'); this.camera.position.fromArray(camera.position); this.orbit.target.fromArray(camera.target); this.camera.zoom = camera.zoom ?? 1;if(this.camera instanceof T.PerspectiveCamera)this.camera.fov=camera.fov??38; this.camera.updateProjectionMatrix(); this.orbit.update(); }
     async exportGlb() {
         await this.modelsReady();
         const clone = cloneModel(this.root);
+        clearExportClipping(clone);
         clone.traverse(o => {
             if (o.userData.wall || o.userData.host || o.userData.facade)
                 o.visible = !this.data?.nodes.find(n => n.id === o.userData.nodeId)?.hidden;
         });
         try{groupExportNodes(clone,this.data?.nodes??[],this.data?.layers??[]);bakeImageTransforms(clone);return await new GLTFExporter().parseAsync(clone, { binary: true, onlyVisible: true, maxTextureSize: 1024 }) as ArrayBuffer;}finally{this.clearGroup(clone);}
     }
-    async screenshot(width = 2048, requestedAspect?: number,includeMeasurements=false) {
+    async screenshot(width = 2048, requestedAspect?: number,includeMeasurements=false,includeSection=false) {
         await this.modelsReady();
         const oldSize = new T.Vector2();
         this.renderer.getSize(oldSize);
         const oldRatio = this.renderer.getPixelRatio();
         const oldAspect = oldSize.x / oldSize.y;
+        const sectionSuspended=this.sectionSuspended,guideVis=this.sectionClipper?.guide.visible;
         const measureVis=this.measurementOverlay?.group.visible;
-        if(this.measurementOverlay)this.measurementOverlay.group.visible=includeMeasurements;
+        if(this.measurementOverlay)this.measurementOverlay.group.visible=includeMeasurements&&!(this.section&&includeSection);
         const helperVis = this.helpers.visible;
         const gizmoVis = this.transform.getHelper().visible;
         this.helpers.visible = false;
         this.transform.getHelper().visible = false;
         try {
+            if(this.section){this.sectionSuspended=!includeSection;this.refreshSection();if(this.sectionClipper)this.sectionClipper.guide.visible=false;}
+            if(this.measurementOverlay)this.measurementOverlay.group.visible=includeMeasurements&&!(this.section&&includeSection);
             const aspect = requestedAspect ?? oldAspect;
             width = Math.max(1, Math.min(width, Math.floor(4096 * aspect)));
             const height = Math.max(1, Math.round(width / aspect));
@@ -879,6 +910,7 @@ export class SceneEngine {
             return this.renderer.domElement.toDataURL('image/png');
         }
         finally {
+            if(this.section){this.sectionSuspended=sectionSuspended;this.refreshSection();if(this.sectionClipper)this.sectionClipper.guide.visible=guideVis??false;}
             this.renderer.setPixelRatio(oldRatio);
             this.renderer.setSize(oldSize.x, oldSize.y, false);
             if (this.camera instanceof T.PerspectiveCamera)
@@ -924,6 +956,7 @@ export class SceneEngine {
         this.transform.dispose();
         this.clearGroup(this.root);
         this.measurementOverlay?.dispose();
+        this.sectionClipper?.dispose();
         if(this.interiorCeiling){this.scene.remove(this.interiorCeiling);this.interiorCeiling.geometry.dispose();this.interiorCeiling.material.dispose();this.interiorCeiling=undefined;}
         this.grid.geometry.dispose();
         (this.grid.material as T.Material).dispose();
