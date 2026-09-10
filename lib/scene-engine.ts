@@ -46,6 +46,7 @@ export class SceneEngine {
     private assetEpoch=0;
     private pendingAssets=new Map<Promise<void>,number>();
     private nodeMaterialJobs=new WeakMap<T.Object3D,Promise<unknown>>();
+    private materialBindingJobs=new WeakMap<T.Material,Set<Promise<unknown>>>();
     private assetErrors:string[]=[];
     onModelStatus?: (status: {
         loading: number;
@@ -675,6 +676,7 @@ export class SceneEngine {
         const epoch=this.assetEpoch??0;let live=true;
         const onDispose=()=>{live=false};material.addEventListener('dispose',onDispose);
         const job=this.imageAsset(id).then(source=>{if(live&&!this.disposed&&epoch===(this.assetEpoch??0))apply(source);}).catch(e=>{if(live&&!this.disposed&&epoch===(this.assetEpoch??0))throw e;}).finally(()=>material.removeEventListener('dispose',onDispose));
+        this.materialBindingJobs??=new WeakMap();const jobs=this.materialBindingJobs.get(material)??new Set<Promise<unknown>>();jobs.add(job);this.materialBindingJobs.set(material,jobs);
         this.trackAsset(job,epoch);
     }
     private bindLogo(label:T.Mesh<T.PlaneGeometry,T.MeshStandardMaterial>,id:string,width:number,height:number) {
@@ -977,10 +979,20 @@ export class SceneEngine {
     }) { this.setSection(camera.section??null);this.setView(camera.view ?? 'perspective'); this.camera.position.fromArray(camera.position); this.orbit.target.fromArray(camera.target); this.camera.zoom = camera.zoom ?? 1;if(this.camera instanceof T.PerspectiveCamera)this.camera.fov=camera.fov??38; this.camera.updateProjectionMatrix(); this.orbit.update(); }
     async exportSelectionGlb(ids:string[],origin:'world'|'center'='center'){
         if(!this.data)throw new Error('3D 장면을 먼저 불러와 주세요.');
-        this.cancelTransform();this.cancelMeasurement();const signature=JSON.stringify(this.data);
-        await this.modelsReady();if(JSON.stringify(this.data)!==signature)throw new Error('장면이 변경되었습니다. 선택 요소를 다시 내보내세요.');
+        this.cancelTransform();this.cancelMeasurement();const signature=JSON.stringify(this.data),key=this.geometryKey,epoch=this.assetEpoch??0;
+        const targets=[...new Set(ids)].map(id=>this.root.children.find(o=>o.userData.nodeId===id));
+        const check=()=>{if(this.disposed||key!==this.geometryKey||epoch!==(this.assetEpoch??0)||JSON.stringify(this.data)!==signature||targets.some(object=>!object||!this.root.children.includes(object)))throw new Error('장면이 변경되거나 닫혔습니다. 선택 요소를 다시 내보내세요.');};
+        await this.materialNodesReady(ids);check();
+        const collect=()=>{const rows:{mesh:T.Mesh;materials:T.Material[]}[]=[];
+            const visit=(object:T.Object3D)=>{if(object instanceof T.Mesh){const all=Array.isArray(object.material)?object.material:[object.material],used=Array.isArray(object.material)?[...new Set(object.geometry.groups.filter(group=>group.count>0).map(group=>group.materialIndex??0))]:[0];rows.push({mesh:object,materials:used.map(index=>all[index]).filter(Boolean)});}for(const child of object.children)if(child.visible)visit(child);};
+            // The selected parent may be hidden only by automatic wall cutaway.
+            for(const target of targets)visit(target!);return rows;
+        };
+        const rows=collect(),checkMaterials=()=>{check();const current=collect();if(current.length!==rows.length||rows.some((row,i)=>row.mesh!==current[i].mesh||row.materials.length!==current[i].materials.length||row.materials.some((material,j)=>material!==current[i].materials[j])))throw new Error('선택 요소의 소재가 변경되었습니다. 다시 내보내세요.');};
+        const jobs=new Set(rows.flatMap(row=>row.materials.flatMap(material=>[...(this.materialBindingJobs?.get(material)??[])])));
+        await Promise.all(jobs);checkMaterials();
         const clone=prepareSelectionExport(this.root,this.data,ids,origin);
-        try{bakeImageTransforms(clone);return await new GLTFExporter().parseAsync(clone,{binary:true,onlyVisible:true,maxTextureSize:1024}) as ArrayBuffer;}finally{this.clearGroup(clone);}
+        try{bakeImageTransforms(clone);const result=await new GLTFExporter().parseAsync(clone,{binary:true,onlyVisible:true,maxTextureSize:1024}) as ArrayBuffer;checkMaterials();return result;}finally{this.clearGroup(clone);}
     }
     async exportGlb() {
         await this.modelsReady();

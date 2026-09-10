@@ -1,0 +1,20 @@
+.studio-help-dialog{width:calc(100% - 32px)!important;max-width:820px!important;max-height:92dvh;overflow-y:auto;overscroll-behavior:contain}
+.studio-help-tabs{min-width:0;gap:16px}
+.studio-help-tabs>[data-slot=tabs-list]{display:flex;width:100%;height:auto;min-height:38px}
+.studio-help-tabs>[data-slot=tabs-list]>[data-slot=tabs-trigger]{flex:1;min-width:0;white-space:normal;min-height:34px;padding:6px 8px}
+.quick-start-guide{min-width:0;color:#535968}
+.quick-start-intro{font-size:13px;line-height:1.75;margin:0 0 16px;word-break:keep-all;overflow-wrap:anywhere}
+.quick-start-steps{list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:0;margin:0}
+.quick-start-card{display:flex;flex-direction:column;align-items:flex-start;min-width:0;padding:15px;border:1px solid #e9e3f0;border-radius:11px;background:#fdfbff}
+.quick-start-card-heading{display:flex;align-items:center;gap:8px;width:100%;margin-bottom:10px}
+.quick-start-number{display:grid;place-items:center;flex-shrink:0;width:25px;height:25px;border-radius:8px;background:#eee8fb;color:#71559b;font-size:12px;font-weight:650}
+.quick-start-card-heading h3{margin:0;flex:1;min-width:0;font-size:14px;font-weight:650;color:#51415f;line-height:1.6;word-break:keep-all;overflow-wrap:anywhere}
+.quick-start-card-heading>svg{color:#a18aac}
+.quick-start-card>p{font-size:12px;line-height:1.8;margin:0 0 12px;color:#787083;word-break:keep-all;overflow-wrap:anywhere}
+.quick-start-card>button{display:inline-flex;align-items:center;justify-content:space-between;gap:12px;min-height:38px;max-width:100%;margin-top:auto;padding:7px 10px;border:1px solid #dfd3eb;border-radius:7px;background:#fff;color:#78558f;font-size:12px;font-weight:550;white-space:normal;text-align:left}
+.quick-start-card>button:hover:not(:disabled){background:#f1e9fa;border-color:#cbb8df}
+.quick-start-card>button:focus-visible{outline:3px solid #a98bc5;outline-offset:3px}
+.quick-start-card>button:disabled{opacity:.5;cursor:not-allowed}
+.quick-start-ai-badge{display:inline-block;max-width:100%;margin:0 0 10px;padding:2px 6px;border-radius:4px;background:#eee8f7;color:#87669a;font-size:10px;line-height:1.6;overflow-wrap:anywhere}
+.quick-start-note{margin:14px 0 0;padding-top:12px;border-top:1px solid #eee8f3;font-size:11px;line-height:1.8;color:#91849c;word-break:keep-all;overflow-wrap:anywhere}
+@media(max-width:600px){.studio-help-dialog{width:calc(100% - 20px)!important;max-height:92dvh;padding:20px 16px!important}.quick-start-steps{grid-template-columns:minmax(0,1fr);gap:10px}.quick-start-card{padding:14px}.quick-start-card>button{min-height:42px}.quick-start-intro{font-size:12px}.studio-help-tabs>[data-slot=tabs-list]>[data-slot=tabs-trigger]{font-size:12px}}
