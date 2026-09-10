@@ -7,7 +7,7 @@ export function partitionTarget(scene:SceneData,id:string){
 }
 export function newPartitionOpening(n:SceneNode,kind:PartitionOpening['kind'],id=crypto.randomUUID()):PartitionOpening{
  const window=kind==='window',bottom=window?Math.min(900,Math.max(100,n.height-700)):0;
- const o={id,name:openingKindNames[kind],kind,x:0,bottom,width:Math.min(window?1200:900,n.width-200),height:Math.min(window?1200:2100,n.height-bottom-100)};
+ const o={id,name:openingKindNames[kind],kind,x:0,bottom,width:Math.min(window?1200:900,n.width-200),height:Math.min(window?1200:2100,n.height-bottom-100),...(kind==='door'?{door:{hinge:'left' as const,side:'positive' as const,angle:0}}:{})};
  const parsed=partitionOpeningSchema.parse(o),minimum=window?200:300,lo=-n.width/2+100,hi=n.width/2-100;
  const blocking=(n.openings??[]).filter(p=>Math.max(p.bottom,o.bottom)-Math.min(p.bottom+p.height,o.bottom+o.height)<100-1e-6).map(p=>[p.x-p.width/2-100,p.x+p.width/2+100]).sort((a,b)=>a[0]-b[0]);
  const gaps:number[][]=[];let cursor=lo;for(const [a,b] of blocking){if(a>cursor)gaps.push([cursor,Math.min(a,hi)]);cursor=Math.max(cursor,b);}if(cursor<hi)gaps.push([cursor,hi]);

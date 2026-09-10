@@ -9,12 +9,13 @@ import {assemblyCategories,builtinAssemblies,captureAssembly,assemblySummary,ins
 import {materials,type SceneData,type SceneNode} from '@/lib/scene-model';
 import {groupBounds} from '@/lib/selection';
 import {toast} from 'sonner';
+import PartitionPlanShape from './partition-plan-shape';
 
 function AssemblyPlan({nodes,room,added}:{nodes:SceneNode[];room?:SceneData['room'];added?:string[]}) {
     const b=groupBounds(nodes),w=room?.width??b.width,d=room?.depth??b.depth,pad=Math.max(w,d)*.07;
     return <svg viewBox={`${-w/2-pad} ${-d/2-pad} ${w+pad*2} ${d+pad*2}`} role="img" aria-label={room?'기존 공간 위의 세트 배치 평면':'세트 구성 평면'}>
         <rect x={-w/2} y={-d/2} width={w} height={d} fill="#fafbfe" stroke="#bdc4d2" strokeWidth={Math.max(w,d)*.004}/>
-        {nodes.filter(n=>!n.hidden&&!n.host).map(n=>{const active=!added||added.includes(n.id),color=materials.find(m=>m.id===n.material)?.color??'#9a92b4';return <g key={n.id} transform={`translate(${n.x},${n.z}) rotate(${-n.rotation})`}><title>{n.name} · {Math.round(n.width)} × {Math.round(n.depth)}mm</title><rect x={-n.width/2} y={-n.depth/2} width={n.width} height={n.depth} fill={active?color:'#e0e4ec'} fillOpacity={active?.85:.6} stroke={active?'#6653dd':'#c4ccd9'} strokeWidth={Math.max(w,d)*(active?.006:.003)}/></g>})}
+        {nodes.filter(n=>!n.hidden&&!n.host).map(n=>{const active=!added||added.includes(n.id),color=materials.find(m=>m.id===n.material)?.color??'#9a92b4';return <g key={n.id} transform={`translate(${n.x},${n.z}) rotate(${-n.rotation})`} fill={active?color:'#e0e4ec'} fillOpacity={active?.85:.6} stroke={active?'#6653dd':'#c4ccd9'} strokeWidth={Math.max(w,d)*(active?.006:.003)}><title>{n.name} · {Math.round(n.width)} × {Math.round(n.depth)}mm</title>{n.kind==='partition'?<PartitionPlanShape node={n}/>:<rect x={-n.width/2} y={-n.depth/2} width={n.width} height={n.depth}/>}</g>})}
     </svg>;
 }
 const defaults=builtinAssemblies();

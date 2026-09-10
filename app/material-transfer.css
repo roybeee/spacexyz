@@ -1,0 +1,27 @@
+.material-transfer{min-width:0;margin:0 0 18px;padding:12px;border:1px solid #e7e0ef;border-radius:10px;background:#fcfaff;color:#8d7c9c}
+.material-transfer-actions{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:7px}
+.material-transfer-actions>button{display:flex;align-items:center;justify-content:center;gap:6px;min-width:0;min-height:37px;padding:7px;border:1px solid #e1d7eb;border-radius:7px;background:#fff;color:#80618f;font-size:12px;font-weight:500;line-height:1.5;cursor:pointer;white-space:nowrap}
+.material-transfer-actions>button:last-child{background:#f4eefb;border-color:#d9c9e7;color:#88619e}
+.material-transfer-actions>button:hover:not(:disabled){background:#f0e7fa;border-color:#c8afdc;color:#75528f}
+.material-transfer-actions>button:disabled{opacity:.43;cursor:default}
+.material-transfer-actions>button>svg{flex-shrink:0}
+.material-transfer-sample{display:flex;align-items:center;gap:9px;min-width:0;margin-top:12px}
+.material-transfer-chip{display:block;flex-shrink:0;width:31px;height:33px;border:1px solid #a596b433;border-radius:6px;box-shadow:inset 0 0 0 1px #ffffff50}
+.material-transfer-chip.has-texture{background-color:#e7e1ec;background-image:linear-gradient(135deg,#c7bad5 25%,transparent 25%,transparent 75%,#c7bad5 75%),linear-gradient(135deg,#c7bad5 25%,transparent 25%,transparent 75%,#c7bad5 75%);background-position:0 0,5px 5px;background-size:10px 10px}
+.material-transfer-copy{flex:1;min-width:0}
+.material-transfer-copy>div{display:flex;align-items:center;flex-wrap:wrap;gap:3px 6px;min-width:0}
+.material-transfer-copy b{display:block;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;line-height:1.7;font-weight:600;color:#80648f}
+.material-transfer-copy>small{display:block;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;line-height:1.7;color:#887294}
+.material-transfer-image-badge{display:inline-block;flex-shrink:0;padding:1px 4px;border:1px solid #e1d6eb;border-radius:4px;font-size:10px;line-height:1.5;color:#856797;background:#f7f2fc}
+.material-transfer-clear{display:flex;align-items:center;justify-content:center;flex-shrink:0;width:28px;height:30px;border-radius:6px;color:#b19abe;cursor:pointer}
+.material-transfer-clear:hover:not(:disabled){background:#eee5f5;color:#8c699f}
+.material-transfer-clear:disabled{opacity:.4;cursor:default}
+.material-transfer-hint{margin:10px 0 0;font-size:12px;line-height:1.8;color:#867094;word-break:keep-all;overflow-wrap:anywhere}
+.material-transfer-scope{display:flex;align-items:baseline;flex-wrap:wrap;gap:3px 6px;margin:10px 0 0;padding-top:9px;border-top:1px solid #eee6f4;font-size:11px;line-height:1.7;color:#8b7698}
+.material-transfer-scope>b{font-weight:500;color:#735a84;overflow-wrap:anywhere;min-width:0}
+.material-transfer-scope.is-busy{align-items:center;color:#a487b7}
+.material-transfer-busy{display:flex;align-items:center;gap:6px;flex-basis:100%;color:#886598}.material-transfer-busy>svg{flex-shrink:0}
+.material-transfer button:focus-visible{outline:2px solid #a984c2;outline-offset:3px}
+@media(max-width:760px){.material-transfer-actions>button{min-height:41px;font-size:13px}.material-transfer-copy b{font-size:13px}.material-transfer-copy>small,.material-transfer-hint{font-size:11px}.material-transfer-image-badge{font-size:9px}.material-transfer-scope{font-size:11px}.material-transfer-clear{width:32px;height:35px}}
+
+.material-transfer-library{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px}.material-transfer-library button{display:flex;align-items:center;gap:5px;color:#74528e;font-size:11px;min-height:30px}.material-transfer-library button:disabled{opacity:.4}

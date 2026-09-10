@@ -1,3 +1,4 @@
+import {doorGeometry,toWorldDoorBox,physicalNodeBounds,partitionObstacleBoxes,type LocalDoorBox} from './door-geometry';
 import {partitionOpeningSchema,validatePartitionOpenings} from './partition-openings-schema';
 import {underlaySchema,validateUnderlay} from './underlay-schema';
 import {sectionSchema} from './section-view';
@@ -145,6 +146,11 @@ function validateLayout(s:Pick<SceneData,'room'|'nodes'|'facade'|'measurements'|
             const bd = Math.abs(Math.sin(r)) * n.width + Math.abs(Math.cos(r)) * n.depth;
             if (Math.abs(n.x) + bw / 2 > s.room.width / 2 + 1 || Math.abs(n.z) + bd / 2 > s.room.depth / 2 + 1)
                 throw new Error(`${n.name}이 바닥 경계를 벗어납니다.`);
+            for(const opening of n.openings??[]){const door=doorGeometry(n,opening);if(!door)continue;
+                for(const local of [door.leaf,door.handle]){const b=toWorldDoorBox(n,local),r=b.rotation*Math.PI/180,hx=(Math.abs(Math.cos(r))*b.width+Math.abs(Math.sin(r))*b.depth)/2,hz=(Math.abs(Math.sin(r))*b.width+Math.abs(Math.cos(r))*b.depth)/2;
+                    if(Math.abs(b.x)+hx>s.room.width/2-60+1e-6||Math.abs(b.z)+hz>s.room.depth/2-60+1e-6)throw new Error(`${n.name} · ${opening.name}: 문짝이나 손잡이가 실내 벽 안쪽 경계를 벗어납니다. 파티션 위치·개방 각도·방향을 조정하세요.`);
+                }
+            }
             if (n.y + n.height > s.room.height + 1)
                 throw new Error(`${n.name}이 천장보다 높습니다.`);
         }
@@ -335,7 +341,7 @@ export function arrayNode(scene: SceneData, id: string, count: number, gap: numb
         throw new Error('잠긴 요소는 배열할 수 없습니다.');
     if (n.host && axis !== (['back', 'front'].includes(n.host) ? 'x' : 'z'))
         throw new Error('문·창문은 연결된 벽 방향으로 배열하세요.');
-    const f = footprint(n), step = (n.host ? n.width : axis === 'x' ? f.width : f.depth) + gap;
+    const f = physicalNodeBounds(n), step = (n.host ? n.width : axis === 'x' ? f.width : f.depth) + gap;
     const s = structuredClone(scene);
     for (let i = 1; i <= count; i++)
         s.nodes.push({ ...cloneUngroupedNode(n), id: idFactory(), name: `${n.name.slice(0, 65)} ${i + 1}`, [axis]: n[axis] + step * i });
@@ -347,41 +353,36 @@ export function placeAgainst(scene: SceneData, id: string, edge: 'left' | 'right
         throw new Error('일반 가구를 선택하세요.');
     if (n.locked)
         throw new Error('잠금을 해제하세요.');
-    const f = footprint(n), margin = 65;
+    const f = physicalNodeBounds(n), margin = 65;
     if (edge === 'left')
-        n.x = -s.room.width / 2 + f.width / 2 + margin;
+        n.x += -s.room.width / 2 + margin - f.min.x;
     if (edge === 'right')
-        n.x = s.room.width / 2 - f.width / 2 - margin;
+        n.x += s.room.width / 2 - margin - f.max.x;
     if (edge === 'back')
-        n.z = -s.room.depth / 2 + f.depth / 2 + margin;
+        n.z += -s.room.depth / 2 + margin - f.min.z;
     if (edge === 'front')
-        n.z = s.room.depth / 2 - f.depth / 2 - margin;
+        n.z += s.room.depth / 2 - margin - f.max.z;
     if (edge === 'center') {
-        n.x = 0;
-        n.z = 0;
+        n.x -= f.center.x;
+        n.z -= f.center.z;
     }
     return validateScene(s);
 }
+export {boxesOverlap} from './geometry-overlap';
+import {boxesOverlap,boxBounds} from './geometry-overlap';
+import {partitionSelfCollision} from './door-geometry';
+import {hostObstacleBoxes} from './hosted-geometry';
+export function collisionBoxes(n:SceneNode,room?:Pick<SceneData['room'],'width'|'depth'>):LocalDoorBox[]{
+    if(n.host){if(!room)throw new Error('외벽 문·창문의 충돌 검토에는 공간 치수가 필요합니다.');return hostObstacleBoxes(n,room);}
+    return n.kind==='partition'&&n.openings?.length?partitionObstacleBoxes(n):[{x:n.x,y:n.y+n.height/2,z:n.z,width:n.width,height:n.height,depth:n.depth,rotation:n.rotation}];
+}
 export function collisions(scene: SceneData) {
-    const list = scene.nodes.filter(n => !n.hidden && !n.host), out: {
-        a: string;
-        b: string;
-        names: [
-            string,
-            string
-        ];
-    }[] = [];
-    for (let i = 0; i < list.length; i++)
-        for (let j = i + 1; j < list.length; j++) {
-            const a = list[i], b = list[j];
-            if (a.y + a.height <= b.y + 2 || b.y + b.height <= a.y + 2)
-                continue;
-            const ra = a.rotation * Math.PI / 180, rb = b.rotation * Math.PI / 180;
-            const ax = [Math.cos(ra), -Math.sin(ra)], az = [Math.sin(ra), Math.cos(ra)], bx = [Math.cos(rb), -Math.sin(rb)], bz = [Math.sin(rb), Math.cos(rb)];
-            const dot = (u: number[], v: number[]) => u[0] * v[0] + u[1] * v[1], diff = [b.x - a.x, b.z - a.z];
-            const separated = [ax, az, bx, bz].some(v => Math.abs(dot(diff, v)) >= Math.abs(dot(ax, v)) * a.width / 2 + Math.abs(dot(az, v)) * a.depth / 2 + Math.abs(dot(bx, v)) * b.width / 2 + Math.abs(dot(bz, v)) * b.depth / 2 - 2);
-            if (!separated)
-                out.push({ a: a.id, b: b.id, names: [a.name, b.name] });
-        }
+    const list=scene.nodes.filter(n=>!n.hidden).map(n=>{const boxes=collisionBoxes(n,scene.room);return{n,bounds:n.host?boxBounds(boxes):physicalNodeBounds(n),boxes};}),out:{a:string;b:string;names:[string,string]}[]=[];
+    for(const {n}of list)if(partitionSelfCollision(n))out.push({a:n.id,b:n.id,names:[n.name,n.name+' 내부 문']});
+    for(let i=0;i<list.length;i++)for(let j=i+1;j<list.length;j++){
+        const a=list[i],b=list[j],aa=a.bounds,bb=b.bounds;
+        if(aa.max.x<=bb.min.x+2||bb.max.x<=aa.min.x+2||aa.max.z<=bb.min.z+2||bb.max.z<=aa.min.z+2||aa.max.y<=bb.min.y+2||bb.max.y<=aa.min.y+2)continue;
+        if(a.boxes.some(ab=>b.boxes.some(bbox=>boxesOverlap(ab,bbox))))out.push({a:a.n.id,b:b.n.id,names:[a.n.name,b.n.name]});
+    }
     return out;
 }

@@ -3,17 +3,19 @@ import {z} from 'zod';
 export const partitionOpeningSchema=z.object({
  id:z.string().uuid(),name:z.string().trim().min(1).max(60),kind:z.enum(['passage','door','window']),
  x:z.number().finite().min(-10000).max(10000),bottom:z.number().finite().min(0).max(12000),
- width:z.number().finite().min(200).max(19800),height:z.number().finite().min(200).max(11900)
+ width:z.number().finite().min(200).max(19800),height:z.number().finite().min(200).max(11900),
+ door:z.object({hinge:z.enum(['left','right']),side:z.enum(['positive','negative']),angle:z.number().finite().min(0).max(120)}).optional()
 });
 export type PartitionOpening=z.infer<typeof partitionOpeningSchema>;
 export type PartitionShape={kind:string;width:number;height:number;depth:number;openings?:PartitionOpening[]};
-export const openingKindNames={passage:'빈 통로',door:'닫힌 문',window:'유리창'} as const;
+export const openingKindNames={passage:'빈 통로',door:'문',window:'유리창'} as const;
 export function validatePartitionOpenings(n:PartitionShape){
  if(n.openings===undefined)return;
  if(n.kind!=='partition')throw new Error('파티션에만 실내 문·창문을 만들 수 있습니다.');
  if(n.openings.length>8)throw new Error('파티션 한 구간에는 개구부 8개까지 만들 수 있습니다.');
  const ids=new Set<string>();
  for(const o of n.openings){
+  if(o.door&&o.kind!=='door')throw new Error('문에만 개폐 설정을 지정할 수 있습니다.');
   if(ids.has(o.id))throw new Error('파티션 안의 개구부 ID가 중복되었습니다.');ids.add(o.id);
   if(o.kind!=='window'&&(o.bottom!==0||o.width<300||o.height<800))throw new Error('통로·문은 파티션 바닥에서 시작하며 폭 300mm, 높이 800mm 이상이어야 합니다.');
   if(o.kind==='window'&&o.bottom<100)throw new Error('창문 아래에 벽 100mm 이상을 남겨 주세요.');

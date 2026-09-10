@@ -1,4 +1,8 @@
 import {partitionWallGeometry} from './partition-geometry';
+import {prepareSelectionExport} from './selection-export';
+import {doorGeometry} from './door-geometry';
+import {defaultSnapSettings,normalizeSnapping,snapFloorPoint} from './snap-settings';
+import {DrawPreview,PointerGestureTracker,type DrawStatus} from './draw-preview';
 import {MeasurementOverlay} from './measurement-overlay';
 import {UnderlayRenderer,type UnderlayStatus} from './underlay-renderer';
 import {SectionClipper,clearExportClipping} from './section-clipper';
@@ -31,6 +35,7 @@ export class SceneEngine {
     private geometryKey = "";
     private underlayRenderer?:UnderlayRenderer;
     onUnderlayStatus?:(status:UnderlayStatus)=>void;
+    onSceneRebuilt?:()=>void;
     private disposed = false;
     private modelCache = new Map<string, {
         promise: Promise<T.Group>;
@@ -40,6 +45,7 @@ export class SceneEngine {
     private imageCache = new Map<string,{promise:Promise<T.Texture>;texture?:T.Texture;error?:string;controller:AbortController}>();
     private assetEpoch=0;
     private pendingAssets=new Map<Promise<void>,number>();
+    private nodeMaterialJobs=new WeakMap<T.Object3D,Promise<unknown>>();
     private assetErrors:string[]=[];
     onModelStatus?: (status: {
         loading: number;
@@ -59,10 +65,11 @@ export class SceneEngine {
     multiSelect=false;
     private pivot=new T.Group();
     private multiOutlines:T.BoxHelper[]=[];
+    private focusedHostIds=new Set<string>();
     private groupDrag?:{key:string;nodes:SceneNode[];pivot:{x:number;y:number;z:number}};
     onTransformGroup?:(ids:string[],delta:GroupDelta,pivot:{x:number;y:number;z:number})=>void;
-    private pointerCancel=()=>{this.cancelTransform();this.setSelection(this.selection)};
-    private lostCapture=()=>queueMicrotask(()=>{if(!this.disposed&&this.dragActive)this.pointerCancel()});
+    private pointerCancel=(event?:PointerEvent)=>{this.pointerGestures?.cancel(event?.pointerId);this.cancelDrawing();this.cancelTransform();this.setSelection(this.selection)};
+    private lostCapture=(event:PointerEvent)=>queueMicrotask(()=>{if(this.disposed)return;this.pointerGestures?.cancel(event.pointerId);if(this.dragActive)this.pointerCancel()});
     outline?: T.BoxHelper;
     mode: ToolMode = 'select';
     view: ViewMode = 'perspective';
@@ -82,6 +89,12 @@ export class SceneEngine {
     environment: T.WebGLRenderTarget;
     selectedObject?: T.Object3D;
     drawStart: T.Vector3 | null = null;
+    private snapEnabled=true;
+    private snapping={...defaultSnapSettings};
+    private drawPreview?:DrawPreview;
+    private drawStatus?:DrawStatus;
+    private pointerGestures=new PointerGestureTracker();
+    onDrawStatus?:(state:DrawStatus)=>void;
     onDraw: (p: {
         x: number;
         z: number;
@@ -95,6 +108,7 @@ export class SceneEngine {
     private suppress = false;
     private pointerDown: (e: PointerEvent) => void;
     private pointerUp: (e: PointerEvent) => void;
+    private pointerMove: (e: PointerEvent) => void;
     private textures = new Map<string, T.CanvasTexture>();
     private selectionMode: 'face' | 'object' = 'face';
     constructor(public host: HTMLElement, callbacks: {
@@ -182,10 +196,11 @@ export class SceneEngine {
             if (patch.x !== n.x || patch.y !== n.y || patch.z !== n.z || patch.rotation !== n.rotation)
                 this.onTransform(id, patch);
         });
-        this.pointerDown = e => { if(this.navigationActive)return;this.down = [e.clientX, e.clientY]; this.suppress = this.dragActive; };
+        this.pointerDown = e => {const eligible=this.pointerGestures.down(e);if(this.pointerGestures.size>1)this.cancelDrawing();if(this.navigationActive)return;try{this.renderer.domElement.setPointerCapture(e.pointerId);}catch{}if(!eligible)return;this.down = [e.clientX, e.clientY]; this.suppress = this.dragActive;};
         this.pointerUp = e => {
-            if(this.navigationActive)return;
-            if (this.suppress || this.dragActive || Math.hypot(e.clientX - this.down[0], e.clientY - this.down[1]) > 5)
+            const click=this.pointerGestures.up(e);
+            if(this.navigationActive||!click)return;
+            if (this.suppress || this.dragActive)
                 return;
             const r = this.renderer.domElement.getBoundingClientRect();
             const ray = new T.Raycaster();
@@ -196,18 +211,7 @@ export class SceneEngine {
                 const point = new T.Vector3();
                 if (!ray.ray.intersectPlane(new T.Plane(new T.Vector3(0, 1, 0), 0), point))
                     return;
-                point.x = Math.round(point.x * 20) / 20;
-                point.z = Math.round(point.z * 20) / 20;
-                if (!this.drawStart) {
-                    this.drawStart = point;
-                    this.host.style.cursor = 'crosshair';
-                    return;
-                }
-                const start = this.drawStart;
-                this.drawStart = null;
-                const width = Math.round(Math.abs(point.x - start.x) * 1000), depth = Math.round(Math.abs(point.z - start.z) * 1000);
-                if (width >= 50 && depth >= 50)
-                    this.onDraw({ x: Math.round((point.x + start.x) * 500), z: Math.round((point.z + start.z) * 500), width, depth });
+                this.drawAtPoint(point);
                 return;
             }
             const hits = ray.intersectObjects(this.root.children, true).filter(h => {
@@ -229,8 +233,10 @@ export class SceneEngine {
             const part = hit.object.userData.part as string;
             this.onSelect({ id, face: !e.shiftKey&&!this.multiSelect&&this.selectionMode === 'face' && part ? `${part}:${hit.face?.materialIndex ?? 0}` : undefined },e.shiftKey||this.multiSelect);
         };
+        this.pointerMove=e=>{this.pointerGestures.move(e);if(this.navigationActive||this.mode!=='draw'||!this.drawStart||this.section||e.isPrimary===false||!this.pointerGestures.canPreview||(e.buttons&~1)!==0)return;const r=this.renderer.domElement.getBoundingClientRect();if(!r.width||!r.height)return;const ray=new T.Raycaster();ray.setFromCamera(new T.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1),this.camera);const point=new T.Vector3();if(ray.ray.intersectPlane(new T.Plane(new T.Vector3(0,1,0),0),point))this.previewDrawing(point);};
         this.renderer.domElement.addEventListener('pointerdown', this.pointerDown);
         this.renderer.domElement.addEventListener('pointerup', this.pointerUp);
+        this.renderer.domElement.addEventListener('pointermove',this.pointerMove);
         this.renderer.domElement.addEventListener('pointercancel',this.pointerCancel);
         this.renderer.domElement.addEventListener('lostpointercapture',this.lostCapture);
         this.observer = new ResizeObserver(() => this.resize());
@@ -395,6 +401,7 @@ export class SceneEngine {
         const roomResized = this.data?.room.width !== data.room.width || this.data?.room.depth !== data.room.depth;
         const key = JSON.stringify({ room: data.room, nodes: data.nodes.map(({estimate,...node})=>node), facade:data.facade });
         if(key!==this.geometryKey&&this.measureStart)this.cancelMeasurement();
+        if(key!==this.geometryKey&&this.drawStart)this.cancelDrawing();
         this.data = data;
         this.updateUnderlay();
         this.updateInteriorCeiling();
@@ -482,6 +489,15 @@ export class SceneEngine {
         this.setSelection(this.selection);
         this.updateCutaway();
         this.refreshSection();
+        this.onSceneRebuilt?.();
+    }
+    /** Temporary pose for an isolated motion preview. Does not modify saved scene data. */
+    previewDoorAngle(parentId:string,openingId:string,angle:number){
+        if(!Number.isFinite(angle)||angle<0||angle>120)return false;
+        const n=this.data?.nodes.find(n=>n.id===parentId),o=n?.openings?.find(o=>o.id===openingId);
+        if(!n||!o?.door)return false;
+        const shape=doorGeometry(n,{...o,door:{...o.door,angle}});if(!shape)return false;
+        let found=false;this.root.traverse(object=>{if(object.userData.doorParentId===parentId&&object.userData.doorOpeningId===openingId){object.rotation.y=shape.yaw*Math.PI/180;object.updateMatrixWorld(true);found=true;}});return found;
     }
     private surfaceMaterial(id: keyof SceneData['room']['surfaces'], repeat: [
         number,
@@ -579,6 +595,14 @@ export class SceneEngine {
                     box(f,oh,d,ox-ow/2+f/2,oy+oh/2,0,prefix+'frameL');
                     box(f,oh,d,ox+ow/2-f/2,oy+oh/2,0,prefix+'frameR');
                     box(ow-2*f,f,d,ox,oy+oh-f/2,0,prefix+'frameTop');
+                    const door=doorGeometry(n,o);
+                    if(door){
+                        const pivot=new T.Group();pivot.position.set(door.hinge.x/1000,oy,door.hinge.z/1000);pivot.rotation.y=door.yaw*Math.PI/180;
+                        pivot.userData={doorOpeningId:o.id,doorParentId:n.id};g.add(pivot);
+                        const panel=this.box(pivot,door.leafWidth/1000,door.leafHeight/1000,door.leafDepth/1000,door.dir*door.leafWidth/2000,door.leafHeight/2000,0,n.id,prefix+'panel',n.material,n);
+                        const handle=this.box(pivot,.02,.12,.02,door.dir*(door.leafWidth-100)/1000,oh*.47,door.side*(door.leafDepth/2+10)/1000,n.id,prefix+'handle',n.material,n);
+                        panel.userData.measurementBlocked=true;handle.userData.measurementBlocked=true;continue;
+                    }
                     const sill=o.kind==='window'?f:0;
                     if(sill)box(ow-2*f,f,d,ox,oy+f/2,0,prefix+'frameBottom');
                     box(ow-2*f,oh-f-sill,Math.min(d*(o.kind==='window'?.5:.4),o.kind==='window'?.012:.025),ox,oy+sill+(oh-f-sill)/2,0,prefix+'panel');
@@ -681,7 +705,7 @@ export class SceneEngine {
             native.metalness = f.metalness;
     } if ('color' in native && f.color)
         (native.color as T.Color).set(f.color); return native; }); o.material = wasArray ? mapped : mapped[0]; }); g.add(model); this.sectionClipper?.bind(g); this.setSelection(this.selection); }).catch(e => { if (!this.disposed && this.root.children.includes(g)){
-        (placeholder.material as T.MeshBasicMaterial).color.set(0xd96357);throw e;} }); this.trackAsset(job,epoch); }
+        (placeholder.material as T.MeshBasicMaterial).color.set(0xd96357);throw e;} }); (this.nodeMaterialJobs??=new WeakMap()).set(g,job);this.trackAsset(job,epoch); }
     async modelsReady() {
         const key=this.geometryKey,epoch=this.assetEpoch??0;
         do {
@@ -691,6 +715,32 @@ export class SceneEngine {
         }while([...(this.pendingAssets?.values()??[])].some(version=>version===epoch));
         const errors=[...(this.assetErrors??[]),...[...this.modelCache.values(),...(this.imageCache?.values()??[])].flatMap(e=>e.error?[e.error]:[])];
         if(errors.length)throw new Error(errors[0]);
+    }
+    /** Material editing waits for the selected regions, independently of other scene assets. */
+    async materialNodesReady(ids:string[]){
+        const unique=[...new Set(ids)],key=this.geometryKey,epoch=this.assetEpoch??0,data=this.data;
+        if(!data||!unique.length)throw new Error('소재를 편집할 요소를 선택하세요.');
+        const targets=unique.map(id=>{
+            const node=data.nodes.find(n=>n.id===id),object=this.root.children.find(o=>o.userData.nodeId===id);
+            if(!node||!object)throw new Error('선택한 요소가 3D 화면에 표시된 뒤 다시 시도하세요.');
+            return {node,object,state:JSON.stringify(node)};
+        });
+        const check=()=>{
+            if(this.disposed)throw new Error('3D 화면이 닫혔습니다.');
+            if(key!==this.geometryKey||epoch!==(this.assetEpoch??0)||targets.some(({node,object,state})=>!this.root.children.includes(object)||JSON.stringify(this.data?.nodes.find(n=>n.id===node.id))!==state))throw new Error('소재를 읽는 동안 장면이 변경되었습니다. 다시 시도하세요.');
+        };
+        check();
+        await Promise.all(targets.filter(({node})=>node.kind==='model').map(({object})=>this.nodeMaterialJobs?.get(object)));
+        check();
+        const catalog=renderedMaterialSlots(this.root,targets.map(({node})=>node));
+        for(const {node,object} of targets){
+            let pending=false;object.traverse(o=>{if(o.userData.unmeasurable)pending=true;});
+            const slots=catalog.filter(slot=>slot.nodeId===node.id);
+            if(pending||!slots.length)throw new Error(`${node.name}: 3D 모델을 다 불러온 뒤 소재를 편집하세요.`);
+        }
+        // UV availability is returned per region. Image failures must not prevent
+        // replacing an existing finish with a working built-in material.
+        check();return catalog;
     }
     materialCatalog(expected?:SceneData){if(expected&&JSON.stringify(expected)!==JSON.stringify(this.data))throw new Error('3D 화면이 갱신 중입니다. 소재 관리를 다시 여세요.');return renderedMaterialSlots(this.root,this.data?.nodes??[]);}
     retryModels() {
@@ -729,10 +779,11 @@ export class SceneEngine {
             const n = this.data.nodes.find(n => n.id === item.userData.nodeId);
             const hidden = n?.hidden ?? false;
             const front = wall === 'front' && p.z > d / 2, back = wall === 'back' && p.z < -d / 2, left = wall === 'left' && p.x < -w / 2, right = wall === 'right' && p.x > w / 2;
-            item.visible = !hidden && !(cutaway && this.view!=='front' && (this.view === 'top' || front || back || left || right));
+            item.visible = !hidden && (!!item.userData.host&&this.focusedHostIds?.has(item.userData.nodeId)||!(cutaway && this.view!=='front' && (this.view === 'top' || front || back || left || right)));
         }
     }
     setSelection(selection: Selection) {
+        const selected=new Set(selectionIds(selection));for(const id of this.focusedHostIds??[])if(!selected.has(id))this.focusedHostIds.delete(id);
         if(this.dragActive){if(JSON.stringify(selection)===JSON.stringify(this.selection))return;this.cancelTransform();}
         for(const o of this.multiOutlines){this.helpers.remove(o);o.geometry.dispose();(o.material as T.Material).dispose()}this.multiOutlines=[];
         this.selection = selection;
@@ -804,11 +855,36 @@ export class SceneEngine {
     }
     cancelMeasurement(){this.measureStart=null;if(this.data)this.measurementOverlay?.update(this.data,null);this.onMeasureStatus?.(false);}
     focusMeasurement(id:string){const m=this.data?.measurements?.find(m=>m.id===id),v=m&&this.data?readMeasurement(this.data,m):null;if(!v)return;const target=new T.Vector3((v.start.x+v.end.x)/2000,(v.start.y+v.end.y)/2000,(v.start.z+v.end.z)/2000);this.camera.position.add(target.clone().sub(this.orbit.target));this.orbit.target.copy(target);this.orbit.update();}
-    setMode(mode: ToolMode) { if(this.section&&mode!=='select')mode='select';this.cancelTransform();if(mode!==this.mode)this.cancelMeasurement();this.mode = mode; this.drawStart = null; this.orbit.enabled = mode !== 'draw'; this.host.style.cursor = mode === 'draw'||mode==='measure' ? 'crosshair' : 'default'; this.setSelection(this.selection); }
+    /** Fit visible selected objects, including their actual transformed door leaves. */
+    focusNodes(ids:string[]){
+        this.cancelTransform();this.cancelMeasurement();
+        const chosen=new Set(ids),bounds=new T.Box3();this.root.updateMatrixWorld(true);
+        this.focusedHostIds=new Set(this.data?.nodes.filter(n=>chosen.has(n.id)&&n.host&&!n.hidden).map(n=>n.id)??[]);
+        for(const object of this.root.children)if(chosen.has(object.userData.nodeId)&&(object.visible||this.focusedHostIds.has(object.userData.nodeId)))bounds.union(new T.Box3().setFromObject(object));
+        if(bounds.isEmpty())return false;
+        const center=bounds.getCenter(new T.Vector3()),size=bounds.getSize(new T.Vector3());
+        if(this.camera instanceof T.OrthographicCamera){
+            const offset=this.camera.position.clone().sub(this.orbit.target);
+            this.camera.zoom=T.MathUtils.clamp(Math.min((this.camera.right-this.camera.left)/Math.max(.1,size.x),(this.camera.top-this.camera.bottom)/Math.max(.1,size.z))/1.25,.01,100);
+            this.camera.position.copy(center).add(offset);this.camera.updateProjectionMatrix();
+        }else{
+            const camera=this.camera as T.PerspectiveCamera,half=camera.getEffectiveFOV()*Math.PI/360,fitHalf=Math.min(half,Math.atan(Math.tan(half)*Math.max(.0001,camera.aspect)));
+            const distance=Math.max(this.orbit.minDistance+.01,size.length()/2/Math.sin(fitHalf)*1.16),direction=camera.position.clone().sub(this.orbit.target);
+            if(direction.lengthSq()<1e-8)direction.set(1,.7,1);direction.normalize();
+            this.orbit.maxDistance=Math.max(this.orbit.maxDistance,distance*1.5);camera.far=Math.max(camera.far,distance+size.length()*2+10);camera.updateProjectionMatrix();camera.position.copy(center).addScaledVector(direction,distance);
+        }
+        this.orbit.target.copy(center);this.camera.lookAt(center);this.orbit.update();this.updateCutaway();return true;
+    }
+    private reportDrawStatus(state:DrawStatus){if(this.drawStatus?.started===state.started&&this.drawStatus?.width===state.width&&this.drawStatus?.depth===state.depth)return;this.drawStatus=state;this.onDrawStatus?.(state);}
+    private previewDrawing(point:T.Vector3){if(!this.drawStart||this.mode!=='draw'||this.section)return null;if(!this.drawPreview){this.drawPreview=new DrawPreview();this.helpers.add(this.drawPreview.group);}const rect=this.drawPreview.update(this.drawStart,point,this.snapEnabled??true,this.snapping?.translation??defaultSnapSettings.translation);this.reportDrawStatus({started:true,width:rect.width,depth:rect.depth});return rect;}
+    private drawAtPoint(point:T.Vector3){if(this.mode!=='draw'||this.section)return;if(!this.drawStart){const p=snapFloorPoint(point,this.snapEnabled??true,this.snapping?.translation??defaultSnapSettings.translation);this.drawStart=new T.Vector3(p.x,0,p.z);if(this.host?.style)this.host.style.cursor='crosshair';this.previewDrawing(this.drawStart);return;}const rect=this.previewDrawing(point);this.cancelDrawing();if(rect?.valid)this.onDraw({x:rect.x,z:rect.z,width:rect.width,depth:rect.depth});}
+    cancelDrawing(){this.drawStart=null;this.drawPreview?.clear();this.reportDrawStatus({started:false,width:0,depth:0});}
+    setMode(mode: ToolMode) { if(this.section&&mode!=='select')mode='select';this.cancelTransform();if(mode!==this.mode)this.cancelMeasurement();this.mode = mode; this.cancelDrawing(); this.orbit.enabled = mode !== 'draw'; this.host.style.cursor = mode === 'draw'||mode==='measure' ? 'crosshair' : 'default'; this.setSelection(this.selection); }
     setSelectionMode(mode: 'face' | 'object') { this.selectionMode = mode; }
-    setSnap(value: boolean) { this.transform.setTranslationSnap(value ? .05 : null); this.transform.setRotationSnap(value ? Math.PI / 12 : null); }
+    setSnap(value:boolean,translationMm=defaultSnapSettings.translation,rotationDegrees=defaultSnapSettings.rotation){this.snapping=normalizeSnapping({translation:translationMm,rotation:rotationDegrees});this.snapEnabled=value;this.transform.setTranslationSnap(value?this.snapping.translation/1000:null);this.transform.setRotationSnap(value?this.snapping.rotation*Math.PI/180:null);}
     private fitPlan(aspect: number) { const w = (this.data?.room.width ?? 7200) / 1000, d = ((this.data?.room.depth ?? 6400)+(this.data?facadeProjection(this.data)*2:0)) / 1000; const half = Math.max(d * 1.25 / 2, w * 1.25 / (2 * aspect)); this.planCamera.left = -half * aspect; this.planCamera.right = half * aspect; this.planCamera.top = half; this.planCamera.bottom = -half; this.planCamera.updateProjectionMatrix(); }
     setView(view: ViewMode) {
+        this.focusedHostIds?.clear();
         this.cancelTransform();this.view = view;
         this.updateInteriorCeiling();
         this.perspective.fov=38;this.perspective.zoom=1;this.perspective.updateProjectionMatrix();
@@ -899,6 +975,13 @@ export class SceneEngine {
         fov?: number;
         section?:SectionView;
     }) { this.setSection(camera.section??null);this.setView(camera.view ?? 'perspective'); this.camera.position.fromArray(camera.position); this.orbit.target.fromArray(camera.target); this.camera.zoom = camera.zoom ?? 1;if(this.camera instanceof T.PerspectiveCamera)this.camera.fov=camera.fov??38; this.camera.updateProjectionMatrix(); this.orbit.update(); }
+    async exportSelectionGlb(ids:string[],origin:'world'|'center'='center'){
+        if(!this.data)throw new Error('3D 장면을 먼저 불러와 주세요.');
+        this.cancelTransform();this.cancelMeasurement();const signature=JSON.stringify(this.data);
+        await this.modelsReady();if(JSON.stringify(this.data)!==signature)throw new Error('장면이 변경되었습니다. 선택 요소를 다시 내보내세요.');
+        const clone=prepareSelectionExport(this.root,this.data,ids,origin);
+        try{bakeImageTransforms(clone);return await new GLTFExporter().parseAsync(clone,{binary:true,onlyVisible:true,maxTextureSize:1024}) as ArrayBuffer;}finally{this.clearGroup(clone);}
+    }
     async exportGlb() {
         await this.modelsReady();
         const clone = cloneModel(this.root);
@@ -981,12 +1064,14 @@ export class SceneEngine {
         this.observer.disconnect();
         this.renderer.domElement.removeEventListener('pointerdown', this.pointerDown);
         this.renderer.domElement.removeEventListener('pointerup', this.pointerUp);
+        this.renderer.domElement.removeEventListener('pointermove',this.pointerMove);
         this.renderer.domElement.removeEventListener('pointercancel',this.pointerCancel);this.renderer.domElement.removeEventListener('lostpointercapture',this.lostCapture);
         for(const o of this.multiOutlines){o.geometry.dispose();(o.material as T.Material).dispose()}
         this.orbit.dispose();
         this.transform.dispose();
         this.clearGroup(this.root);
         this.measurementOverlay?.dispose();
+        this.pointerGestures?.cancel();this.cancelDrawing();this.drawPreview?.dispose();
         this.underlayRenderer?.dispose();
         this.sectionClipper?.dispose();
         if(this.interiorCeiling){this.scene.remove(this.interiorCeiling);this.interiorCeiling.geometry.dispose();this.interiorCeiling.material.dispose();this.interiorCeiling=undefined;}

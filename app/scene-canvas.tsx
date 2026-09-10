@@ -5,8 +5,11 @@ import type { SceneData, SceneNode, Selection } from '@/lib/scene-model';
 import type {MeasurementAnchor} from '@/lib/measurements';
 import type {GroupDelta} from '@/lib/selection';
 import type {SectionView} from '@/lib/section-view';
+import type {SnapSettings} from '@/lib/snap-settings';
 import type { SceneEngine, ToolMode, ViewMode } from '@/lib/scene-engine';
-export default function SceneCanvas({ scene, selection, tool, view, faceMode, snap, cutaway, onSelect, onTransform, onDraw, onReady, restoreCamera, multiSelect, onTransformGroup,onMeasure,onMeasureStatus,measurementsVisible,section }: {
+export default function SceneCanvas({ scene, selection, tool, view, faceMode, snap, cutaway, onSelect, onTransform, onDraw, onReady, restoreCamera, multiSelect, onTransformGroup,onMeasure,onMeasureStatus,onDrawStatus,measurementsVisible,section,snapSettings }: {
+    onDrawStatus?:(state:{started:boolean;width:number;depth:number})=>void;
+    snapSettings?:SnapSettings;
     section?:SectionView|null;
     onMeasure?:(start:MeasurementAnchor,end:MeasurementAnchor)=>boolean;
     onMeasureStatus?:(started:boolean,error?:string)=>void;
@@ -32,10 +35,10 @@ export default function SceneCanvas({ scene, selection, tool, view, faceMode, sn
     onReady: (e: SceneEngine | null) => void;
 }) {
     const host = useRef<HTMLDivElement>(null), engine = useRef<SceneEngine | null>(null);
-    const callbacks = useRef({ onSelect, onTransform, onDraw, onReady, onTransformGroup,onMeasure,onMeasureStatus });
-    callbacks.current = { onSelect, onTransform, onDraw, onReady, onTransformGroup,onMeasure,onMeasureStatus };
-    const current = useRef({ scene, selection, tool, view, faceMode, snap, cutaway,multiSelect,restoreCamera,measurementsVisible,section });
-    current.current = { scene, selection, tool, view, faceMode, snap, cutaway,multiSelect,restoreCamera,measurementsVisible,section };
+    const callbacks = useRef({ onSelect, onTransform, onDraw, onReady, onTransformGroup,onMeasure,onMeasureStatus,onDrawStatus });
+    callbacks.current = { onSelect, onTransform, onDraw, onReady, onTransformGroup,onMeasure,onMeasureStatus,onDrawStatus };
+    const current = useRef({ scene, selection, tool, view, faceMode, snap, cutaway,multiSelect,restoreCamera,measurementsVisible,section,snapSettings });
+    current.current = { scene, selection, tool, view, faceMode, snap, cutaway,multiSelect,restoreCamera,measurementsVisible,section,snapSettings };
     const [modelStatus, setModelStatus] = useState<{
         loading: number;
         errors: string[];
@@ -50,6 +53,7 @@ export default function SceneCanvas({ scene, selection, tool, view, faceMode, sn
             try {
                 const e = new SceneEngine(host.current, { onDraw: p => callbacks.current.onDraw(p), onSelect: (s,additive) => callbacks.current.onSelect(s,additive), onTransform: (id, p) => callbacks.current.onTransform(id, p) });
                 engine.current = e;
+                e.onDrawStatus=state=>callbacks.current.onDrawStatus?.(state);
                 e.onTransformGroup=(ids,delta,pivot)=>callbacks.current.onTransformGroup?.(ids,delta,pivot);e.multiSelect=!!current.current.multiSelect;
                 e.onMeasure=(start,end)=>callbacks.current.onMeasure?.(start,end)??false;e.onMeasureStatus=(started,error)=>callbacks.current.onMeasureStatus?.(started,error);e.setMeasurementsVisible(current.current.measurementsVisible!==false);
                 e.onUnderlayStatus=status=>{if(!cancelled)setUnderlayStatus(status)};
@@ -62,7 +66,7 @@ export default function SceneCanvas({ scene, selection, tool, view, faceMode, sn
                 e.setSelection(current.current.selection);
                 e.setSelectionMode(current.current.faceMode);
                 e.setMode(current.current.tool);
-                e.setSnap(current.current.snap);
+                e.setSnap(current.current.snap,current.current.snapSettings?.translation,current.current.snapSettings?.rotation);
                 e.cutaway = current.current.cutaway;
                 callbacks.current.onReady(e);
                 setReady(true);
@@ -79,7 +83,7 @@ export default function SceneCanvas({ scene, selection, tool, view, faceMode, sn
     useEffect(()=>{engine.current?.setMeasurementsVisible(measurementsVisible!==false);},[measurementsVisible]);
     useEffect(() => { engine.current?.setView(view); }, [view]);
     useEffect(() => { engine.current?.setSelectionMode(faceMode); }, [faceMode]);
-    useEffect(() => { engine.current?.setSnap(snap); }, [snap]);
+    useEffect(() => { engine.current?.setSnap(snap,snapSettings?.translation,snapSettings?.rotation); }, [snap,snapSettings]);
     useEffect(()=>{if(engine.current)engine.current.multiSelect=!!multiSelect},[multiSelect]);
     useEffect(() => {
         if (engine.current)

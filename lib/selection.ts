@@ -1,4 +1,5 @@
 import {validateScene,footprint,surfaceNames,type SceneData,type SceneNode,type Selection,type MaterialId} from './scene-model';
+import {physicalNodeBounds} from './door-geometry';
 export type GroupDelta={x:number;y:number;z:number;rotation:number};
 export const selectionIds=(s:Selection)=>s?[...new Set(s.ids?.length?s.ids:[s.id])]:[];
 export function expandGroupIds(scene:SceneData,ids:string[],editingGroupId:string|null=null){
@@ -40,7 +41,7 @@ export function editGroup(scene:SceneData,groupIds:string[],action:{type:'rename
  return validateScene({...scene,nodes:scene.nodes.map(n=>{if(!n.group||!ids.has(n.group.id))return n;const copy={...n};if(action.type==='ungroup')delete copy.group;else copy.group={...n.group,name:action.name.trim()};return copy})});
 }
 export function selectedNodes(scene:SceneData,ids:string[],operation:'transform'|'edit'|'state'='edit'){const unique=[...new Set(ids)];if(!unique.length)throw new Error('가구를 선택하세요.');const nodes=unique.map(id=>{const n=scene.nodes.find(n=>n.id===id);if(!n)throw new Error('선택한 가구를 찾을 수 없습니다.');if(operation!=='state'&&n.locked)throw new Error(`${n.name}: 먼저 잠금을 해제하세요.`);if(operation==='transform'&&(n.host||n.hidden))throw new Error('문·창문과 숨긴 요소는 묶어서 이동할 수 없습니다.');return n});return nodes}
-export function groupBounds(nodes:SceneNode[]){if(!nodes.length)throw new Error('가구를 선택하세요.');const min={x:Infinity,y:Infinity,z:Infinity},max={x:-Infinity,y:-Infinity,z:-Infinity};for(const n of nodes){const f=footprint(n);min.x=Math.min(min.x,n.x-f.width/2);max.x=Math.max(max.x,n.x+f.width/2);min.z=Math.min(min.z,n.z-f.depth/2);max.z=Math.max(max.z,n.z+f.depth/2);min.y=Math.min(min.y,n.y);max.y=Math.max(max.y,n.y+n.height)}return{min,max,center:{x:(min.x+max.x)/2,y:(min.y+max.y)/2,z:(min.z+max.z)/2},width:max.x-min.x,height:max.y-min.y,depth:max.z-min.z}}
+export function groupBounds(nodes:SceneNode[]){if(!nodes.length)throw new Error('가구를 선택하세요.');const min={x:Infinity,y:Infinity,z:Infinity},max={x:-Infinity,y:-Infinity,z:-Infinity};for(const n of nodes){const b=physicalNodeBounds(n);for(const axis of ['x','y','z'] as const){min[axis]=Math.min(min[axis],b.min[axis]);max[axis]=Math.max(max[axis],b.max[axis]);}}return{min,max,center:{x:(min.x+max.x)/2,y:(min.y+max.y)/2,z:(min.z+max.z)/2},width:max.x-min.x,height:max.y-min.y,depth:max.z-min.z}}
 export function groupPoses(nodes:SceneNode[],delta:GroupDelta,pivot=groupBounds(nodes).center){
  if(!Object.values(delta).every(Number.isFinite))throw new Error('이동과 회전 값을 확인하세요.');
  const clean=(v:number)=>Math.abs(v)<1e-7?0:v,dx=clean(delta.x),dy=clean(delta.y),dz=clean(delta.z),yaw=clean(delta.rotation),angle=yaw*Math.PI/180,c=Math.cos(angle),s=Math.sin(angle);
@@ -57,6 +58,14 @@ export function batchAction(scene:SceneData,ids:string[],action:BatchAction,idFa
   const groups=new Map(sceneGroups(scene).filter(g=>g.nodes.every(n=>set.has(n.id))).map(g=>[g.id,{id:crypto.randomUUID(),name:`${g.name.slice(0,70)} 사본`}]));
   for(const n of nodes){const copy={...structuredClone(n),id:idFactory(),name:`${n.name.slice(0,70)} 사본`,x:n.x+action.x,z:n.z+action.z};delete copy.group;if(n.group&&groups.has(n.group.id))copy.group=groups.get(n.group.id);s.nodes.push(copy)}
  }
- if(action.type==='align'){if(nodes.some(n=>n.group))throw new Error('그룹 내부 간격을 보호합니다. 개별 위치는 그룹 안 편집에서 조정하세요.');const bounds=groupBounds(nodes);for(const n of s.nodes.filter(n=>set.has(n.id))){const f=footprint(n),half=(action.axis==='x'?f.width:f.depth)/2;n[action.axis]=action.edge==='min'?bounds.min[action.axis]+half:action.edge==='max'?bounds.max[action.axis]-half:bounds.center[action.axis]}}
+ if(action.type==='align'){if(nodes.some(n=>n.group))throw new Error('그룹 내부 간격을 보호합니다. 개별 위치는 그룹 안 편집에서 조정하세요.');const bounds=groupBounds(nodes);for(const n of s.nodes.filter(n=>set.has(n.id))){
+  if(n.openings?.some(o=>o.kind==='door'&&o.door)){
+   const b=physicalNodeBounds(n),delta=bounds[action.edge][action.axis]-b[action.edge][action.axis];
+   if(Math.abs(delta)>1e-7)n[action.axis]+=delta;
+  }else{
+   // Preserve the exact legacy arithmetic for symmetric, nominal furniture bounds.
+   const f=footprint(n),half=(action.axis==='x'?f.width:f.depth)/2;n[action.axis]=action.edge==='min'?bounds.min[action.axis]+half:action.edge==='max'?bounds.max[action.axis]-half:bounds.center[action.axis];
+  }
+ }}
  return validateScene(s);
 }

@@ -51,6 +51,7 @@ function DialogContent({
   className,
   children,
   showCloseButton = true,
+  onEscapeKeyDown,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean
@@ -65,6 +66,14 @@ function DialogContent({
           className
         )}
         {...props}
+        onEscapeKeyDown={event => {
+          // Escape first cancels Korean/Japanese/Chinese composition.
+          if (event.isComposing || event.keyCode === 229) {
+            event.preventDefault()
+            return
+          }
+          onEscapeKeyDown?.(event)
+        }}
       >
         {children}
         {showCloseButton && (
