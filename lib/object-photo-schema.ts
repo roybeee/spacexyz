@@ -2,7 +2,7 @@ import {z} from 'zod';
 export const objectPhotoSchema=z.object({
  imageId:z.string().uuid(),representation:z.enum(['parametric','parts']),analysis:z.enum(['manual','ai']),dimensions:z.enum(['entered','measured']),
  objectId:z.string().uuid().optional(),partIndex:z.number().int().min(0).max(15).optional(),partCount:z.number().int().min(1).max(16).optional(),sourceSize:z.object({width:z.number().positive().max(10000),depth:z.number().positive().max(10000),height:z.number().positive().max(10000)}).optional(),
- brand:z.string().trim().max(60).default(''),productCode:z.string().trim().max(60).default(''),notes:z.array(z.string().max(300)).max(5).default([])
+ productName:z.string().trim().max(80).optional(),brand:z.string().trim().max(60).default(''),productCode:z.string().trim().max(60).default(''),notes:z.array(z.string().max(300)).max(5).default([])
 });
 export type ObjectPhoto=z.infer<typeof objectPhotoSchema>;
 

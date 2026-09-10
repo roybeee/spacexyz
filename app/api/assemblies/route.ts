@@ -1,3 +1,4 @@
+import {uniquePhotoTags,type PhotoProductTag} from '@/lib/photo-products';
 import {z} from 'zod';
 import {owner,db,fail,HttpError,sameOrigin,jsonBody} from '@/lib/server';
 import {validateAssembly,assemblySummary,type Assembly} from '@/lib/assemblies';
@@ -12,7 +13,7 @@ export async function GET(req:Request){try{
         const row=await db().prepare('SELECT id,content,created_at FROM assemblies WHERE id=? AND owner=?').bind(getId(req),u).first();if(!row)throw new HttpError(404,'세트를 찾을 수 없습니다.');
         const assembly=checked(JSON.parse(row.content as string));await checkAssets(u,assembly);return Response.json({id:row.id,assembly,created_at:row.created_at},{headers});
     }
-    const rows=await db().prepare('SELECT id,name,note,category,count,width,depth,height,created_at FROM assemblies WHERE owner=? ORDER BY created_at DESC LIMIT 100').bind(u).all();return Response.json({assemblies:rows.results},{headers});
+    const rows=await db().prepare('SELECT id,name,note,category,count,width,depth,height,created_at,(SELECT json_group_array(json_object(\'name\',coalesce(nullif(json_extract(value,\'$.objectPhoto.productName\'),\'\'),CASE WHEN instr(json_extract(value,\'$.name\'),\' · \')>0 THEN substr(json_extract(value,\'$.name\'),1,instr(json_extract(value,\'$.name\'),\' · \')-1) ELSE json_extract(value,\'$.name\') END),\'brand\',coalesce(json_extract(value,\'$.objectPhoto.brand\'),\'\'),\'code\',coalesce(json_extract(value,\'$.objectPhoto.productCode\'),\'\'),\'imageId\',json_extract(value,\'$.objectPhoto.imageId\'))) FROM json_each(assemblies.content,\'$.nodes\') WHERE json_type(value,\'$.objectPhoto\')=\'object\') AS product_json FROM assemblies WHERE owner=? ORDER BY created_at DESC LIMIT 100').bind(u).all();return Response.json({assemblies:rows.results.map(row=>{const {product_json,...summary}=row;const products=uniquePhotoTags(JSON.parse(String(product_json||'[]')) as PhotoProductTag[]);return {...summary,...(products.length?{products}:{})};})},{headers});
 }catch(e){return fail(e)}}
 export async function POST(req:Request){try{
     sameOrigin(req);const u=await owner(),body=await jsonBody(req,210000),id=z.string().uuid().parse(body.id),assembly=checked(body.assembly);await checkAssets(u,assembly);

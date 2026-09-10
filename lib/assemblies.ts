@@ -1,3 +1,4 @@
+import {photoProductTags,type PhotoProductTag} from './photo-products';
 import {randomId} from '@/lib/random-id';
 import {z} from 'zod';
 import {nodeSchema,cloneUngroupedNode,initialScene,validateScene,createNode,collisions,type SceneData,type SceneNode} from './scene-model';
@@ -6,7 +7,7 @@ import {groupBounds,selectedNodes} from './selection';
 export const assemblyCategories={seating:'좌석',counter:'카운터',display:'진열',equipment:'설비',custom:'기타'} as const;
 export const assemblySchema=z.object({version:z.literal(1),name:z.string().trim().min(1).max(80),note:z.string().max(400),category:z.enum(['seating','counter','display','equipment','custom']),elevation:z.number().finite().min(0).max(6000),nodes:z.array(nodeSchema).min(1).max(30)});
 export type Assembly=z.infer<typeof assemblySchema>;
-export type AssemblySummary={id:string;name:string;note:string;category:Assembly['category'];count:number;width:number;depth:number;height:number;created_at:string};
+export type AssemblySummary={id:string;name:string;note:string;category:Assembly['category'];count:number;width:number;depth:number;height:number;created_at:string;products?:PhotoProductTag[]};
 export type AssemblyPlacement={x:number;y:number;z:number;rotation:number};
 const yaw=(v:number)=>((v+180)%360+360)%360-180;
 
@@ -28,17 +29,21 @@ export function captureAssembly(scene:SceneData,ids:string[],name:string,note=''
     if(selected.some(n=>n.hidden))throw new Error('숨긴 가구를 표시하거나 선택에서 제외하세요.');
     if(selected.some(n=>n.host||n.kind==='door'||n.kind==='window'))throw new Error('문·창문을 선택에서 제외한 뒤 저장하세요.');
     const bounds=groupBounds(selected);
-    return validateAssembly({version:1,name,note,category,elevation:bounds.min.y,nodes:selected.map((n,i)=>({...detachedAssemblyNode(n),id:`part-${i+1}`,x:n.x-bounds.center.x,y:n.y-bounds.min.y,z:n.z-bounds.center.z,rotation:yaw(n.rotation),locked:false,hidden:false}))});
+    const photoIds=new Map<string,string>();
+    const copyPhoto=(n:SceneNode)=>{if(n.objectPhoto?.representation!=='parts')return n.objectPhoto;const key=n.group?`${n.group.id}:${n.objectPhoto.objectId??n.id}`:n.id;if(!photoIds.has(key))photoIds.set(key,randomId());return {...n.objectPhoto,objectId:photoIds.get(key)};};
+    return validateAssembly({version:1,name,note,category,elevation:bounds.min.y,nodes:selected.map((n,i)=>({...detachedAssemblyNode(n),...(n.objectPhoto?{objectPhoto:copyPhoto(n)}:{}),id:`part-${i+1}`,x:n.x-bounds.center.x,y:n.y-bounds.min.y,z:n.z-bounds.center.z,rotation:yaw(n.rotation),locked:false,hidden:false}))});
 }
 
 export function assemblySummary(id:string,a:Assembly,created_at=''):AssemblySummary {
-    const b=groupBounds(a.nodes);return {id,name:a.name,note:a.note,category:a.category,count:a.nodes.length,width:b.width,depth:b.depth,height:b.height,created_at};
+    const b=groupBounds(a.nodes),products=photoProductTags(a.nodes);return {...(products.length?{products}:{}),id,name:a.name,note:a.note,category:a.category,count:a.nodes.length,width:b.width,depth:b.depth,height:b.height,created_at};
 }
 
 export function placedAssembly(a:Assembly,p:AssemblyPlacement,idFactory=()=>randomId()):SceneNode[] {
     if(!Object.values(p).every(Number.isFinite)||p.y<0||Math.abs(p.rotation)>360)throw new Error('위치·높이·회전 값을 확인하세요.');
     const angle=yaw(p.rotation)*Math.PI/180,c=Math.cos(angle),s=Math.sin(angle);
-    return a.nodes.map(n=>({...detachedAssemblyNode(n),id:idFactory(),x:p.x+n.x*c+n.z*s,y:p.y+n.y,z:p.z-n.x*s+n.z*c,rotation:yaw(n.rotation+p.rotation),locked:false,hidden:false}));
+    const photoIds=new Map<string,string>();
+    const copyPhoto=(n:SceneNode)=>{if(n.objectPhoto?.representation!=='parts')return n.objectPhoto;const key=n.objectPhoto.objectId??n.id;if(!photoIds.has(key))photoIds.set(key,randomId());return {...n.objectPhoto,objectId:photoIds.get(key)};};
+    return a.nodes.map(n=>({...detachedAssemblyNode(n),...(n.objectPhoto?{objectPhoto:copyPhoto(n)}:{}),id:idFactory(),x:p.x+n.x*c+n.z*s,y:p.y+n.y,z:p.z-n.x*s+n.z*c,rotation:yaw(n.rotation+p.rotation),locked:false,hidden:false}));
 }
 
 export function insertAssembly(scene:SceneData,input:unknown,p:AssemblyPlacement,idFactory=()=>randomId()) {

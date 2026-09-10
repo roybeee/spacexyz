@@ -17,7 +17,7 @@ export function photoPartLayout(raw:PhotoPart[],size:{width:number;height:number
  return parts.map(p=>({...p,x:(p.x-(max.x+min.x)/2)*sx,y:(p.y-min.y)*sy,z:(p.z-(max.z+min.z)/2)*sz,width:p.width*sx,height:p.height*sy,depth:p.depth*sz}));
 }
 export function createPhotoObject(scene:SceneData,raw:unknown,id=randomId()):{scene:SceneData;node:SceneNode;nodes:SceneNode[];ids:string[]}{
- const input=objectPhotoInputSchema.parse(raw),node:SceneNode={...createNode(input.kind,id),name:input.name,width:input.width,height:input.height,depth:input.depth,material:input.material,color:input.color,estimated:true,objectPhoto:input.photo};
+ const input=objectPhotoInputSchema.parse(raw),node:SceneNode={...createNode(input.kind,id),name:input.name,width:input.width,height:input.height,depth:input.depth,material:input.material,color:input.color,estimated:true,objectPhoto:{...input.photo,productName:input.name}};
  // Dimensions describe the overall object. A pendant starts directly beneath the current ceiling.
  node.y=input.kind==='pendant'?Math.max(0,scene.room.height-input.height-100):0;
  // Find a free conservative footprint near the middle. The result is still editable.
@@ -31,8 +31,8 @@ export function createPhotoObject(scene:SceneData,raw:unknown,id=randomId()):{sc
  if(input.parts?.length){
   const parts=photoPartLayout(input.parts,input),objectId=randomId(),group=parts.length>1?{id:randomId(),name:input.name}:undefined;
   if(parts.some(p=>Math.min(p.width,p.height,p.depth)<20-1e-6))throw new Error('일부 추정 부품이 20mm보다 얇습니다. AI 부품 구성을 끄고 기본형으로 만들거나 치수를 확인하세요.');
-  nodes=parts.map((part,i)=>({...createNode(part.shape,i===0?id:randomId()),name:`${input.name.slice(0,46)} · ${part.name}`,x:part.x+place[0],y:part.y+node.y,z:part.z+place[1],width:part.width,height:part.height,depth:part.depth,material:part.material,color:part.color,estimated:true,...(group?{group}:{}),objectPhoto:{...input.photo,representation:'parts' as const,objectId,partIndex:i,partCount:parts.length,sourceSize:{width:input.width,height:input.height,depth:input.depth}}}));
- }else node.objectPhoto={...input.photo,representation:'parametric',sourceSize:{width:input.width,height:input.height,depth:input.depth}};
+  nodes=parts.map((part,i)=>({...createNode(part.shape,i===0?id:randomId()),name:`${input.name.slice(0,46)} · ${part.name}`,x:part.x+place[0],y:part.y+node.y,z:part.z+place[1],width:part.width,height:part.height,depth:part.depth,material:part.material,color:part.color,estimated:true,...(group?{group}:{}),objectPhoto:{...input.photo,productName:input.name,representation:'parts' as const,objectId,partIndex:i,partCount:parts.length,sourceSize:{width:input.width,height:input.height,depth:input.depth}}}));
+ }else node.objectPhoto={...input.photo,productName:input.name,representation:'parametric',sourceSize:{width:input.width,height:input.height,depth:input.depth}};
  return {scene:validateScene({...scene,nodes:[...scene.nodes,...nodes]}),node:nodes[0],nodes,ids:nodes.map(n=>n.id)};
 }
 export function photoObjectLabel(node:SceneNode){return node.objectPhoto?`${kindNames[node.kind]} · 사진 참고 기본형`:kindNames[node.kind];}
