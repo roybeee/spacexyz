@@ -4,12 +4,15 @@ import {Check,ExternalLink,Search,LoaderCircle,PackageOpen,ChevronLeft,ChevronRi
 import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription} from '@/components/ui/dialog';
 import {materialProducts,materialProduct,searchMaterialProducts,type MaterialProduct,type ProductCatalogScope} from '@/lib/material-products';
 import {samhwaBooks,samhwaManifest} from '@/lib/samhwa-colors';
+import ProductComparisonDialog from './product-comparison-dialog';
 import './product-materials.css';
 const PAGE_SIZE=60;
 const brands=[...new Set(materialProducts.map(p=>p.brand))],categories=[...new Set(materialProducts.map(p=>p.appearance))],productTypes=[...new Set(materialProducts.filter(p=>p.kind!=='color').map(p=>p.category))],productCount=materialProducts.filter(p=>p.kind!=='color').length;
 export default function ProductMaterialDialog({currentId,target,onClose,onApply}:{currentId?:string|null;target:string;onClose:()=>void;onApply:(p:MaterialProduct)=>Promise<boolean>}){
  const [brand,setBrand]=useState(materialProduct(currentId)?.brand??'전체'),[category,setCategory]=useState('전체'),[book,setBook]=useState('전체'),[query,setQuery]=useState(''),[selected,setSelected]=useState(currentId??materialProducts[0]?.id),[loaded,setLoaded]=useState<string|null>(null),[imageError,setImageError]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[page,setPage]=useState(()=>{const current=materialProduct(currentId);return current?Math.floor(Math.max(0,materialProducts.filter(p=>p.brand===current.brand).findIndex(p=>p.id===current.id))/PAGE_SIZE):0});
  const [scope,setScope]=useState<ProductCatalogScope>(materialProduct(currentId)?.kind==='color'?'colors':'products'),[productType,setProductType]=useState('전체');
+ const [comparisonIds,setComparisonIds]=useState<string[]>([]),[comparing,setComparing]=useState(false);
+ const comparisonProducts=comparisonIds.flatMap(id=>{const p=materialProduct(id);return p?[p]:[]});
  const grid=useRef<HTMLDivElement>(null),flight=useRef(false);
  const filtered=useMemo(()=>searchMaterialProducts({brand,category,book,query,scope,productType}),[brand,category,book,query,scope,productType]);
  const pageCount=Math.max(1,Math.ceil(filtered.length/PAGE_SIZE)),safePage=Math.min(page,pageCount-1),visible=filtered.slice(safePage*PAGE_SIZE,(safePage+1)*PAGE_SIZE);
@@ -18,7 +21,8 @@ export default function ProductMaterialDialog({currentId,target,onClose,onApply}
  useEffect(()=>{if(grid.current)grid.current.scrollTop=0;},[safePage,brand,category,book,query,scope,productType]);
  function reset(){setScope('all');setProductType('전체');setQuery('');setBrand('전체');setCategory('전체');setBook('전체');setPage(0)}
  async function apply(){if(!item||!ready||flight.current)return;flight.current=true;setBusy(true);setError('');try{if(await onApply(item))onClose();}catch(e){setError(e instanceof Error?e.message:'소재를 적용하지 못했습니다.');}finally{flight.current=false;setBusy(false);}}
- return <Dialog open onOpenChange={o=>!o&&!busy&&onClose()}><DialogContent className="product-material-dialog" showCloseButton={!busy}>
+ function viewCompared(p:MaterialProduct){setScope(p.kind==='color'?'colors':'products');setBrand(p.brand);setCategory('전체');setBook('전체');setProductType('전체');setQuery('');setSelected(p.id);setPage(Math.floor(materialProducts.filter(v=>v.brand===p.brand&&v.kind===p.kind).findIndex(v=>v.id===p.id)/PAGE_SIZE));setComparing(false)}
+ return <><Dialog open={!comparing} onOpenChange={o=>!o&&!busy&&!comparing&&onClose()}><DialogContent className="product-material-dialog" showCloseButton={!busy}>
   <DialogHeader><DialogTitle>실제 마감재 라이브러리</DialogTitle><DialogDescription>제조사 제품·색상 코드로 찾고, 선택한 면에 적용하세요.</DialogDescription></DialogHeader>
   <div className="product-library-layout"><section className="product-browser">
    <div className="product-scope" role="group" aria-label="소재 라이브러리 구분">{([['products',`실제 제품 ${productCount.toLocaleString()}개`],['colors',`페인트 색상 ${samhwaManifest.totalRecords.toLocaleString()}개`],['all','전체']] as const).map(([value,label])=><button key={value} aria-pressed={scope===value} disabled={busy} onClick={()=>{setScope(value);setBrand('전체');setProductType('전체');setCategory('전체');setBook('전체');setQuery('');setPage(0)}}>{label}</button>)}</div>
@@ -32,11 +36,13 @@ export default function ProductMaterialDialog({currentId,target,onClose,onApply}
     <small>{p.kind==='color'?p.collection:`${p.brand} · ${p.category}`}</small><b>{p.code}</b><p>{p.name}</p>
    </button>)}</div>
    {!!filtered.length&&<nav className="product-pagination" aria-label="소재 검색 페이지"><button aria-label="이전 소재 페이지" disabled={busy||safePage===0} onClick={()=>setPage(safePage-1)}><ChevronLeft size={15}/>이전</button><label><select aria-label="소재 페이지 선택" disabled={busy} value={safePage} onChange={e=>setPage(Number(e.target.value))}>{Array.from({length:pageCount},(_,i)=><option key={i} value={i}>{i+1} / {pageCount} 페이지</option>)}</select></label><button aria-label="다음 소재 페이지" disabled={busy||safePage===pageCount-1} onClick={()=>setPage(safePage+1)}>다음<ChevronRight size={15}/></button></nav>}
+   <div className="product-comparison-bar"><span aria-live="polite">비교 {comparisonIds.length} / 3개</span><button disabled={busy||comparisonIds.length<2} onClick={()=>setComparing(true)}>나란히 비교</button>{comparisonIds.length>0&&<button disabled={busy} onClick={()=>setComparisonIds([])}>비우기</button>}</div>
    {!filtered.length&&<div className="product-empty"><PackageOpen/><b>검색 결과가 없습니다</b><p>다른 코드나 컬러북을 선택해 주세요.</p><button className="text-button" onClick={reset}>전체 제품 보기</button></div>}
   </section><aside className="product-detail">{item&&<>
    <div className={`product-hero${isColor&&!item.previewColor?' color-unavailable':''}`} style={isColor&&item.previewColor?{background:item.previewColor}:undefined}>{item.image&&<img key={item.id} src={item.image} alt={`${item.brand} ${item.code} 상세 스와치`} onLoad={()=>setLoaded(item.id)} onError={()=>{setImageError(true);setLoaded(null)}}/>}{imageError&&<p role="alert">제품 이미지를 불러오지 못했습니다.</p>}{isColor&&!item.previewColor&&<p>공식 색상값 확인 필요</p>}</div>
    <div className="product-detail-copy"><small>{item.brand} / {item.collection}</small><h3>{item.code}</h3><p>{item.name}</p>
     <div className="product-apply"><small>적용할 범위 · {target}</small><button className="primary-button full" disabled={busy||!ready} onClick={()=>void apply()}>{busy?<LoaderCircle className="spin" size={16}/>:<Check size={16}/>} {busy?'소재 적용 중…':isColor?'이 페인트 색상 적용':'이 제품 소재 적용'}</button></div>
+    <button className="comparison-add" aria-pressed={comparisonIds.includes(item.id)} disabled={busy||(!comparisonIds.includes(item.id)&&comparisonIds.length>=3)} onClick={()=>setComparisonIds(ids=>ids.includes(item.id)?ids.filter(id=>id!==item.id):ids.length<3?[...ids,item.id]:ids)}>{comparisonIds.includes(item.id)?"비교에서 빼기":comparisonIds.length>=3?"비교는 최대 3개까지":"비교에 담기"}</button>
     <dl><div><dt>제품군</dt><dd>{item.category}</dd></div>{isColor?<><div><dt>HEX</dt><dd>{item.previewColor?.toUpperCase()??'미제공'}</dd></div>{item.previewColor&&<div><dt>RGB</dt><dd>{[1,3,5].map(i=>parseInt(item.previewColor!.slice(i,i+2),16)).join(', ')}</dd></div>}{item.pageCode&&<div><dt>컬러북 페이지</dt><dd>{item.pageCode}</dd></div>}</>:<div><dt>무늬</dt><dd>{item.appearance}</dd></div>}<div><dt>확인일</dt><dd>{item.checkedAt}</dd></div></dl>
     {item.codeHasVariants&&<p className="product-source-note">같은 코드가 다른 컬러북에도 있습니다. 이 컬러북에 게시된 화면 색상값을 적용합니다.</p>}
     {isColor&&!item.previewColor&&<p className="product-source-note" role="alert">공식 원본 값이 {item.sourceValue}로 표기되어 적용할 수 없습니다. 임의의 대체색을 사용하지 않습니다.</p>}
@@ -44,5 +50,5 @@ export default function ProductMaterialDialog({currentId,target,onClose,onApply}
     <a href={item.sourceUrl} target="_blank" rel="noreferrer">제조사 공식 {isColor?'컬러검색':'제품 정보'}<ExternalLink size={13}/></a>
     <p className="fineprint">{isColor?'화면용 색상입니다. 3D 조명·모니터·도료 종류·광택·바탕면에 따라 실물과 달라질 수 있으므로 최종 색상은 실물 색표와 도장 샘플로 확인하세요.':'공식 제품 스와치입니다. 화면 색상과 광택은 시각화 참고값이며, 판매 규격·시공 용도는 제조사 샘플과 제품 정보로 확인하세요.'}</p>{error&&<p className="form-error" role="alert">{error}</p>}
    </div></>}</aside></div>
- </DialogContent></Dialog>;
+ </DialogContent></Dialog>{comparing&&<ProductComparisonDialog products={comparisonProducts} onClose={()=>setComparing(false)} onRemove={id=>setComparisonIds(ids=>ids.filter(v=>v!==id))} onSelect={viewCompared}/>}</>;
 }
