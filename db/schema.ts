@@ -11,3 +11,5 @@ export const renderRequests = sqliteTable('render_requests', {id:text('id').prim
 
 export const hermesConnections=sqliteTable('hermes_connections',{owner:text('owner').primaryKey(),secret:text('secret').notNull()});
 export const hermesJobs=sqliteTable('hermes_jobs',{id:text('id').notNull(),owner:text('owner').notNull(),connectionId:text('connection_id').notNull(),fingerprint:text('fingerprint').notNull(),runId:text('run_id'),status:text('status').notNull(),output:text('output'),createdAt:integer('created_at').notNull(),deadline:integer('deadline').notNull(),purpose:text('purpose').notNull(),cancelRequested:integer('cancel_requested').notNull().default(0)},t=>[primaryKey({columns:[t.owner,t.id]}),index('hermes_jobs_owner_created').on(t.owner,t.createdAt)]);
+
+export const brands=sqliteTable('brands',{id:text('id').primaryKey(),owner:text('owner').notNull(),name:text('name').notNull(),content:text('content').notNull(),revision:integer('revision').notNull().default(1),updatedAt:text('updated_at').notNull()},t=>[index('brands_owner_updated').on(t.owner,t.updatedAt)]);

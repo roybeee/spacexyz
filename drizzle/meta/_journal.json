@@ -43,6 +43,13 @@
       "when": 1789079339276,
       "tag": "0005_chunky_colleen_wing",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1789088542988,
+      "tag": "0006_gigantic_firelord",
+      "breakpoints": true
     }
   ]
 }
