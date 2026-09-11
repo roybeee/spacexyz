@@ -39,7 +39,7 @@ export const moduleNames={
 export type ModuleKey=keyof typeof moduleNames;
 export const moduleGrades:Record<ModuleKey,BrandGrade>={showcase:'F',counter:'F',beverage:'O',pickup:'S',backbar:'O',seating:'O',windowBar:'O'};
 export const moduleHints:Record<ModuleKey,string>={
-  showcase:'폭은 선호 모듈(600·900·1200) · 높이는 플린스 상판 높이 · 깊이는 플린스 깊이. 유리 쇼케이스는 상판 위에 올라갑니다.',
+  showcase:'폭은 선호 모듈(600·900·1200) · 높이는 플린스 상판 높이 · 깊이는 플린스 깊이. 유리 쇼케이스는 상판 위에 올라가며, 넓은 상가에서는 출입구 쪽 측벽으로 L자 연장됩니다.',
   counter:'폭은 POS 카운터 길이 · 높이는 상판 높이. 폭이 넓은 상가에서는 그대로, 좁으면 900mm까지 자동 축소.',
   beverage:'에스프레소 머신 자리를 포함한 작업대. 좁으면 900mm까지 자동 축소.',
   pickup:'서비스 라인 끝의 픽업 카운터. 좁으면 600mm까지 자동 축소.',
@@ -65,16 +65,18 @@ export const brandRulesSchema=z.object({
   queueDepth:z.number().int().min(0).max(6000),
   doorWidth:z.number().int().min(700).max(2400),
   lightingWarmth:z.number().int().min(2700).max(6500),
+  displayWrap:z.enum(['auto','straight']).default('auto'),
   zones:z.object({display:zoneRule,counter:zoneRule,back:zoneRule,pickup:zoneRule}).strict(),
   checklist:z.array(z.object({grade:z.enum(brandGrades),label:z.string().trim().min(1).max(80)}).strict()).max(12),
 }).strict();
 export type BrandRules=z.infer<typeof brandRulesSchema>;
-export const ruleNames:Record<'aisleMain'|'aisleSub'|'queueDepth'|'doorWidth'|'lightingWarmth',string>={aisleMain:'주통로 폭',aisleSub:'부통로 폭',queueDepth:'대기열 깊이',doorWidth:'출입문 폭',lightingWarmth:'조명 색온도'};
+export const ruleNames:Record<'aisleMain'|'aisleSub'|'queueDepth'|'doorWidth'|'lightingWarmth'|'displayWrap',string>={aisleMain:'주통로 폭',aisleSub:'부통로 폭',queueDepth:'대기열 깊이',doorWidth:'출입문 폭',lightingWarmth:'조명 색온도',displayWrap:'진열 확장'};
+export const displayWrapNames:Record<BrandRules['displayWrap'],string>={auto:'자동 · 필요 시 출입구 쪽 측벽으로 L자 연장',straight:'직선 라인만'};
 export const zoneRuleNames:Record<keyof BrandRules['zones'],string>={display:'Z2 진열',counter:'Z3 카운터·음료',back:'Z6 후방',pickup:'Z4 픽업'};
 /** OFD 인테리어·시공 매뉴얼 v1.0 (2026.08) 기준값. 다른 브랜드는 이 값을 출발점으로 수정합니다. */
 export const defaultBrandRules=():BrandRules=>({
   source:'OFD 인테리어·시공 매뉴얼 v1.0 (2026.08)',
-  aisleMain:1200,aisleSub:900,queueDepth:2400,doorWidth:1000,lightingWarmth:3000,
+  aisleMain:1200,aisleSub:900,queueDepth:2400,doorWidth:1000,lightingWarmth:3000,displayWrap:'auto',
   zones:{display:{min:20,max:100},counter:{min:15,max:20},back:{min:15,max:20},pickup:{min:5,max:10}},
   checklist:[
     {grade:'F',label:'진열대 직상부 공조 취출 금지 (제품 건조·변질)'},

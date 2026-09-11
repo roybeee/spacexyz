@@ -42,6 +42,8 @@ const BAR_DEPTH=400,STOOL_ZONE=500,BAR_TOP=40,BAR_LEG=40;
 const TABLE=650,TABLE_HEIGHT=740,CHAIR_WIDTH=460,CHAIR_DEPTH=480,CHAIR_HEIGHT=800;
 const BENCH_DEPTH=600,TABLE_PITCH=1200,MAX_BENCH_TABLES=2;
 const RACK_DEPTH=450,RACK_HEIGHT=1800,MAX_RACKS=6;
+/** A display leg shorter than this is not worth wrapping the corner for. */
+const MIN_LEG=1200;
 const POS_UNIT=[320,250,300] as const;
 const MACHINE=[700,500,550] as const;
 
@@ -91,44 +93,74 @@ export function planBrandStore(brand:BrandStandard,room:BrandRoom,options:Layout
   const plinthHeight=showcase.height,plinthDepth=showcase.depth,counterHeight=modules.counter.height;
   const serviceDepth=plinthDepth+rules.queueDepth;
 
-  // ── Service line widths. The display share is the hard rule (the manual rejects layouts that eat display
-  //    space for seats); POS, beverage and pickup widths are searched between the brand's value and a design
-  //    minimum so the other zone targets are met as closely as the straight-line plan allows.
-  const innerArea=usableWidth*usableDepth;
-  const share=(mm2:number)=>mm2/innerArea*100;
-  const sum=(list:number[])=>list.reduce((s,m)=>s+m,0);
-  const choices=(enabled:boolean,value:number,min:number)=>enabled?[...new Set([value,Math.min(value,min)])]:[0];
-  type Candidate={pos:number;beverage:number;pickup:number;modules:number[];display:number;violations:number;service:number};
-  const candidates:Candidate[]=[];
-  for(const pos of choices(true,modules.counter.width,MIN_POS))
-  for(const beverage of choices(modules.beverage.enabled,modules.beverage.width,MIN_BEVERAGE))
-  for(const pickup of choices(modules.pickup.enabled,modules.pickup.width,MIN_PICKUP)){
-    const fill=fillPlinthModules(usableWidth-pos-beverage-pickup,showcase.width),display=share(sum(fill)*serviceDepth);
-    if(!fill.length||display+DISPLAY_TOLERANCE<rules.zones.display.min)continue;
-    const outside=(value:number,zone:{min:number;max:number})=>value+ZONE_TOLERANCE<zone.min||value-ZONE_TOLERANCE>zone.max?1:0;
-    const violations=outside(share((pos+beverage)*serviceDepth),rules.zones.counter)+outside(share(pickup*serviceDepth),rules.zones.pickup);
-    candidates.push({pos,beverage,pickup,modules:fill,display,violations,service:pos+beverage+pickup});
-  }
-  candidates.sort((a,b)=>a.violations-b.violations||b.service-a.service||b.display-a.display);
-  const chosen=candidates[0];
-  if(!chosen){
-    const minimalService=Math.min(modules.counter.width,MIN_POS)+(modules.beverage.enabled?MIN_BEVERAGE:0)+(modules.pickup.enabled?MIN_PICKUP:0);
-    const neededDisplay=Math.ceil(rules.zones.display.min/100*innerArea/serviceDepth/100)*100;
-    const currentDisplay=sum(fillPlinthModules(Math.max(0,usableWidth-minimalService),showcase.width));
-    throw new Error(`진열 존 ${rules.zones.display.min}%를 확보할 수 없습니다. 폭 ${room.width.toLocaleString()}mm에서는 카운터·음료·픽업을 최소로 줄여도 진열 ${currentDisplay.toLocaleString()}mm(${round1(share(currentDisplay*serviceDepth))}%)입니다. 폭 ${(neededDisplay+minimalService+2*WALL_INSET).toLocaleString()}mm 이상이 필요하거나 음료 제조대·픽업대 모듈을 끄세요.`);
-  }
-  const posWidth=chosen.pos,beverageWidth=chosen.beverage,pickupWidth=chosen.pickup,displayModules=chosen.modules,displayWidth=sum(displayModules);
-  const reduced=[['POS 카운터',posWidth,modules.counter.width],['음료 제조대',beverageWidth,modules.beverage.enabled?modules.beverage.width:0],['픽업대',pickupWidth,modules.pickup.enabled?modules.pickup.width:0]].filter(([,actual,wanted])=>actual<wanted);
-  if(reduced.length)warnings.push(`진열 존 ${rules.zones.display.min}% 확보를 위해 ${reduced.map(([name,actual])=>`${name} ${actual}mm`).join(' · ')}로 줄였습니다. 상가 폭이 넓어지면 브랜드 표준 폭으로 되돌아갑니다.`);
-  const cornerGap=usableWidth-displayWidth-posWidth-beverageWidth-pickupWidth;
-
-  // ── Depth bands: back-of-house, service line, queue, then the remainder for seating.
+  // ── Depth bands: back-of-house, service line, queue, then the remainder for seating and the display leg.
   const backDepth=modules.backbar.enabled?modules.backbar.depth:RACK_DEPTH;
   const backBand=backDepth+rules.aisleSub;
   const zLineStart=zBack+backBand,zLineCenter=zLineStart+plinthDepth/2,zQueueEnd=zLineStart+plinthDepth+rules.queueDepth;
   const frontBand=zFront-zQueueEnd;
   if(frontBand<0)
     throw new Error(`상가 깊이가 부족합니다. 후방 ${backBand.toLocaleString()} + 진열·카운터 ${plinthDepth.toLocaleString()} + 대기열 ${rules.queueDepth.toLocaleString()} = ${(backBand+plinthDepth+rules.queueDepth+2*WALL_INSET).toLocaleString()}mm 이상의 깊이가 필요합니다 (현재 ${room.depth.toLocaleString()}mm).`);
+
+  // ── Entrance geometry: door on the storefront, a straight aisle into the shop and a clear entry zone.
+  const doorX=options.entrance==='center'?0:xLeft+250+rules.doorWidth/2;
+  const exclusion=Math.max(rules.doorWidth,rules.aisleMain)/2;
+  const aisle={x0:doorX-exclusion,x1:doorX+exclusion};
+  const entryClearance=Math.max(rules.aisleMain,rules.doorWidth+200);
+
+  // ── Display leg options. The display may wrap the entrance-side corner and run along that wall, stopping
+  //    short of the entry zone. Customers browse it from a strip one main aisle wide; only the part beyond
+  //    the queue band adds display area, which is what lets mid-size shops keep full-width counters.
+  const browsing=plinthDepth+rules.aisleMain;
+  const zLegStart=zLineStart+plinthDepth,legMax=zFront-entryClearance-zLegStart;
+  const legAllowed=rules.displayWrap==='auto'&&(options.entrance!=='center'||xLeft+browsing<=aisle.x0);
+  const sum=(list:number[])=>list.reduce((s,m)=>s+m,0);
+  const legOptions:number[][]=[[]];
+  if(legAllowed)for(let target=MIN_LEG;target<=legMax;target+=600){
+    const fill=fillPlinthModules(target,showcase.width),length=sum(fill);
+    if(length>=MIN_LEG&&!legOptions.some(o=>sum(o)===length))legOptions.push(fill);
+  }
+
+  // ── Service line widths. The display share is the hard rule (the manual rejects layouts that eat display
+  //    space for seats). POS, beverage and pickup widths are searched from a design minimum through the
+  //    brand's value up to two growth steps, with or without a display leg, and the plan that meets the most
+  //    zone targets while staying closest to the brand's own widths wins.
+  const innerArea=usableWidth*usableDepth;
+  const share=(mm2:number)=>mm2/innerArea*100;
+  const choices=(enabled:boolean,value:number,min:number)=>enabled?[...new Set([Math.min(value,min),value,Math.min(5000,value+600),Math.min(5000,value+1200)])]:[0];
+  const wanted={pos:modules.counter.width,beverage:modules.beverage.enabled?modules.beverage.width:0,pickup:modules.pickup.enabled?modules.pickup.width:0};
+  type Candidate={pos:number;beverage:number;pickup:number;modules:number[];leg:number[];displayArea:number;violations:number;closeness:number;legLength:number};
+  const candidates:Candidate[]=[];
+  const outside=(value:number,zone:{min:number;max:number})=>value+ZONE_TOLERANCE<zone.min||value-ZONE_TOLERANCE>zone.max?1:0;
+  for(const leg of legOptions)
+  for(const pos of choices(true,modules.counter.width,MIN_POS))
+  for(const beverage of choices(modules.beverage.enabled,modules.beverage.width,MIN_BEVERAGE))
+  for(const pickup of choices(modules.pickup.enabled,modules.pickup.width,MIN_PICKUP)){
+    const fill=fillPlinthModules(usableWidth-pos-beverage-pickup,showcase.width),lineWidth=sum(fill),legLength=sum(leg);
+    if(!fill.length)continue;
+    if(legLength&&lineWidth<browsing)continue; // the corner run must cover the leg's browsing strip so zone areas never double count
+    const gap=usableWidth-lineWidth-pos-beverage-pickup;
+    const overlap=Math.min(lineWidth,Math.max(0,browsing-gap))*Math.min(legLength,rules.queueDepth);
+    const displayArea=lineWidth*serviceDepth+legLength*browsing-overlap;
+    if(share(displayArea)+DISPLAY_TOLERANCE<rules.zones.display.min)continue;
+    const violations=outside(share((pos+beverage)*serviceDepth),rules.zones.counter)+outside(share(pickup*serviceDepth),rules.zones.pickup);
+    const closeness=Math.abs(pos-wanted.pos)+Math.abs(beverage-wanted.beverage)+Math.abs(pickup-wanted.pickup);
+    candidates.push({pos,beverage,pickup,modules:fill,leg,displayArea,violations,closeness,legLength});
+  }
+  candidates.sort((a,b)=>a.violations-b.violations||a.closeness-b.closeness||a.legLength-b.legLength||b.displayArea-a.displayArea);
+  const chosen=candidates[0];
+  if(!chosen){
+    const minimalService=Math.min(modules.counter.width,MIN_POS)+(modules.beverage.enabled?MIN_BEVERAGE:0)+(modules.pickup.enabled?MIN_PICKUP:0);
+    const neededDisplay=Math.ceil(rules.zones.display.min/100*innerArea/serviceDepth/300)*300; // plinth modules fill any multiple of 300mm from 600mm up
+    const currentDisplay=sum(fillPlinthModules(Math.max(0,usableWidth-minimalService),showcase.width));
+    const sideDoorHint=rules.displayWrap==='auto'&&options.entrance==='center'&&legMax>=MIN_LEG?' 출입구를 왼쪽이나 오른쪽에 두면 진열을 측벽으로 L자 연장할 수 있어 해결될 수 있습니다.':'';
+    throw new Error(`진열 존 ${rules.zones.display.min}%를 확보할 수 없습니다. 폭 ${room.width.toLocaleString()}mm에서는 카운터·음료·픽업을 최소로 줄여도 진열 ${currentDisplay.toLocaleString()}mm(${round1(share(currentDisplay*serviceDepth))}%)입니다. 폭 ${(neededDisplay+minimalService+2*WALL_INSET).toLocaleString()}mm 이상이 필요하거나 음료 제조대·픽업대 모듈을 끄세요.${sideDoorHint}`);
+  }
+  const posWidth=chosen.pos,beverageWidth=chosen.beverage,pickupWidth=chosen.pickup,displayModules=chosen.modules,displayWidth=sum(displayModules),legModules=chosen.leg,legLength=chosen.legLength;
+  const unitNames=[['POS 카운터',posWidth,wanted.pos],['음료 제조대',beverageWidth,wanted.beverage],['픽업대',pickupWidth,wanted.pickup]] as const;
+  const reduced=unitNames.filter(([,actual,want])=>actual<want),grown=unitNames.filter(([,actual,want])=>actual>want);
+  if(reduced.length)warnings.push(`진열 존 ${rules.zones.display.min}% 확보를 위해 ${reduced.map(([name,actual])=>`${name} ${actual.toLocaleString()}mm`).join(' · ')}로 줄였습니다. 상가 폭이 넓어지면 브랜드 표준 폭으로 되돌아갑니다.`);
+  if(grown.length)warnings.push(`카운터·픽업 존 목표에 맞추기 위해 ${grown.map(([name,actual])=>`${name} ${actual.toLocaleString()}mm`).join(' · ')}로 늘렸습니다. 브랜드 표준 폭으로 되돌리려면 설비 모듈 폭을 확인하세요.`);
+  const cornerGap=usableWidth-displayWidth-posWidth-beverageWidth-pickupWidth;
 
   // ── Node factory. Everything is placed in the left-entrance frame and mirrored at the end.
   const nodes:SceneNode[]=[];
@@ -180,6 +212,18 @@ export function planBrandStore(brand:BrandStandard,room:BrandRoom,options:Layout
   }
   const serviceCenter=(serviceStart+cursor-pickupWidth)/2;
 
+  // ── Display leg along the entrance-side wall, continuing the corner module toward the storefront.
+  let legCursor=zLegStart;
+  legModules.forEach((m,i)=>{
+    const z=legCursor+m/2,x=xLeft+plinthDepth/2,g=group(`측벽 진열 모듈 ${i+1} · ${m}mm`);
+    put('box','콘크리트 기단 블록',x,z,Math.round(m*.6),BLOCK_HEIGHT,Math.round(plinthDepth*.7),concrete,0,90,g);
+    put('box','플린스 몸체 (목재 무늬목)',x,z,m,plinthHeight-BLOCK_HEIGHT-TOP_SLAB,plinthDepth,slot('wood'),BLOCK_HEIGHT,90,g);
+    put('box','플린스 상판 (석재)',x,z,m,TOP_SLAB,plinthDepth,slot('counterTop'),plinthHeight-TOP_SLAB,90,g);
+    put('box','유리 쇼케이스',x,z,m-SHOWCASE_INSET,SHOWCASE_HEIGHT,plinthDepth-100,glass,plinthHeight,90,g);
+    put('pendant',`진열 스포트 ${rules.lightingWarmth.toLocaleString()}K`,xLeft+plinthDepth-100,z,SPOT,SPOT_HEIGHT,SPOT,slot('metal'),room.height-SPOT_HEIGHT-20,0,g);
+    legCursor+=m;
+  });
+
   // ── Back-of-house along the back wall: work counter behind the service units, storage racks in the rest.
   let workWidth=0,rackCount=0;
   const zBackCenter=zBack+backDepth/2;
@@ -199,10 +243,7 @@ export function planBrandStore(brand:BrandStandard,room:BrandRoom,options:Layout
     return placed;
   }
 
-  // ── Entrance and the main aisle straight back to the queue zone.
-  const doorX=options.entrance==='center'?0:xLeft+250+rules.doorWidth/2;
-  const exclusion=Math.max(rules.doorWidth,rules.aisleMain)/2;
-  const aisle={x0:doorX-exclusion,x1:doorX+exclusion};
+  // ── Entrance door on the storefront.
   put('door',`출입문 (유리) · ${entranceNames[options.entrance]}`,doorX,0,rules.doorWidth,2100,160,glass);
   nodes[nodes.length-1].host='front';
   nodes[nodes.length-1].y=0;
@@ -216,7 +257,7 @@ export function planBrandStore(brand:BrandStandard,room:BrandRoom,options:Layout
     if(frontBand<barZone)warnings.push(`창가 바 좌석을 생략했습니다. 전면 여유 ${frontBand.toLocaleString()}mm는 바 ${BAR_DEPTH} + 스툴 ${STOOL_ZONE}mm보다 작습니다.`);
     else for(const [from,to,side] of [[xLeft,aisle.x0,'left'],[aisle.x1,xRight,'right']] as const){
       const length=Math.min(modules.windowBar.width,to-from);
-      if(length<2*STOOL_PITCH)continue;
+      if(length<2*STOOL_PITCH||(legLength&&side==='left'))continue; // keep the display corner and its browsing strip clear
       const seats=Math.floor(length/STOOL_PITCH),x=side==='left'?to-length/2:from+length/2,g=group(`창가 바 · ${seats}석`),barHeight=modules.windowBar.height;
       put('box','창가 바 상판 (목재)',x,zFront-BAR_DEPTH/2,length,BAR_TOP,BAR_DEPTH,slot('wood'),barHeight-BAR_TOP,0,g);
       for(const end of [-1,1])put('box','바 지지 프레임 (SUS)',x+end*(length/2-BAR_LEG/2-20),zFront-BAR_DEPTH/2,BAR_LEG,barHeight-BAR_TOP,BAR_DEPTH-20,slot('metal'),0,0,g);
@@ -260,7 +301,7 @@ export function planBrandStore(brand:BrandStandard,room:BrandRoom,options:Layout
   if(storeType==='D')warnings.push('10평 미만은 인스토어(Type D) 기준으로 검토하세요. 임대처 가이드를 우선하되 플린스 재질·조명 사양은 유지합니다.');
   const ratio=(mm2:number)=>round1(mm2/innerArea*100);
   const zoneStatus=(value:number,min:number,max:number,hard=false):BrandCheckStatus=>hard?(value+DISPLAY_TOLERANCE<min?'fail':'ok'):value+ZONE_TOLERANCE<min?'warn':value-ZONE_TOLERANCE>max?'warn':'ok';
-  const displayArea=displayWidth*serviceDepth,counterArea=(posWidth+beverageWidth)*serviceDepth,pickupArea=pickupWidth*serviceDepth,backArea=usableWidth*backBand;
+  const displayArea=chosen.displayArea,counterArea=(posWidth+beverageWidth)*serviceDepth,pickupArea=pickupWidth*serviceDepth,backArea=usableWidth*backBand;
   const seatingArea=innerArea-displayArea-counterArea-pickupArea-backArea;
   const zones:BrandReport['zones']=[
     {id:'Z2',name:'진열',areaM2:round1(displayArea/1e6),ratio:ratio(displayArea),min:rules.zones.display.min,max:rules.zones.display.max,status:zoneStatus(ratio(displayArea),rules.zones.display.min,rules.zones.display.max,true)},
@@ -280,9 +321,10 @@ export function planBrandStore(brand:BrandStandard,room:BrandRoom,options:Layout
     {name:'주통로 · 출입구→카운터',required:rules.aisleMain,actual:mainAisle,status:mainAisle>=rules.aisleMain?'ok':'fail'},
     {name:'부통로 · 후방 작업',required:rules.aisleSub,actual:rules.aisleSub,status:'ok'},
     {name:'대기열 · 카운터 앞 깊이',required:rules.queueDepth,actual:queueActual,status:queueActual>=rules.queueDepth?'ok':'fail'},
+    ...(legLength?[{name:'측벽 진열 앞 통로',required:rules.aisleMain,actual:rules.aisleMain,status:'ok' as const}]:[]),
   ];
 
-  count('진열 쇼케이스 플린스',displayModules.length,'F',`모듈 ${displayModules.join('+')}mm · GL+${plinthHeight} · 깊이 ${plinthDepth}mm · 유리 쇼케이스+목재 베이스+콘크리트 기단`);
+  count('진열 쇼케이스 플린스',displayModules.length+legModules.length,'F',`라인 ${displayModules.join('+')}mm${legLength?` · 측벽 L자 연장 ${legModules.join('+')}mm (출입구 쪽 코너, 진열 앞 통로 ${rules.aisleMain}mm)`:''} · GL+${plinthHeight} · 깊이 ${plinthDepth}mm · 유리 쇼케이스+목재 베이스+콘크리트 기단`);
   count('주문 카운터 (POS)',1,'F',`폭 ${posWidth}mm · 상판 GL+${counterHeight}mm · 하부 전면 도어형`);
   count('음료 제조대',beverageWidth?1:0,'O',`폭 ${beverageWidth}mm · 에스프레소 머신·제빙기·싱크는 본사 지정 모델 확인`);
   count('픽업대',pickupWidth?1:0,'S',`폭 ${pickupWidth}mm · 픽업 동선 끝단`);
@@ -290,7 +332,7 @@ export function planBrandStore(brand:BrandStandard,room:BrandRoom,options:Layout
   count('후방 보관랙 (SUS)',rackCount,'O',`깊이 ${RACK_DEPTH} · 높이 ${Math.min(RACK_HEIGHT,room.height-200)}mm`);
   count('창가 바 좌석',stools,'O',`바 깊이 ${BAR_DEPTH} · 스툴 간격 ${STOOL_PITCH}mm`);
   count('벽면 벤치·테이블',benchTables,'O',`테이블 ${TABLE}mm ${benchTables}개 · 벤치 깊이 ${BENCH_DEPTH}mm`);
-  count('진열 스포트',displayModules.length,'F',`${rules.lightingWarmth.toLocaleString()}K 진열 강조등 · 모듈당 1개`);
+  count('진열 스포트',displayModules.length+legModules.length,'F',`${rules.lightingWarmth.toLocaleString()}K 진열 강조등 · 모듈당 1개`);
   count('출입문',1,'O',`폭 ${rules.doorWidth}mm · ${entranceNames[options.entrance]} 위치`);
 
   const checks:BrandReport['checks']=[

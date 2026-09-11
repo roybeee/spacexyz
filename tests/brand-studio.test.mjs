@@ -62,7 +62,9 @@ await test('a right-hand entrance mirrors the plan so the display starts beside 
 await test('the entrance aisle stays clear of every front-band obstacle and is measured honestly',()=>{
   for(const [w,d] of presets)for(const entrance of ['left','center','right']){
     const {aisle,bands,report}=m.brandPlan(brand,room(w,d),{entrance,seating:true}),s=layout(w,d,{entrance,seating:true}),front=bands[3];
-    for(const n of s.nodes.filter(n=>!n.host&&n.z+n.depth/2>front.z0)){const half=(Math.abs(n.rotation)%180===90?n.depth:n.width)/2;assert.ok(n.x+half<=aisle.x0+1||n.x-half>=aisle.x1-1,`${n.name} blocks the aisle`)}
+    const zFront=d/2-60,entryZone=zFront-1200; // the aisle must be straight through the entry zone; the display leg may sit beyond it
+    for(const n of s.nodes.filter(n=>!n.host&&n.z+(Math.abs(n.rotation)%180===90?n.width:n.depth)/2>entryZone)){const half=(Math.abs(n.rotation)%180===90?n.depth:n.width)/2;assert.ok(n.x+half<=aisle.x0+1||n.x-half>=aisle.x1-1,`${n.name} blocks the entry aisle`)}
+    assert.ok(front.z1===zFront);
     assert.equal(aisle.x1-aisle.x0,1200);
     assert.ok(report.aisles[0].actual>=1200);
   }
@@ -78,7 +80,7 @@ await test('seating can be switched off per store while the brand keeps its seat
 });
 
 await test('a shop too narrow for the display share is refused with the width and module advice a planner would give',()=>{
-  assert.throws(()=>layout(3600,9000,{entrance:'left',seating:true}),e=>e.message.includes('진열 존 20%')&&e.message.includes('4,520mm')&&e.message.includes('음료 제조대·픽업대 모듈'));
+  assert.throws(()=>layout(3600,9000,{entrance:'left',seating:true}),e=>e.message.includes('진열 존 20%')&&e.message.includes('4,620mm')&&e.message.includes('음료 제조대·픽업대 모듈'));
   const takeout=structuredClone(brand);takeout.modules.beverage.enabled=false;takeout.modules.pickup.enabled=false;
   const s=layout(3600,9000,{entrance:'left',seating:true},takeout),r=s.brandApplication.report;
   assert.ok(r.zones.find(z=>z.id==='Z2').ratio>=20);
@@ -137,6 +139,58 @@ await test('the report carries every manual checklist item as a site check with 
   assert.ok(r.checks.filter(c=>c.status==='ok').length>=4);
   assert.ok(r.equipment.every(e=>['F','S','O'].includes(e.grade)&&e.count>0));
   assert.ok(r.warnings.length<=12&&r.checks.length<=16&&r.equipment.length<=24);
+});
+
+await test('mid-size shops wrap the display around the entrance corner so counters keep their brand widths',()=>{
+  const s=layout(6000,8300,{entrance:'left',seating:true}),r=s.brandApplication.report;
+  const leg=s.nodes.filter(n=>n.group?.name.startsWith('측벽 진열 모듈'));
+  assert.equal(leg.filter(n=>n.name==='유리 쇼케이스').length,3);
+  assert.ok(leg.every(n=>n.kind==='pendant'||Math.abs(n.rotation)===90));
+  assert.ok(leg.filter(n=>n.kind!=='pendant').every(n=>n.x===-2540),'leg plinths hug the left wall');
+  for(const n of leg)assert.ok(n.z+(Math.abs(n.rotation)===90?n.width:n.depth)/2<=8300/2-60-1200,'leg stops short of the entry zone');
+  assert.ok(leg.filter(n=>n.name==='플린스 몸체 (목재 무늬목)').every(n=>[600,900,1200].includes(n.width)));
+  assert.deepEqual(r.zones.map(z=>z.status),['ok','ok','ok','ok','ok']);
+  assert.deepEqual(r.warnings,[]);
+  assert.ok(r.equipment.find(e=>e.name==='주문 카운터 (POS)').note.includes('폭 1200mm'));
+  assert.ok(r.equipment.find(e=>e.name==='음료 제조대').note.includes('폭 1200mm'));
+  assert.equal(r.equipment.find(e=>e.name==='진열 쇼케이스 플린스').count,5);
+  assert.ok(r.equipment.find(e=>e.name==='진열 쇼케이스 플린스').note.includes('측벽 L자 연장'));
+  assert.ok(r.aisles.some(a=>a.name==='측벽 진열 앞 통로'&&a.actual===1200&&a.status==='ok'));
+  const right=layout(6000,8300,{entrance:'right',seating:true});
+  assert.ok(right.nodes.filter(n=>n.group?.name.startsWith('측벽 진열 모듈')&&n.kind!=='pendant').every(n=>n.x===2540),'mirrored leg hugs the right wall');
+  assert.deepEqual(m.collisions(right),[]);
+});
+
+await test('the leg is only used when it earns its place: small shops stay straight and a straight-only rule reproduces the warnings',()=>{
+  const small=layout(5000,6600,{entrance:'left',seating:true});
+  assert.equal(small.nodes.filter(n=>n.group?.name.startsWith('측벽')).length,0);
+  assert.equal(small.nodes.length,32);
+  const straight=structuredClone(brand);straight.rules.displayWrap='straight';
+  const s=layout(6000,8300,{entrance:'left',seating:true},straight),r=s.brandApplication.report;
+  assert.equal(s.nodes.filter(n=>n.group?.name.startsWith('측벽')).length,0);
+  assert.equal(r.zones.find(z=>z.id==='Z3').status,'warn');
+  assert.ok(r.warnings.some(w=>w.includes('L자로 연장')));
+  assert.ok(r.equipment.find(e=>e.name==='주문 카운터 (POS)').note.includes('폭 900mm'));
+});
+
+await test('a centred door on a narrow shop blocks the leg and the refusal says a side door would fix it',()=>{
+  assert.throws(()=>layout(5200,8300,{entrance:'center',seating:true}),e=>e.message.includes('5,220mm')&&e.message.includes('출입구를 왼쪽이나 오른쪽에'));
+  const side=layout(5200,8300,{entrance:'left',seating:true}),r=side.brandApplication.report;
+  assert.equal(side.nodes.filter(n=>n.group?.name.startsWith('측벽 진열 모듈')&&n.name==='유리 쇼케이스').length,3);
+  assert.ok(r.zones.every(z=>z.status==='ok'));
+  assert.deepEqual(m.collisions(side),[]);
+  const wide=layout(5220,8300,{entrance:'center',seating:true});
+  assert.ok(wide.brandApplication.report.zones.find(z=>z.id==='Z2').ratio>=20);
+});
+
+await test('service units may grow past the brand width when the counter zone needs it and the report says so',()=>{
+  const r=layout(7200,9200,{entrance:'left',seating:true}).brandApplication.report;
+  assert.ok(r.equipment.find(e=>e.name==='음료 제조대').note.includes('폭 1800mm'));
+  assert.ok(r.warnings.some(w=>w.includes('늘렸습니다')));
+  assert.ok(r.zones.every(z=>z.status==='ok'),JSON.stringify(r.zones));
+  const deep=layout(9000,12000,{entrance:'left',seating:true}).brandApplication.report;
+  assert.ok(deep.zones.some(z=>z.status==='warn'),'a 12m-deep shop is reported honestly');
+  assert.ok(deep.warnings.some(w=>w.includes('후방')));
 });
 
 await test('planning is deterministic for the same inputs and every node is grouped with a readable Korean name',()=>{

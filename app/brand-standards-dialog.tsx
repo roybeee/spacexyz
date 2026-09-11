@@ -4,7 +4,7 @@ import {Store,Plus,Copy,Save,Trash2,ArrowRight,RefreshCw,ExternalLink,X} from 'l
 import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription} from '@/components/ui/dialog';
 import {Tabs,TabsList,TabsTrigger} from '@/components/ui/tabs';
 import {AlertDialog,AlertDialogContent,AlertDialogHeader,AlertDialogTitle,AlertDialogDescription,AlertDialogFooter,AlertDialogCancel,AlertDialogAction} from '@/components/ui/alert-dialog';
-import {brandRoles,brandRoleNames,moduleNames,moduleGrades,moduleHints,ruleNames,zoneRuleNames,ofdBrand,validateBrand,brandScene,brandPlan,brandReplacementItems,type BrandRole,type BrandStandard,type BrandRow,type BrandRules,type ModuleKey,type PlanBand} from '@/lib/brand-standards';
+import {brandRoles,brandRoleNames,moduleNames,moduleGrades,moduleHints,ruleNames,zoneRuleNames,displayWrapNames,ofdBrand,validateBrand,brandScene,brandPlan,brandReplacementItems,type BrandRole,type BrandStandard,type BrandRow,type BrandRules,type ModuleKey,type PlanBand} from '@/lib/brand-standards';
 import {brandGrades,brandGradeNames,entranceSides,entranceNames,type BrandGrade,type BrandReport,type BrandCheckStatus,type Entrance} from '@/lib/brand-application';
 import {materialProduct,productFinish} from '@/lib/material-products';
 import {materials,type SceneData} from '@/lib/scene-model';
@@ -219,11 +219,12 @@ export default function BrandStandardsDialog({scene,onClose,onPreview}:{scene:Sc
                   <NumberField label={<>{ruleNames.queueDepth} <Grade grade="F"/></>} value={standard.rules.queueDepth} min={0} max={6000} onChange={v=>updateRules({queueDepth:v})}/>
                   <NumberField label={<>{ruleNames.doorWidth} <Grade grade="O"/></>} value={standard.rules.doorWidth} min={700} max={2400} onChange={v=>updateRules({doorWidth:v})}/>
                   <NumberField label={<>{ruleNames.lightingWarmth} K <Grade grade="F"/></>} value={standard.rules.lightingWarmth} min={2700} max={6500} step={100} onChange={v=>updateRules({lightingWarmth:v})}/>
+                  <label>{ruleNames.displayWrap} <Grade grade="O"/><select className="text-input" aria-label="진열 확장 방식" value={standard.rules.displayWrap} onChange={e=>updateRules({displayWrap:e.target.value as BrandRules['displayWrap']})}>{(Object.keys(displayWrapNames) as BrandRules['displayWrap'][]).map(key=><option key={key} value={key}>{displayWrapNames[key]}</option>)}</select></label>
                 </div>
                 <div className="brand-zone-rules">{(Object.keys(zoneRuleNames) as (keyof BrandRules['zones'])[]).map(zone=><div key={zone}><span>{zoneRuleNames[zone]} <Grade grade="F"/></span>
                   <NumberField label="최소 %" value={standard.rules.zones[zone].min} min={0} max={100} step={1} onChange={v=>updateZone(zone,{min:v})}/>
                   <NumberField label="최대 %" value={standard.rules.zones[zone].max} min={0} max={100} step={1} onChange={v=>updateZone(zone,{max:v})}/></div>)}</div>
-                <p className="fineprint">진열 존 최소 비율은 고정 규칙입니다. 확보되지 않으면 배치를 생성하지 않고 필요한 폭을 안내합니다. 다른 존은 목표 범위를 벗어나면 조정 권장으로 표시합니다.</p>
+                <p className="fineprint">진열 존 최소 비율은 고정 규칙입니다. 확보되지 않으면 배치를 생성하지 않고 필요한 폭을 안내합니다. 다른 존은 목표 범위를 벗어나면 조정 권장으로 표시합니다. 진열 확장이 자동이면 넓은 상가에서 진열을 출입구 쪽 측벽으로 L자 연장해 카운터 폭을 지킵니다.</p>
                 <div className="brand-section-title"><h3>현장 확인 항목</h3><span>3D로 검증할 수 없는 사양 · 리포트에 그대로 표시</span></div>
                 <ul className="brand-checklist">{checklist.map((c,i)=><li key={i}>
                   <select className="text-input" aria-label={`항목 ${i+1} 등급`} value={c.grade} onChange={e=>updateChecklist(checklist.map((x,j)=>j===i?{...x,grade:e.target.value as BrandGrade}:x))}>{brandGrades.map(g=><option key={g} value={g}>{g} · {brandGradeNames[g]}</option>)}</select>
